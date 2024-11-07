@@ -1,0 +1,46 @@
+version: '2'
+
+networks:
+    default:
+    symfony-6-testing-project_default:
+        external:
+            name: symfony-6-testing-project_default
+
+services:
+    front:
+        image: nginx:alpine
+        container_name: symfony-6-testing-project_front
+        ports:
+            - 84:80
+        volumes:
+            - .:/var/www:rw
+            - ./config/docker/front/symfony-6-testing-project.conf:/etc/nginx/conf.d/symfony-6-testing-project.conf:ro
+        working_dir: /var/www
+        networks:
+            default:
+                aliases:
+                    - dev.symfony-6-testing-project.com
+
+    db:
+        image: mysql/mysql-server:8.0.28
+        container_name: symfony-6-testing-project_db
+        command: --default-authentication-plugin=mysql_native_password
+        environment:
+            MYSQL_ROOT_HOST: '%'
+            MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
+        ports:
+            - 3306:3306
+
+
+    engine:
+        build: ./config/docker/engine/
+        container_name: symfony-6-testing-project_engine
+        ports:
+            - 3001:3001
+        volumes:
+            - .:/var/www:rw
+            - ./config/docker/engine/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
+        working_dir: /var/www
+        networks:
+            - default
+            - symfony-6-testing-project_default
