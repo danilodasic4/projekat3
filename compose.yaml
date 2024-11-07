@@ -1,20 +1,18 @@
+version: '3.8'
 
 services:
-###> doctrine/doctrine-bundle ###
+  # Database service
   database:
-    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    image: mysql:8.0 # Use MySQL image (adjust version if needed)
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-app}
-      # You should definitely change the password in production
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
-      POSTGRES_USER: ${POSTGRES_USER:-app}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-projekat3_db} # Your database name
+      MYSQL_USER: ${MYSQL_USER:-root} # Database user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-1236} # Database user password
+    ports:
+      - "3306:3306"  # Expose MySQL port
     volumes:
-      - database_data:/var/lib/postgresql/data:rw
-      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
-      # - ./docker/db/data:/var/lib/postgresql/data:rw
-###< doctrine/doctrine-bundle ###
+      - database_data:/var/lib/mysql:rw  # Persist database data
 
 volumes:
-###> doctrine/doctrine-bundle ###
   database_data:
-###< doctrine/doctrine-bundle ###
+    driver: local
