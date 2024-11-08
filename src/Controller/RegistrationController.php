@@ -16,35 +16,35 @@ class RegistrationController extends AbstractController
     #[Route('/register', name: 'app_register')]
     public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
     {
-        // Kreiramo novu User instancu
+        // We are creating new instance of User class
         $user = new User();
 
-        // Kreiramo formu i povezujemo je sa User entitetom
+        // We are creating form and connecting it with User entity 
         $form = $this->createForm(RegistrationFormType::class, $user);
 
-        // Obrada podataka sa forme
+        // Form data processing
         $form->handleRequest($request);
 
-        // Ako je forma poslana i validna, snimamo korisnika
+        // If is form sent and validated, we save the user
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var string $plainPassword */
             $plainPassword = $form->get('plainPassword')->getData();
 
-            // Šifrujemo lozinku pre nego što je snimimo u bazu
+            // We encrypt the password before saving it to the database
             $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
 
-            // Snimanje korisnika u bazu
+            // Saving the user
             $entityManager->persist($user);
             $entityManager->flush();
 
-            // Flash poruka o uspehu
+            // Flash message about success
             $this->addFlash('success', 'Registracija je uspešna!');
 
-            // Preusmeravamo korisnika na homepage nakon uspešne registracije
+            // Redirecting homepage after successful registration
             return $this->redirectToRoute('homepage');
         }
 
-        // Prikazivanje forme u Twig šablonu
+        // Displaying the form in a Twig template
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form->createView(),
         ]);

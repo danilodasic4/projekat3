@@ -23,7 +23,7 @@ security:
             logout:
                 path: logout
                 target: /
-            # Omogućava pristup anonimnim korisnicima
+            # Giving access to unknown users
             security: false
 
     access_control:
