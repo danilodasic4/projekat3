@@ -18,15 +18,15 @@ security:
             lazy: true
             provider: app_user_provider
             form_login:
-                login_path: app_login
+                login_path: /login
                 check_path: app_login
+                default_target_path: /cars
             logout:
-                path: logout
+                path: /logout
                 target: /
-            # Giving access to unknown users
-            security: false
+            security: true
 
     access_control:
         - { path: ^/cars, roles: ROLE_USER }
-        - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/register, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }

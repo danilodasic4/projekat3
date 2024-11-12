@@ -22,7 +22,7 @@ class CarController extends AbstractController
             'cars' => $cars
         ]);
     }
-
+    
     #[Route('/cars/{id}', name: 'app_car_show', methods: ['GET'])]
     public function show($id): Response
     {
