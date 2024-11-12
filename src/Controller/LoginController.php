@@ -15,6 +15,7 @@ class LoginController extends AbstractController
     {
         // Check if the user is already logged in
         if ($this->getUser()) {
+            dump($this->getUser()); 
             return $this->redirectToRoute('app_car_index'); // Redirect to car list if already logged in
         }
 
