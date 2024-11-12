@@ -1,2 +1,17 @@
-{# templates/index.html.twig #}
-<h1>Welcome to the Homepage</h1>
+{% extends 'base.html.twig' %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+    <h1>Welcome to Our Application</h1>
+
+    <div>
+        If you are not signed->
+        <a href="{{ path('app_register') }}">Sign Up</a>
+    </div>
+
+    <div>
+        If you are already signed->
+        <a href="{{ path('app_login') }}">Login</a>
+    </div>
+{% endblock %}

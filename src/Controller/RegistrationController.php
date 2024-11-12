@@ -27,6 +27,8 @@ class RegistrationController extends AbstractController
 
         // If is form sent and validated, we save the user
         if ($form->isSubmitted() && $form->isValid()) {
+
+            $user->setRole(['ROLE_USER']);
             /** @var string $plainPassword */
             $plainPassword = $form->get('plainPassword')->getData();
 
@@ -38,10 +40,10 @@ class RegistrationController extends AbstractController
             $entityManager->flush();
 
             // Flash message about success
-            $this->addFlash('success', 'Registracija je uspešna!');
+            $this->addFlash('success', 'Registration is successful, now you can login!');
 
             // Redirecting homepage after successful registration
-            return $this->redirectToRoute('homepage');
+            return $this->redirectToRoute('app_login');
         }
 
         // Displaying the form in a Twig template
