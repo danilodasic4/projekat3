@@ -13,4 +13,3 @@
 ##going into front,engine or db part of docker container, using docker-compose exec engine/db/front bash 
 ##and then there you are making by the ubuntu terminal controllers(templates/twig),entities...
 ##rules:everything in English, after uploading on github you need to delete source branch,in this case dd4
-##user email danilodasic2@gmail.com, password is danilo
