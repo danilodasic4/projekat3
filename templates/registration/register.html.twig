@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+    <h1>Register</h1>
+
+    {# Showing errors (if it has) #}
+    {% if app.session.flashbag().has('success') %}
+        <div class="alert alert-success">
+            {{ app.session.flashbag().get('success')[0] }}
+        </div>
+    {% endif %}
+
+    {% if form_errors(registrationForm) %}
+        <div class="alert alert-danger">
+            {{ form_errors(registrationForm) }}
+        </div>
+    {% endif %}
+
+    {# Starting form #}
+    {{ form_start(registrationForm, {'attr': {'class': 'form'}}) }}
+
+        {# Field for email #}
+        <div class="mb-3">
+            {{ form_row(registrationForm.email, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        {# Field for password #}
+        <div class="mb-3">
+            {{ form_row(registrationForm.plainPassword, { 'label': 'Password', 'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        {# Checkbox agreeing for terms #}
+        <div class="mb-3">
+            {{ form_row(registrationForm.agreeTerms, {'attr': {'class': 'form-check-input'}}) }}
+        </div>
+
+        {# Submit button #}
+        <button type="submit" class="btn btn-primary">Register</button>
+
+    {{ form_end(registrationForm) }}
+{% endblock %}
