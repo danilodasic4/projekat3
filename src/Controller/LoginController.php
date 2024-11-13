@@ -32,8 +32,6 @@ class LoginController extends AbstractController
 
     #[Route('/logout', name: 'app_logout', methods: ['GET'])]
     public function logout(): void
-    {
-        // The logout method can be blank - Symfony will handle it
-        throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
+    {        // The logout method can be blank - Symfony will handle it
     }
 }

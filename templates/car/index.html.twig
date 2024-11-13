@@ -1,20 +1,16 @@
-{% extends 'base.html.twig' %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>List of Cars</title>
+</head>
+<body>
+    {% include 'partials/header.html.twig' %}
 
-{% block title %}Hello CarController!{% endblock %}
-
-{% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
-
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
-
-    This friendly message is coming from:
+    <h1>List of Cars</h1>
     <ul>
-        <li>Your controller at <code>/var/www/html/projekat3/src/Controller/CarController.php</code></li>
-        <li>Your template at <code>/var/www/html/projekat3/templates/car/index.html.twig</code></li>
+        {% for car in cars %}
+            <li>{{ car.model }} - {{ car.make }}</li>
+        {% endfor %}
     </ul>
-</div>
-{% endblock %}
+</body>
+</html>

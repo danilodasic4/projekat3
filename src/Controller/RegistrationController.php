@@ -27,8 +27,8 @@ class RegistrationController extends AbstractController
 
         // If is form sent and validated, we save the user
         if ($form->isSubmitted() && $form->isValid()) {
-
-            $user->setRole(['ROLE_USER']);
+            //adding role of user like array
+            $user->setRoles(['ROLE_USER']);
             /** @var string $plainPassword */
             $plainPassword = $form->get('plainPassword')->getData();
 

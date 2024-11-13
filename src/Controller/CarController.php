@@ -3,43 +3,36 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
 class CarController extends AbstractController
 {
     #[Route('/cars', name: 'app_car_index', methods: ['GET'])]
-    public function index(): JsonResponse
+    public function index(): Response
     {
-        // Logic to return a list of cars from the database would go here
-        return new JsonResponse(['message' => 'List of cars']);
-    }
+        // Logic to return a list of cars from the database or mock data
+        // For example:
+        $cars = [
+            ['id' => 1, 'model' => 'Car 1', 'make' => 'Brand A'],
+            ['id' => 2, 'model' => 'Car 2', 'make' => 'Brand B'],
+        ];
 
+        return $this->render('car/index.html.twig', [
+            'cars' => $cars
+        ]);
+    }
+    
     #[Route('/cars/{id}', name: 'app_car_show', methods: ['GET'])]
-    public function show($id): JsonResponse
+    public function show($id): Response
     {
-        // Logic to return details of a specific car by its ID from the database would go here
-        return new JsonResponse(['message' => "Details of car with ID: $id"]);
+        // Logic to return details of a specific car by its ID from the database
+        $car = ['id' => $id, 'model' => 'Car ' . $id, 'make' => 'Brand A'];
+
+        return $this->render('car/show.html.twig', [
+            'car' => $car
+        ]);
     }
 
-    #[Route('/cars', name: 'app_car_create', methods: ['POST'])]
-    public function create(): JsonResponse
-    {
-        // Logic to create a new car in the database would go here
-        return new JsonResponse(['message' => 'Car created']);
-    }
-
-    #[Route('/cars/{id}', name: 'app_car_update', methods: ['PUT'])]
-    public function update($id): JsonResponse
-    {
-        // Logic to update a car in the database by its ID would go here
-        return new JsonResponse(['message' => "Car with ID $id updated"]);
-    }
-
-    #[Route('/cars/{id}', name: 'app_car_delete', methods: ['DELETE'])]
-    public function delete($id): JsonResponse
-    {
-        // Logic to delete a car from the database by its ID would go here
-        return new JsonResponse(['message' => "Car with ID $id deleted"]);
-    }
+    
 }
