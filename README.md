@@ -10,6 +10,8 @@
 ##entry directory of project then docker-compose exec db bash ,after
 ##mysql, adn create database ...
 ##route is /var/www/html/projekat3, then depends on what you are doing 
-##going into front,engine or db part of docker container, using docker-compose exec engine/db/front bash 
-##and then there you are making by the ubuntu terminal controllers(templates/twig),entities...
+##going into db part of docker container to make base, using docker-compose exec db bash 
+##and then mysql and then u are inside, create database project3... exit; , exit;
 ##rules:everything in English, after uploading on github you need to delete source branch,in this case dd4
+##when you want to do migrations you need to write down docker-compose exec engine sh,
+##(Here is must bin/console its not possible with symfony console)bin/console doctrine:migrations:migrate --no-interaction( This version of the command automatically executes ##all migrations without requiring additional input, such as confirmation with yes/no)
