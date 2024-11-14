@@ -82,7 +82,8 @@ public function edit(Request $request, int $id): Response
         throw $this->createNotFoundException('Car not found');
     }
     $form = $this->createForm(CarFormType::class, $car, [
-        'method' => 'PUT', 
+        'method' => 'PUT',
+        'action' => $this->generateUrl('app_car_edit',['id' => $id])
     ]);
    
     $form->handleRequest($request);
