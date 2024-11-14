@@ -3,11 +3,3 @@ controllers:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
-kernel:
-    resource: App\Kernel
-    type: attribute
-
-app_car_delete:
-    path: /cars/delete/{id}
-    methods: [GET, POST, DELETE]
-    controller: App\Controller\CarController::delete
