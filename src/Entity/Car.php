@@ -24,8 +24,8 @@ class Car
     #[ORM\Column]
     private ?int $year = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
-    private ?string $EngineCapacity = null;
+    #[ORM\Column]
+    private ?int $EngineCapacity = null;
 
     #[ORM\Column]
     private ?int $horsePower = null;
@@ -34,7 +34,7 @@ class Car
     private ?string $color = null;
 
     #[ORM\ManyToOne(inversedBy: 'cars')]
-    private ?User $user_id = null;
+    private ?User $user = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $created_at = null;
@@ -89,12 +89,12 @@ class Car
         return $this;
     }
 
-    public function getEngineCapacity(): ?string
+    public function getEngineCapacity(): ?int
     {
         return $this->EngineCapacity;
     }
 
-    public function setEngineCapacity(string $EngineCapacity): static
+    public function setEngineCapacity(int $EngineCapacity): static
     {
         $this->EngineCapacity = $EngineCapacity;
 
@@ -125,17 +125,17 @@ class Car
         return $this;
     }
 
-    public function getUserId(): ?User
+    public function getUser(): ?User
     {
-        return $this->user_id;
+        return $this->user;
     }
-
-    public function setUserId(?User $user_id): static
+    
+    public function setUser(?User $user): static
     {
-        $this->user_id = $user_id;
-
+        $this->user = $user;
         return $this;
     }
+    
 
     public function getCreatedAt(): ?\DateTimeInterface
     {

@@ -9,13 +9,14 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 class CarController extends AbstractController
 {
     private $carRepository;
     private $entityManager;
 
-    // Constructor for injection konstruktor CarRepository and EntityManagerInterface
+    // Construct for injection CarRepository and EntityManagerInterface
     public function __construct(CarRepository $carRepository, EntityManagerInterface $entityManager)
     {
         $this->carRepository = $carRepository;
@@ -35,21 +36,16 @@ class CarController extends AbstractController
 
     // Show details of a specific car (Read)
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
-    public function show(int $id): Response
+    #[ParamConverter('car', class: 'App\Entity\Car')]
+    public function show(Car $car): Response
     {
-        $car = $this->carRepository->find($id); // Using fundamental find method 
-
-        if (!$car) {
-            throw $this->createNotFoundException('Car not found');
-        }
-
         return $this->render('car/show.html.twig', [
-            'car' => $car
+            'car' => $car,
         ]);
     }
 
     // Create a new car (Create)
-    #[Route('/cars/new', name: 'app_car_new', methods: ['GET', 'POST'])]
+    #[Route('/cars/create', name: 'app_car_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
         $car = new Car();
@@ -62,7 +58,7 @@ class CarController extends AbstractController
             $car->setCreatedAt(new \DateTimeImmutable()); 
 
             // Optionally set the user if it's a logged-in user
-            // $car->setUserId($this->getUser());
+            // $car->setUser($this->getUser());
             
             $this->entityManager->persist($car);
             $this->entityManager->flush();

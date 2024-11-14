@@ -19,7 +19,7 @@ class CarFormType extends AbstractType
             ->add('brand', TextType::class)
             ->add('model', TextType::class)
             ->add('year', NumberType::class)
-            ->add('engineCapacity', TextType::class)
+            ->add('engineCapacity', NumberType::class)
             ->add('horsePower', NumberType::class)
             ->add('color', TextType::class, ['required' => false])
             ->add('registrationDate', DateType::class, [
