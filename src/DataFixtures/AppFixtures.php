@@ -9,6 +9,7 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Faker\Factory; // Using fakerphp/faker
 use \DateTime;
+use DateTimeImmutable;
 
 class AppFixtures extends Fixture
 {
@@ -43,22 +44,24 @@ class AppFixtures extends Fixture
         // Create 10 cars and associate them with the user
         for ($i = 0; $i < 10; $i++) {
             $car = new Car();
-            $car->setBrand($faker->company)  // Set the car's brand (e.g., Toyota)
-                ->setModel($faker->word)     // Set the car's model (e.g., Corolla)
-                ->setYear($faker->year)      // Set the car's year of production
-                ->setEngineCapacity($faker->numberBetween(1000, 5000))  // Set the engine capacity in cc
-                ->setHorsePower($faker->numberBetween(70, 500))         // Set the car's horsepower
-                ->setColor($faker->safeColorName)  // Set the car's color (e.g., red, blue)
-                ->setUser($user)  // Associate the car with the created user
-                ->setCreatedAt($currentDate)  // Set created_at for the car
-                ->setUpdatedAt($currentDate)  // Set updated_at for the car
-                ->setDeletedAt(null)  // Set deleted_at to null (no soft delete)
-                ->setRegistrationDate($faker->dateTimeBetween('-1 years', 'now')); // Random registration date within the last 5 years
+            $car->setBrand($faker->company);
+            $car->setModel($faker->word);
+            $car->setYear($faker->year);
+            $car->setEngineCapacity($faker->randomNumber(4));
+            $car->setHorsePower($faker->randomNumber(3));
+            $car->setColor($faker->colorName);
 
-            $manager->persist($car);  // Persist each car entity
+            $registrationDate = new DateTimeImmutable('+' . rand(1, 365) . ' days'); // Random datum između 1 i 365 dana od danas
+            $car->setRegistrationDate($registrationDate);
+            
+            $car->setCreatedAt(new \DateTimeImmutable());
+            $car->setUpdatedAt(new \DateTimeImmutable());
+            
+            $car->setUser($user);  
+
+            $manager->persist($car);
         }
 
-        // Flush the data to save cars in the database
         $manager->flush();
     }
 }
