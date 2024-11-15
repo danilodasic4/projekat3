@@ -28,11 +28,10 @@ class CarsExpiringRegistrationCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        // Trenutni datum i prvi dan sledećeg meseca
+        // Current date 
         $currentDate = new DateTimeImmutable();
         $nextMonth = $currentDate->modify('first day of next month');
 
-        // Pretraga automobila sa istekom registracije pre sledećeg meseca
         $cars = $this->carRepository->findByRegistrationExpiringBefore($nextMonth);
 
         if (!$cars) {
@@ -46,7 +45,7 @@ class CarsExpiringRegistrationCommand extends Command
                         $car->getBrand(),
                         $car->getModel(),
                         $car->getYear(),
-                        $car->getRegistrationDate()->format('Y-m-d') // <-- Ovdje koristimo registrationDate
+                        $car->getRegistrationDate()->format('Y-m-d') 
                     ];
                 }, $cars)
             );
