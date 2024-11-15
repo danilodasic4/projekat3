@@ -127,11 +127,8 @@ public function edit(Request $request, int $id): Response
       public function expiringRegistration(CarRepository $carRepository): Response
       {
           $currentDate = new DateTimeImmutable();
-          // Sledeći mesec - prvo postavljanje datuma za poslednji dan ovog meseca
           $endOfThisMonth = $currentDate->modify('last day of this month')->setTime(23, 59, 59);
-      
-          // Dohvati sve automobile koji imaju registraciju koja ističe do poslednjeg dana ovog meseca
-          $cars = $carRepository->findByRegistrationExpiringUntil($endOfThisMonth);
+                $cars = $carRepository->findByRegistrationExpiringUntil($endOfThisMonth);
       
           return $this->render('car/expiring_registration.html.twig', [
               'cars' => $cars,
