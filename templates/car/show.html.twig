@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Car Details</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    {% include 'partials/header.html.twig' %}
+    
+    <div class="container mt-4">
+        <h1>Car Details</h1>
+
+        <p><strong>Brand:</strong> {{ car.brand }}</p>
+        <p><strong>Model:</strong> {{ car.model }}</p>
+        <p><strong>Year:</strong> {{ car.year }}</p>
+        <p><strong>Engine Capacity:</strong> {{ car.engineCapacity }}</p>
+        <p><strong>Horse Power:</strong> {{ car.horsePower }}</p>
+        <p><strong>Color:</strong> {{ car.color }}</p>
+        <p><strong>Registration Date:</strong> {{ car.registrationDate|date('Y-m-d') }}</p>
+
+        <a href="{{ path('app_car_index') }}" class="btn btn-secondary mt-3">Back to list</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

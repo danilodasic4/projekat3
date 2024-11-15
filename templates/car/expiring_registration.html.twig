@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cars with Expiring Registration{% endblock %}
+
+{% block body %}
+    <h1>Cars with Registration Expiring Before Next Month</h1>
+
+    {% if cars is empty %}
+        <p>No cars found with expiring registration.</p>
+    {% else %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Year</th>
+                    <th>Registration Expiration</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for car in cars %}
+                    <tr>
+                        <td>{{ car.brand }}</td>
+                        <td>{{ car.model }}</td>
+                        <td>{{ car.year }}</td>
+                        <td>{{ car.registrationDate|date('Y-m-d') }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4">No cars found with expiring registration.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}
