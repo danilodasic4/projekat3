@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use DateTimeImmutable;
 
 class CarController extends AbstractController
 {
@@ -72,7 +73,6 @@ class CarController extends AbstractController
     }
 
     // Edit an existing car (Update)
- // Edit an existing car (Update)
  #[Route('/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
 public function edit(Request $request, int $id): Response
 {
@@ -102,7 +102,6 @@ public function edit(Request $request, int $id): Response
 
 
     // Delete a car (Delete)
-      // Delete a car
       #[Route('/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'POST', 'DELETE'])]
       public function delete(Request $request, int $id): Response
       {
@@ -124,4 +123,19 @@ public function edit(Request $request, int $id): Response
               'car' => $car,
           ]);
       }
+      #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration')]
+      public function expiringRegistration(CarRepository $carRepository): Response
+      {
+          $currentDate = new DateTimeImmutable();
+          // Sledeći mesec - prvo postavljanje datuma za poslednji dan ovog meseca
+          $endOfThisMonth = $currentDate->modify('last day of this month')->setTime(23, 59, 59);
+      
+          // Dohvati sve automobile koji imaju registraciju koja ističe do poslednjeg dana ovog meseca
+          $cars = $carRepository->findByRegistrationExpiringUntil($endOfThisMonth);
+      
+          return $this->render('car/expiring_registration.html.twig', [
+              'cars' => $cars,
+          ]);
+      }
+      
 }

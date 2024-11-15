@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\Car;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use DateTimeImmutable;
+use Doctrine\ORM\QueryBuilder;
 
 class CarRepository extends ServiceEntityRepository
 {
@@ -24,4 +26,15 @@ class CarRepository extends ServiceEntityRepository
     {
         return $this->find($id);
     }
+
+public function findByRegistrationExpiringUntil(DateTimeImmutable $endDate)
+{
+    return $this->createQueryBuilder('c')
+        ->where('c.registrationDate <= :endDate')
+        ->setParameter('endDate', $endDate)
+        ->getQuery()
+        ->getResult();
+}
+
+
 }
