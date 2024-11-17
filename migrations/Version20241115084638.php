@@ -23,10 +23,10 @@ final class Version20241115084638 extends AbstractMigration
         $table = $schema->getTable('users');
         
         // Add new columns
-        $table->addColumn('birthday', 'datetime', ['nullable' => true]);
-        $table->addColumn('gender', 'string', ['length' => 10, 'nullable' => true]);
-        $table->addColumn('newsletter', 'boolean', ['default' => false]);
-        $table->addColumn('profile_picture', 'string', ['length' => 255, 'nullable' => true]);
+        $table->addColumn('birthday', 'datetime', ['notnull' => false]);  // Make it nullable
+        $table->addColumn('gender', 'string', ['length' => 10, 'notnull' => false]);  // Make it nullable
+        $table->addColumn('newsletter', 'boolean', ['default' => false]); // Default value
+        $table->addColumn('profile_picture', 'string', ['length' => 255, 'notnull' => false]);  // Make it nullable
     }
 
     public function down(Schema $schema): void
