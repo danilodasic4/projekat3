@@ -10,11 +10,11 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20241115084638 extends AbstractMigration
+final class Version20241117100420 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Add additional fields to the user table (birthday, gender, newsletter, profile_picture)';
+        return 'Add additional fields to the user table (birthday, gender, newsletter, profile_picture) and modify the birthday column type to DATE';
     }
 
     public function up(Schema $schema): void
@@ -23,9 +23,9 @@ final class Version20241115084638 extends AbstractMigration
         $table = $schema->getTable('users');
         
         // Add new columns
-        $table->addColumn('birthday', 'datetime', ['notnull' => false]);  // Make it nullable
+        $table->addColumn('birthday', 'date', ['notnull' => false]);  // Now directly using DATE type
         $table->addColumn('gender', 'string', ['length' => 10, 'notnull' => false]);  // Make it nullable
-        $table->addColumn('newsletter', 'boolean', ['default' => false]); // Default value
+        $table->addColumn('newsletter', 'boolean', ['default' => false]); // Default value (TINYINT(1) in SQL)
         $table->addColumn('profile_picture', 'string', ['length' => 255, 'notnull' => false]);  // Make it nullable
     }
 
