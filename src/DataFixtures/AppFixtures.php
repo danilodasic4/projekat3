@@ -51,7 +51,7 @@ class AppFixtures extends Fixture
             $car->setHorsePower($faker->randomNumber(3));
             $car->setColor($faker->colorName);
 
-            $registrationDate = new DateTimeImmutable('+' . rand(1, 365) . ' days'); // Random datum između 1 i 365 dana od danas
+            $registrationDate = new DateTimeImmutable('+' . rand(1, 365) . ' days'); 
             $car->setRegistrationDate($registrationDate);
             
             $car->setCreatedAt(new \DateTimeImmutable());
