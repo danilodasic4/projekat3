@@ -14,29 +14,24 @@ final class Version20241117100420 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Add additional fields to the user table (birthday, gender, newsletter, profile_picture) and modify the birthday column type to DATE';
+        return 'Add additional fields to the user table (birthday, gender, newsletter, profile_picture) and modify the birthday column type to DATE using raw SQL';
     }
 
     public function up(Schema $schema): void
     {
-        // Add new fields to the users table
-        $table = $schema->getTable('users');
-        
-        // Add new columns
-        $table->addColumn('birthday', 'date', ['notnull' => false]);  // Now directly using DATE type
-        $table->addColumn('gender', 'string', ['length' => 10, 'notnull' => false]);  // Make it nullable
-        $table->addColumn('newsletter', 'boolean', ['default' => false]); // Default value (TINYINT(1) in SQL)
-        $table->addColumn('profile_picture', 'string', ['length' => 255, 'notnull' => false]);  // Make it nullable
+        // SQL upit za dodavanje novih kolona
+        $this->addSql('ALTER TABLE users ADD birthday DATE NULL');
+        $this->addSql('ALTER TABLE users ADD gender VARCHAR(10) NULL');
+        $this->addSql('ALTER TABLE users ADD newsletter TINYINT(1) DEFAULT 0');
+        $this->addSql('ALTER TABLE users ADD profile_picture VARCHAR(255) NULL');
     }
 
     public function down(Schema $schema): void
     {
-        // Remove the added columns
-        $table = $schema->getTable('users');
-        
-        $table->dropColumn('birthday');
-        $table->dropColumn('gender');
-        $table->dropColumn('newsletter');
-        $table->dropColumn('profile_picture');
+        // SQL upit za brisanje kolona
+        $this->addSql('ALTER TABLE users DROP COLUMN birthday');
+        $this->addSql('ALTER TABLE users DROP COLUMN gender');
+        $this->addSql('ALTER TABLE users DROP COLUMN newsletter');
+        $this->addSql('ALTER TABLE users DROP COLUMN profile_picture');
     }
 }
