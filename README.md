@@ -15,3 +15,7 @@
 ##rules:everything in English, after uploading on github you need to delete source branch,in this case dd4
 ##when you want to do migrations you need to write down docker-compose exec engine sh,
 ##(Here is must bin/console its not possible with symfony console)bin/console doctrine:migrations:migrate --no-interaction( This version of the command automatically executes ##all migrations without requiring additional input, such as confirmation with yes/no)
+##/var/www/html/projekat3$ ls -ld public/uploads
+##drwxrwxr-x 2 danilo-dasic danilo-dasic 4096 Nov 18 14:15 public/##uploads
+##danilo-dasic@danilo-dasic-Latitude-6430U:/var/www/html/projekat3$ 
+##when you are changing docker container and you are using build do ##that with  build --no-cache, cause docker uses cache to speed up ##things
