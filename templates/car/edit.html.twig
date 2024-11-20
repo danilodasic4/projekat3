@@ -1,13 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create a New Car</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    {% include 'partials/header.html.twig' %}
+    
+    <div class="container mt-4">
+        <h1>Create a New Car</h1>
 
-<h1>Edit Car</h1>
+        {{ form_start(form) }}
+            <div class="form-group">
+                {{ form_row(form.brand) }}
+            </div>
+            <div class="form-group">
+                {{ form_row(form.model) }}
+            </div>
+            <div class="form-group">
+                {{ form_row(form.year) }}
+            </div>
+            <div class="form-group">
+                {{ form_row(form.engineCapacity) }}
+            </div>
+            <div class="form-group">
+                {{ form_row(form.horsePower) }}
+            </div>
+            <div class="form-group">
+                {{ form_row(form.color) }}
+            </div>
+            <div class="form-group">
+                {{ form_row(form.registrationDate) }}
+            </div>
+            <div class="form-group">
+                {{ form_row(form.save) }}
+            </div>
+        {{ form_end(form) }}
 
-{{ form_start(form) }}
-    {{ form_row(form.brand) }}
-    {{ form_row(form.model) }}
-    {{ form_row(form.year) }}
-    {{ form_row(form.engineCapacity) }}
-    {{ form_row(form.horsePower) }}
-    {{ form_row(form.color) }}
-    {{ form_row(form.registrationDate) }}
-    {{ form_row(form.save) }}
-{{ form_end(form) }}
+        <a href="{{ path('app_car_index') }}" class="btn btn-secondary mt-3">Back to list</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

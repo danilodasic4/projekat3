@@ -20,7 +20,6 @@ class CarController extends AbstractController
     private $entityManager;
     private $registrationCostService;
 
-    // Construct for injection CarRepository, EntityManagerInterface, and RegistrationCostService
     public function __construct(CarRepository $carRepository, EntityManagerInterface $entityManager, RegistrationCostService $registrationCostService)
     {
         $this->carRepository = $carRepository;
@@ -28,18 +27,16 @@ class CarController extends AbstractController
         $this->registrationCostService = $registrationCostService;
     }
 
-    // Show list of all cars (Read)
     #[Route('/cars', name: 'app_car_index', methods: ['GET'])]
     public function index(): Response
     {
-        $cars = $this->carRepository->findAll(); // Using fundamental findAll method 
+        $cars = $this->carRepository->findAll();
 
         return $this->render('car/index.html.twig', [
-            'cars' => $cars
+            'cars' => $cars,
         ]);
     }
 
-    // Show details of a specific car (Read)
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
     #[ParamConverter('car', class: 'App\Entity\Car')]
     public function show(Car $car): Response
@@ -49,7 +46,6 @@ class CarController extends AbstractController
         ]);
     }
 
-    // Create a new car (Create)
     #[Route('/cars/create', name: 'app_car_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
@@ -59,12 +55,8 @@ class CarController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Set creation date
-            $car->setCreatedAt(new \DateTimeImmutable()); 
+            $car->setCreatedAt(new \DateTimeImmutable());
 
-            // Optionally set the user if it's a logged-in user
-            // $car->setUser($this->getUser());
-            
             $this->entityManager->persist($car);
             $this->entityManager->flush();
 
@@ -76,21 +68,19 @@ class CarController extends AbstractController
         ]);
     }
 
-    // Edit an existing car (Update)
     #[Route('/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
-    public function edit(Request $request, int $id): Response
+    #[ParamConverter('car', class: 'App\Entity\Car')]
+    public function edit(Request $request, Car $car): Response
     {
-        $car = $this->carRepository->find($id);
-
         if (!$car) {
             throw $this->createNotFoundException('Car not found');
         }
-        
+
         $form = $this->createForm(CarFormType::class, $car, [
             'method' => 'PUT',
-            'action' => $this->generateUrl('app_car_edit', ['id' => $id]),
+            'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()]),
         ]);
-   
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -106,17 +96,14 @@ class CarController extends AbstractController
         ]);
     }
 
-    // Delete a car (Delete)
     #[Route('/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'POST', 'DELETE'])]
-    public function delete(Request $request, int $id): Response
+    #[ParamConverter('car', class: 'App\Entity\Car')]
+    public function delete(Request $request, Car $car): Response
     {
-        $car = $this->carRepository->find($id);
-
         if (!$car) {
             throw $this->createNotFoundException('Car not found');
         }
 
-        // Handling the form submission
         if ($request->isMethod('POST') || $request->isMethod('DELETE')) {
             $this->entityManager->remove($car);
             $this->entityManager->flush();
@@ -129,25 +116,23 @@ class CarController extends AbstractController
         ]);
     }
 
-    // View cars with expiring registration (Read)
     #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration')]
-    public function expiringRegistration(CarRepository $carRepository): Response
+    public function expiringRegistration(): Response
     {
         $currentDate = new DateTimeImmutable();
         $endOfThisMonth = $currentDate->modify('last day of this month')->setTime(23, 59, 59);
-        $cars = $carRepository->findByRegistrationExpiringUntil($endOfThisMonth);
-      
+        $cars = $this->carRepository->findByRegistrationExpiringUntil($endOfThisMonth);
+
         return $this->render('car/expiring_registration.html.twig', [
             'cars' => $cars,
         ]);
     }
 
-    // Calculate registration cost for a specific car with a discount code (API endpoint)
     #[Route('/cars/calculate-registration-cost', name: 'car_calculate_registration_cost')]
     public function calculateRegistrationCost(Request $request): Response
     {
         $carId = $request->query->get('carId');
-        $discountCode = $request->query->get('discountCode'); 
+        $discountCode = $request->query->get('discountCode');
 
         $car = $this->carRepository->find($carId);
 
@@ -155,10 +140,8 @@ class CarController extends AbstractController
             return $this->json(['error' => 'Car not found'], 404);
         }
 
-        // Calculate base registration cost
         $baseCost = $this->registrationCostService->calculateRegistrationCost($car);
 
-        // Apply discount if available
         $finalCost = $this->registrationCostService->applyDiscount($baseCost, $discountCode);
 
         return $this->json([
@@ -167,18 +150,16 @@ class CarController extends AbstractController
             'finalCost' => $finalCost,
         ]);
     }
-        #[Route('/cars/registration-details/{id}', name: 'app_car_registration_details', methods: ['GET', 'POST'])]
-        public function registrationDetails(Request $request, int $id): Response
-    {
-        $car = $this->carRepository->find($id);
 
+    #[Route('/cars/registration-details/{id}', name: 'app_car_registration_details', methods: ['GET', 'POST'])]
+    #[ParamConverter('car', class: 'App\Entity\Car')]
+    public function registrationDetails(Request $request, Car $car): Response
+    {
         if (!$car) {
             throw $this->createNotFoundException('Car not found');
         }
 
-
         $baseCost = $this->registrationCostService->calculateRegistrationCost($car);
-
         $discountCode = null;
         $finalCost = $baseCost;
 
@@ -192,6 +173,5 @@ class CarController extends AbstractController
             'baseCost' => $baseCost,
             'finalCost' => $finalCost,
         ]);
-}
-
+    }
 }
