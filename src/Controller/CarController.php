@@ -175,10 +175,9 @@ public function delete(Request $request, Car $car): Response
             throw $this->createNotFoundException('Car not found');
         }
 
-        // Izračunavanje osnovne cene registracije za auto
+
         $baseCost = $this->registrationCostService->calculateRegistrationCost($car);
 
-        // Obrađujemo unos popusta sa forme
         $discountCode = null;
         $finalCost = $baseCost;
 
