@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controller;
 
 use App\Entity\Car;
@@ -11,24 +12,27 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use DateTimeImmutable;
+use App\Service\RegistrationCostService;
 
 class CarController extends AbstractController
 {
     private $carRepository;
     private $entityManager;
+    private $registrationCostService;
 
-    // Construct for injection CarRepository and EntityManagerInterface
-    public function __construct(CarRepository $carRepository, EntityManagerInterface $entityManager)
+    // Construct for injection CarRepository, EntityManagerInterface, and RegistrationCostService
+    public function __construct(CarRepository $carRepository, EntityManagerInterface $entityManager, RegistrationCostService $registrationCostService)
     {
         $this->carRepository = $carRepository;
         $this->entityManager = $entityManager;
+        $this->registrationCostService = $registrationCostService;
     }
 
     // Show list of all cars (Read)
     #[Route('/cars', name: 'app_car_index', methods: ['GET'])]
     public function index(): Response
     {
-        $cars = $this->carRepository->findAll(); // // Using fundamental findAll method 
+        $cars = $this->carRepository->findAll(); // Using fundamental findAll method 
 
         return $this->render('car/index.html.twig', [
             'cars' => $cars
@@ -132,9 +136,34 @@ public function delete(Request $request, Car $car): Response
           $endOfThisMonth = $currentDate->modify('last day of this month')->setTime(23, 59, 59);
                 $cars = $carRepository->findByRegistrationExpiringUntil($endOfThisMonth);
       
-          return $this->render('car/expiring_registration.html.twig', [
-              'cars' => $cars,
-          ]);
-      }
-      
+        return $this->render('car/expiring_registration.html.twig', [
+            'cars' => $cars,
+        ]);
+    }
+
+    // Calculate registration cost for a specific car with a discount code (API endpoint)
+    #[Route('/cars/calculate-registration-cost', name: 'car_calculate_registration_cost')]
+    public function calculateRegistrationCost(Request $request): Response
+    {
+        $carId = $request->query->get('carId');
+        $discountCode = $request->query->get('discountCode'); 
+
+        $car = $this->carRepository->find($carId);
+
+        if (!$car) {
+            return $this->json(['error' => 'Car not found'], 404);
+        }
+
+        // Calculate base registration cost
+        $baseCost = $this->registrationCostService->calculateRegistrationCost($car);
+
+        // Apply discount if available
+        $finalCost = $this->registrationCostService->applyDiscount($baseCost, $discountCode);
+
+        return $this->json([
+            'carId' => $car->getId(),
+            'registrationCost' => $baseCost,
+            'finalCost' => $finalCost,
+        ]);
+    }
 }

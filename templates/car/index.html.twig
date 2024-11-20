@@ -10,41 +10,55 @@
     <div class="container mt-4">
         <h1>List of Cars</h1>
         <a href="{{ path('app_cars_expiring_registration') }}" class="btn btn-info mb-3">View Cars with Expiring Registration</a>
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Brand</th>
-            <th>Model</th>
-            <th>Year</th>
-            <th>Color</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for car in cars %}
-        <tr>
-            <td>{{ car.brand }}</td>
-            <td>{{ car.model }}</td>
-            <td>{{ car.year }}</td>
-            <td>{{ car.color }}</td>
-            <td>
-                <a href="{{ path('app_car_show', { id: car.id }) }}" class="btn btn-info btn-sm">View</a>
-                <a href="{{ path('app_car_edit', { id: car.id }) }}" class="btn btn-warning btn-sm">Edit</a>
-                
-                <!-- Delete form with _method parameter for DELETE -->
-                <form action="{{ path('app_car_delete', { id: car.id }) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this car?');">
-                    <input type="hidden" name="_method" value="DELETE">
-                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                </form>
-            </td>
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="5">No cars available.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Year</th>
+                    <th>Color</th>
+                    <th>Actions</th>
+                    <th>Registration Cost</th> <!-- New column for registration cost -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for car in cars %}
+                <tr>
+                    <td>{{ car.brand }}</td>
+                    <td>{{ car.model }}</td>
+                    <td>{{ car.year }}</td>
+                    <td>{{ car.color }}</td>
+                    <td>
+                        <a href="{{ path('app_car_show', { id: car.id }) }}" class="btn btn-info btn-sm">View</a>
+                        <a href="{{ path('app_car_edit', { id: car.id }) }}" class="btn btn-warning btn-sm">Edit</a>
+                        
+                        <!-- Delete form with _method parameter for DELETE -->
+                        <form action="{{ path('app_car_delete', { id: car.id }) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this car?');">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                    <td>
+                        <!-- Form for calculating registration cost -->
+                        <form id="registration-cost-form-{{ car.id }}" class="registration-cost-form">
+                            <input type="hidden" name="carId" value="{{ car.id }}">
+                            <div class="form-group">
+                                <label for="discountCode-{{ car.id }}">Enter Discount Code:</label>
+                                <input type="text" id="discountCode-{{ car.id }}" name="discountCode" class="form-control" placeholder="Enter discount code">
+                            </div>
+                            <button type="button" class="btn btn-info btn-sm" onclick="calculateRegistrationCost({{ car.id }})">See Registration Cost</button>
+                            <div id="cost-result-{{ car.id }}" class="mt-2"></div>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6">No cars available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
         <a href="{{ path('app_car_new') }}" class="btn btn-primary">Create a new car</a>
     </div>
@@ -52,5 +66,30 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.0/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // JavaScript function to handle AJAX request for calculating registration cost
+        function calculateRegistrationCost(carId) {
+            const discountCode = document.getElementById('discountCode-' + carId).value;
+
+            // Make an AJAX call to the server
+            fetch(`/cars/calculate-registration-cost?carId=${carId}&discountCode=${discountCode}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Show registration cost result in the respective div
+                    if (data.error) {
+                        document.getElementById('cost-result-' + carId).innerHTML = `<p class="text-danger">${data.error}</p>`;
+                    } else {
+                        document.getElementById('cost-result-' + carId).innerHTML = `
+                            <p>Base Registration Cost: ${data.registrationCost} EUR</p>
+                            <p>Final Cost with Discount: ${data.finalCost} EUR</p>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    alert('An error occurred while calculating registration cost.');
+                });
+        }
+    </script>
 </body>
 </html>
