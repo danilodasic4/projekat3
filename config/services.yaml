@@ -5,6 +5,8 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     profile_pictures_directory: '%kernel.project_dir%/%env(PROFILE_PICTURES_DIRECTORY)%'
+    registration_base_cost: '%env(resolve:REGISTRATION_BASE_COST)%'  # Add this line to load registration base cost from .env or secrets
+
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -20,5 +22,7 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    # Add service definition for RegistrationCostService
+    App\Service\RegistrationCostService:
+        arguments:
+            $registrationBaseCost: '%registration_base_cost%'  # Inject registration base cost from parameters
