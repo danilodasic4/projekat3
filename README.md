@@ -19,3 +19,4 @@
 ##drwxrwxr-x 2 danilo-dasic danilo-dasic 4096 Nov 18 14:15 public/##uploads
 ##danilo-dasic@danilo-dasic-Latitude-6430U:/var/www/html/projekat3$ 
 ##when you are changing docker container and you are using build do ##that with  build --no-cache, cause docker uses cache to speed up ##things
+##i put permission 777 on public/uploads/profile_pictures (thats permission which allows to everyone everything)
