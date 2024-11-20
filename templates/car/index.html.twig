@@ -40,16 +40,8 @@
                         </form>
                     </td>
                     <td>
-                        <!-- Form for calculating registration cost -->
-                        <form id="registration-cost-form-{{ car.id }}" class="registration-cost-form">
-                            <input type="hidden" name="carId" value="{{ car.id }}">
-                            <div class="form-group">
-                                <label for="discountCode-{{ car.id }}">Enter Discount Code:</label>
-                                <input type="text" id="discountCode-{{ car.id }}" name="discountCode" class="form-control" placeholder="Enter discount code">
-                            </div>
-                            <button type="button" class="btn btn-info btn-sm" onclick="calculateRegistrationCost({{ car.id }})">See Registration Cost</button>
-                            <div id="cost-result-{{ car.id }}" class="mt-2"></div>
-                        </form>
+                        <!-- Link to registration details page -->
+                        <a href="{{ path('app_car_registration_details', { id: car.id }) }}" class="btn btn-info btn-sm">See Registration Cost</a>
                     </td>
                 </tr>
                 {% else %}
@@ -66,30 +58,5 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.0/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-    <script>
-        // JavaScript function to handle AJAX request for calculating registration cost
-        function calculateRegistrationCost(carId) {
-            const discountCode = document.getElementById('discountCode-' + carId).value;
-
-            // Make an AJAX call to the server
-            fetch(`/cars/calculate-registration-cost?carId=${carId}&discountCode=${discountCode}`)
-                .then(response => response.json())
-                .then(data => {
-                    // Show registration cost result in the respective div
-                    if (data.error) {
-                        document.getElementById('cost-result-' + carId).innerHTML = `<p class="text-danger">${data.error}</p>`;
-                    } else {
-                        document.getElementById('cost-result-' + carId).innerHTML = `
-                            <p>Base Registration Cost: ${data.registrationCost} EUR</p>
-                            <p>Final Cost with Discount: ${data.finalCost} EUR</p>
-                        `;
-                    }
-                })
-                .catch(error => {
-                    alert('An error occurred while calculating registration cost.');
-                });
-        }
-    </script>
 </body>
 </html>

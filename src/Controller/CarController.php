@@ -166,4 +166,32 @@ public function delete(Request $request, Car $car): Response
             'finalCost' => $finalCost,
         ]);
     }
+        #[Route('/cars/registration-details/{id}', name: 'app_car_registration_details', methods: ['GET', 'POST'])]
+        public function registrationDetails(Request $request, int $id): Response
+    {
+        $car = $this->carRepository->find($id);
+
+        if (!$car) {
+            throw $this->createNotFoundException('Car not found');
+        }
+
+        // Izračunavanje osnovne cene registracije za auto
+        $baseCost = $this->registrationCostService->calculateRegistrationCost($car);
+
+        // Obrađujemo unos popusta sa forme
+        $discountCode = null;
+        $finalCost = $baseCost;
+
+        if ($request->isMethod('POST')) {
+            $discountCode = $request->request->get('discountCode');
+            $finalCost = $this->registrationCostService->applyDiscount($baseCost, $discountCode);
+        }
+
+        return $this->render('car/registration_details.html.twig', [
+            'car' => $car,
+            'baseCost' => $baseCost,
+            'finalCost' => $finalCost,
+        ]);
+}
+
 }
