@@ -5,29 +5,36 @@ use App\Entity\Car;
 
 class RegistrationCostService
 {
-    private $baseCost;
+    private int $registrationBaseCost;
+    private string $discountCode;
 
-    public function __construct(string $registrationBaseCost)
+    public function __construct(int $registrationBaseCost, string $discountCode)
     {
-        $this->baseCost = (int) $registrationBaseCost;
+        $this->registrationBaseCost = $registrationBaseCost;
+        $this->discountCode = $discountCode;
     }
 
-    public function calculateRegistrationCost(Car $car): int
+    /**
+     * @param Car $car
+     * @return float
+     */
+    public function calculateRegistrationCost(Car $car): float
     {
-        $year = $car->getYear(); 
-        $engineCapacity = $car->getEngineCapacity(); 
-
-        $yearCost = ($year - 1960) * 200; 
-        $engineCost = ($engineCapacity - 900) * 200;  
-
-        return $this->baseCost + $yearCost + $engineCost;
+        return $this->registrationBaseCost + (($car->getYear() - 1960) * 200) + (($car->getEngineCapacity() - 900) * 200);
     }
 
-    public function applyDiscount(int $cost, string $discountCode): int
+    /**
+     *
+     * @param float $cost
+     * @param string $inputDiscountCode
+     * @return float
+     */
+    public function applyDiscount(float $cost, string $inputDiscountCode): float
     {
-        if ($discountCode === 'DISCOUNT2024') {  
-            return (int) ($cost * 0.80);  
+        if ($inputDiscountCode === $this->discountCode) {
+            return $cost * 0.8; 
         }
+
         return $cost; 
     }
 }
