@@ -16,17 +16,12 @@ use App\Service\RegistrationCostService;
 
 class CarController extends AbstractController
 {
-    private $carRepository;
-    private $entityManager;
-    private $registrationCostService;
-
-    // Construct for injection CarRepository, EntityManagerInterface, and RegistrationCostService
-    public function __construct(CarRepository $carRepository, EntityManagerInterface $entityManager, RegistrationCostService $registrationCostService)
-    {
-        $this->carRepository = $carRepository;
-        $this->entityManager = $entityManager;
-        $this->registrationCostService = $registrationCostService;
-    }
+    // Property Promotion applied here with readonly for the $registrationCostService
+    public function __construct(
+        private readonly CarRepository $carRepository, 
+        private readonly EntityManagerInterface $entityManager, 
+        private readonly RegistrationCostService $registrationCostService
+    ) {}
 
     // Show list of all cars (Read)
     #[Route('/cars', name: 'app_car_index', methods: ['GET'])]
@@ -41,7 +36,7 @@ class CarController extends AbstractController
 
     // Show details of a specific car (Read)
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
-    #[ParamConverter('car', class: 'App\Entity\Car')]
+    #[ParamConverter('car', class: 'App\Entity\Car')]  // ParamConverter for automatic entity conversion based on ID
     public function show(Car $car): Response
     {
         return $this->render('car/show.html.twig', [
@@ -150,7 +145,7 @@ public function delete(Request $request, Car $car): Response
 
         $car = $this->carRepository->find($carId);
 
-        if (!$car) {
+        if (!$car instanceof Car) {
             return $this->json(['error' => 'Car not found'], 404);
         }
 
@@ -166,15 +161,15 @@ public function delete(Request $request, Car $car): Response
             'finalCost' => $finalCost,
         ]);
     }
-        #[Route('/cars/registration-details/{id}', name: 'app_car_registration_details', methods: ['GET', 'POST'])]
-        public function registrationDetails(Request $request, int $id): Response
+
+    #[Route('/cars/registration-details/{id}', name: 'app_car_registration_details', methods: ['GET', 'POST'])]
+    public function registrationDetails(Request $request, int $id): Response
     {
         $car = $this->carRepository->find($id);
 
         if (!$car) {
             throw $this->createNotFoundException('Car not found');
         }
-
 
         $baseCost = $this->registrationCostService->calculateRegistrationCost($car);
 
@@ -191,6 +186,5 @@ public function delete(Request $request, Car $car): Response
             'baseCost' => $baseCost,
             'finalCost' => $finalCost,
         ]);
-}
-
+    }
 }

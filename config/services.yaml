@@ -1,20 +1,13 @@
-# This file is the entry point to configure your own services.
-# Files in the packages/ subdirectory configure your dependencies.
-
-# Put parameters here that don't need to change on each machine where the app is deployed
-# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     profile_pictures_directory: '%kernel.project_dir%/%env(PROFILE_PICTURES_DIRECTORY)%'
-    registration_base_cost: '%env(resolve:REGISTRATION_BASE_COST)%'  # Add this line to load registration base cost from .env or secrets
+    registration_base_cost: '%env(resolve:REGISTRATION_BASE_COST)%'
+    discount_code: '%env(DISCOUNT_CODE)%' 
 
 services:
-    # default configuration for services in *this* file
     _defaults:
-        autowire: true      # Automatically injects dependencies in your services.
-        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        autowire: true
+        autoconfigure: true
 
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
         exclude:
@@ -22,7 +15,7 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # Add service definition for RegistrationCostService
     App\Service\RegistrationCostService:
         arguments:
-            $registrationBaseCost: '%registration_base_cost%'  # Inject registration base cost from parameters
+            $registrationBaseCost: '%registration_base_cost%'  
+            $discountCode: '%discount_code%'  
