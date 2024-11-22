@@ -96,23 +96,27 @@ class CarController extends AbstractController
         ]);
     }
 
-    // Delete a car (Delete)
-    #[Route('/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'POST', 'DELETE'])]
+  // Delete a car (Delete)
+    #[Route('/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'DELETE'])]
     #[ParamConverter('car', class: 'App\Entity\Car')]  // ParamConverter for automatic entity conversion based on ID
     public function delete(Request $request, Car $car): Response
     {
-        // Handling the form submission
-        if ($request->isMethod('POST') || $request->isMethod('DELETE')) {
+        // Handling DELETE request
+        if ($request->isMethod('DELETE')) {
+            // Remove the car from the database
             $this->entityManager->remove($car);
             $this->entityManager->flush();
 
+            // Redirect to car index page after deletion
             return $this->redirectToRoute('app_car_index');
         }
 
+        // If the request is GET, show the confirmation page
         return $this->render('car/delete.html.twig', [
             'car' => $car,
         ]);
     }
+
 
     // View cars with expiring registration (Read)
     #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration')]
