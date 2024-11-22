@@ -81,7 +81,7 @@ class CarController extends AbstractController
         return $this->render('car/show.html.twig', [
             'car' => $car,
         ]);
-}
+    }  
 
 
     // Create a new car (Create)
@@ -123,7 +123,6 @@ class CarController extends AbstractController
 
     // Edit an existing car (Update)
     #[Route('/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
-    #[ParamConverter('car', class: 'App\Entity\Car')]
     #[OA\Put(
         path: '/cars/update/{id}',
         summary: 'Update an existing car',
@@ -145,39 +144,28 @@ class CarController extends AbstractController
         #[ValueResolver(CarValueResolver::class)] Car $car,
         Request $request
         ): Response {
+        if (!$car) {
+            throw $this->createNotFoundException('Car not found');
+        }
 
         $form = $this->createForm(CarFormType::class, $car, [
             'method' => 'PUT',
-            'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()]),
+            'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()])
         ]);
 
         $form->handleRequest($request);
-#[Route('/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
-#[ParamConverter('car', class: 'App\Entity\Car')]
-public function edit(Request $request, Car $car): Response
-{
-    if (!$car) {
-        throw $this->createNotFoundException('Car not found');
-    }
 
-    $form = $this->createForm(CarFormType::class, $car, [
-        'method' => 'PUT',
-        'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()])
-    ]);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $car->setUpdatedAt(new \DateTimeImmutable());
 
-    $form->handleRequest($request);
+            $this->entityManager->flush();
+            return $this->redirectToRoute('app_car_index');
+        }
 
-    if ($form->isSubmitted() && $form->isValid()) {
-        $car->setUpdatedAt(new \DateTimeImmutable());
-
-        $this->entityManager->flush();
-        return $this->redirectToRoute('app_car_index');
-    }
-
-    return $this->render('car/edit.html.twig', [
-        'form' => $form->createView(),
-        'car' => $car,
-    ]);
+        return $this->render('car/edit.html.twig', [
+            'form' => $form->createView(),
+            'car' => $car,
+        ]);
 }
 
 
@@ -234,16 +222,7 @@ public function edit(Request $request, Car $car): Response
             )
         ]
     )]
-    public function expiringRegistration(): Response
-    {
-        $currentDate = new DateTimeImmutable();
-        $endOfThisMonth = $currentDate->modify('last day of this month')->setTime(23, 59, 59);
-        
-        // Get cars whose registration expires by the end of the current month
-        $cars = $this->carRepository->findByRegistrationExpiringUntil($endOfThisMonth);
 
-        // Return HTML page with the list of cars
-      #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration')]
       public function expiringRegistration(CarRepository $carRepository): Response
       {
           $currentDate = new DateTimeImmutable();
@@ -254,6 +233,7 @@ public function edit(Request $request, Car $car): Response
             'cars' => $cars,
         ]);
     }
+
 
 
     // src/Controller/CarController.php
