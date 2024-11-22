@@ -5,14 +5,10 @@ use App\Entity\Car;
 
 class RegistrationCostService
 {
-    private int $registrationBaseCost;
-    private string $discountCode;
-
-    public function __construct(int $registrationBaseCost, string $discountCode)
-    {
-        $this->registrationBaseCost = $registrationBaseCost;
-        $this->discountCode = $discountCode;
-    }
+     public function __construct(
+        private readonly int $registrationBaseCost, 
+        private readonly string $discountCode
+    ) {}
 
     /**
      * @param Car $car
