@@ -1,0 +1,114 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: "My App"
+            description: "This is an awesome app!"
+            version: "1.0.0"
+        # Dodajte sve rute koje imate u aplikaciji za dokumentaciju
+        paths:
+            '/cars/expiring-registration':
+                get:
+                    summary: 'Get list of cars with expiring registration'
+                    description: 'Returns a list of cars whose registration expires by the end of the current month.'
+                    responses:
+                        200:
+                            description: 'List of cars with expiring registration'
+                            content:
+                                application/json:
+                                    schema:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/Car'
+                        404:
+                            description: 'No cars found with expiring registration'
+            '/cars/registration-details/{id}':
+                get:
+                    summary: 'Get car registration details'
+                    description: 'Returns registration details for a car by ID.'
+                    parameters:
+                        - in: path
+                          name: id
+                          required: true
+                          schema:
+                            type: integer
+                    responses:
+                        200:
+                            description: 'Car registration details'
+                            content:
+                                application/json:
+                                    schema:
+                                        $ref: '#/components/schemas/Car'
+                        404:
+                            description: 'Car not found'
+            '/cars':
+                get:
+                    summary: 'Get all cars'
+                    description: 'Returns a list of all cars'
+                    responses:
+                        200:
+                            description: 'A list of all cars'
+                            content:
+                                application/json:
+                                    schema:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/Car'
+            '/cars/{id}':
+                get:
+                    summary: 'Get car details'
+                    description: 'Returns car details by ID'
+                    parameters:
+                        - in: path
+                          name: id
+                          required: true
+                          schema:
+                            type: integer
+                    responses:
+                        200:
+                            description: 'Car details'
+                            content:
+                                application/json:
+                                    schema:
+                                        $ref: '#/components/schemas/Car'
+            '/cars/calculate-registration-cost':
+                get:
+                    summary: 'Calculate car registration cost'
+                    description: 'Calculates the registration cost for a car and applies any discount code if provided.'
+                    parameters:
+                        - in: query
+                          name: carId
+                          required: true
+                          schema:
+                            type: integer
+                        - in: query
+                          name: discountCode
+                          required: false
+                          schema:
+                            type: string
+                    responses:
+                        200:
+                            description: 'Registration cost calculated'
+                            content:
+                                application/json:
+                                    schema:
+                                        properties:
+                                            carId:
+                                                type: integer
+                                            registrationCost:
+                                                type: number
+                                            finalCost:
+                                                type: number
+                        404:
+                            description: 'Car not found'
+
+    # Definisanje koje rute će biti dokumentovane
+    areas:
+        path_patterns:
+            - ^/api(?!/doc$)  # Dokumentuje sve rute koje počinju sa /api, osim /api/doc
+
+    # Swagger UI konfiguracija
+    html_config:
+        swagger_ui_config:
+            path: /api/docs  # Swagger UI će biti dostupan na /api/docs
+            ui:
+                enabled: true  # Omogućava Swagger UI
