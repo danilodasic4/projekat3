@@ -73,19 +73,19 @@ class CarController extends AbstractController
     }
 
     // Edit an existing car (Update)
- #[Route('/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
-public function edit(Request $request, int $id): Response
+#[Route('/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
+#[ParamConverter('car', class: 'App\Entity\Car')]
+public function edit(Request $request, Car $car): Response
 {
-    $car = $this->carRepository->find($id);
-
     if (!$car) {
         throw $this->createNotFoundException('Car not found');
     }
+
     $form = $this->createForm(CarFormType::class, $car, [
         'method' => 'PUT',
-        'action' => $this->generateUrl('app_car_edit',['id' => $id])
+        'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()])
     ]);
-   
+
     $form->handleRequest($request);
 
     if ($form->isSubmitted() && $form->isValid()) {
@@ -94,6 +94,7 @@ public function edit(Request $request, int $id): Response
         $this->entityManager->flush();
         return $this->redirectToRoute('app_car_index');
     }
+
     return $this->render('car/edit.html.twig', [
         'form' => $form->createView(),
         'car' => $car,
@@ -101,28 +102,29 @@ public function edit(Request $request, int $id): Response
 }
 
 
+
     // Delete a car (Delete)
-      #[Route('/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'POST', 'DELETE'])]
-      public function delete(Request $request, int $id): Response
-      {
-          $car = $this->carRepository->find($id);
-  
-          if (!$car) {
-              throw $this->createNotFoundException('Car not found');
-          }
-  
-          // Handling the form submission
-          if ($request->isMethod('POST') || $request->isMethod('DELETE')) {
-              $this->entityManager->remove($car);
-              $this->entityManager->flush();
-  
-              return $this->redirectToRoute('app_car_index');
-          }
-  
-          return $this->render('car/delete.html.twig', [
-              'car' => $car,
-          ]);
-      }
+#[Route('/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'POST', 'DELETE'])]
+#[ParamConverter('car', class: 'App\Entity\Car')]
+public function delete(Request $request, Car $car): Response
+{
+    if (!$car) {
+        throw $this->createNotFoundException('Car not found');
+    }
+
+    // Handling the form submission
+    if ($request->isMethod('POST') || $request->isMethod('DELETE')) {
+        $this->entityManager->remove($car);
+        $this->entityManager->flush();
+
+        return $this->redirectToRoute('app_car_index');
+    }
+
+    return $this->render('car/delete.html.twig', [
+        'car' => $car,
+    ]);
+}
+
       #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration')]
       public function expiringRegistration(CarRepository $carRepository): Response
       {
