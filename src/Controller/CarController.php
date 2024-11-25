@@ -34,15 +34,20 @@ class CarController extends AbstractController
         ]);
     }
 
-    // Show details of a specific car (Read)
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
-    #[ParamConverter('car', class: 'App\Entity\Car')]  // ParamConverter for automatic entity conversion based on ID
-    public function show(Car $car): Response
+    public function show(int $id): Response
     {
+        $car = $this->carRepository->find($id);
+
+        if (!$car) {
+            throw $this->createNotFoundException('Car not found');
+        }
+
         return $this->render('car/show.html.twig', [
             'car' => $car,
         ]);
-    }
+}
+
 
     // Create a new car (Create)
     #[Route('/cars/create', name: 'app_car_new', methods: ['GET', 'POST'])]
@@ -109,19 +114,18 @@ public function edit(Request $request, Car $car): Response
     {
         // Handling DELETE request
         if ($request->isMethod('DELETE')) {
-            // Remove the car from the database
             $this->entityManager->remove($car);
             $this->entityManager->flush();
-
-            // Redirect to car index page after deletion
+    
             return $this->redirectToRoute('app_car_index');
         }
-
+    
         // If the request is GET, show the confirmation page
         return $this->render('car/delete.html.twig', [
             'car' => $car,
         ]);
     }
+    
 
 
       #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration')]
