@@ -76,68 +76,65 @@ class CarController extends AbstractController
         ]);
     }
 
-        #[Route('/cars/update/{id<\d+>}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
-    public function edit(Request $request, int $id): Response
-    {
-        $car = $this->carRepository->find($id);
-
-        if (!$car) {
-            throw $this->createNotFoundException('Car not found');
-        }
-
-        $form = $this->createForm(CarFormType::class, $car, [
-            'method' => 'PUT',
-            'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()]),
-        ]);
-
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $car->setUpdatedAt(new \DateTimeImmutable());
-            $this->entityManager->flush();
-
-            return $this->redirectToRoute('app_car_index');
-        }
-
-        return $this->render('car/edit.html.twig', [
-            'form' => $form->createView(),
-            'car' => $car,
-        ]);
+    // Edit an existing car (Update)
+#[Route('/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
+#[ParamConverter('car', class: 'App\Entity\Car')]
+public function edit(Request $request, Car $car): Response
+{
+    if (!$car) {
+        throw $this->createNotFoundException('Car not found');
     }
 
+    $form = $this->createForm(CarFormType::class, $car, [
+        'method' => 'PUT',
+        'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()])
+    ]);
 
-    #[Route('/cars/delete/{id<\d+>}', name: 'app_car_delete', methods: ['GET', 'DELETE'])]
-    public function delete(Request $request, int $id): Response
-    {
-        $car = $this->carRepository->find($id);
-    
-        if (!$car) {
-            throw $this->createNotFoundException('Car not found');
-        }
-    
-        // Handling DELETE request
-        if ($request->isMethod('DELETE')) {
-            $this->entityManager->remove($car);
-            $this->entityManager->flush();
-    
-            return $this->redirectToRoute('app_car_index');
-        }
-    
-        // If the request is GET, show the confirmation page
-        return $this->render('car/delete.html.twig', [
-            'car' => $car,
-        ]);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        $car->setUpdatedAt(new \DateTimeImmutable());
+
+        $this->entityManager->flush();
+        return $this->redirectToRoute('app_car_index');
     }
-    
+
+    return $this->render('car/edit.html.twig', [
+        'form' => $form->createView(),
+        'car' => $car,
+    ]);
+}
 
 
-    // View cars with expiring registration (Read)
-    #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration')]
-    public function expiringRegistration(CarRepository $carRepository): Response
-    {
-        $currentDate = new DateTimeImmutable();
-        $endOfThisMonth = $currentDate->modify('last day of this month')->setTime(23, 59, 59);
-        $cars = $carRepository->findByRegistrationExpiringUntil($endOfThisMonth);
+
+    // Delete a car (Delete)
+#[Route('/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'DELETE'])]
+#[ParamConverter('car', class: 'App\Entity\Car')]
+public function delete(Request $request, Car $car): Response
+{
+    if (!$car) {
+        throw $this->createNotFoundException('Car not found');
+    }
+
+    // Handling the form submission
+    if ($request->isMethod('DELETE')) {
+        $this->entityManager->remove($car);
+        $this->entityManager->flush();
+
+        return $this->redirectToRoute('app_car_index');
+    }
+
+    return $this->render('car/delete.html.twig', [
+        'car' => $car,
+    ]);
+}
+
+      #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration')]
+      public function expiringRegistration(CarRepository $carRepository): Response
+      {
+          $currentDate = new DateTimeImmutable();
+          $endOfThisMonth = $currentDate->modify('last day of this month')->setTime(23, 59, 59);
+                $cars = $carRepository->findByRegistrationExpiringUntil($endOfThisMonth);
       
         return $this->render('car/expiring_registration.html.twig', [
             'cars' => $cars,
