@@ -13,6 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use DateTimeImmutable;
 use App\Service\RegistrationCostService;
 use OpenApi\Annotations as OA;
+use Symfony\Component\HttpKernel\Attribute\ValueResolver;
 
 class CarController extends AbstractController
 {
@@ -57,7 +58,7 @@ class CarController extends AbstractController
             new OA\Response(response: "200", description: "Car details")
         ]
     )]
-    public function show(Car $car): Response
+    public function show(#[ValueResolver('car')] Car $car): Response
     {
         return $this->render('car/show.html.twig', [
             'car' => $car,
@@ -83,7 +84,7 @@ class CarController extends AbstractController
     )]
     public function new(Request $request): Response
     {
-        $car = new Car();
+        $car = new Car(); // Nova instanca automobila
         $form = $this->createForm(CarFormType::class, $car);
 
         $form->handleRequest($request);
@@ -93,13 +94,14 @@ class CarController extends AbstractController
             $this->entityManager->persist($car);
             $this->entityManager->flush();
 
-            return $this->redirectToRoute('app_car_index');
+            return $this->redirectToRoute('app_car_index'); // Redirekt na listu automobila
         }
 
         return $this->render('car/new.html.twig', [
             'form' => $form->createView(),
         ]);
     }
+
 
 // Edit an existing car (Update)
 #[Route('/cars/update/{id<\d+>}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
@@ -115,7 +117,7 @@ class CarController extends AbstractController
         new OA\Response(response: "200", description: "Car updated successfully")
     ]
 )]
-public function edit(Request $request, Car $car): Response
+public function edit(Request $request, #[ValueResolver('car')] Car $car): Response
 {
     $form = $this->createForm(CarFormType::class, $car);
     $form->handleRequest($request);
@@ -123,7 +125,8 @@ public function edit(Request $request, Car $car): Response
     if ($form->isSubmitted() && $form->isValid()) {
         $car->setUpdatedAt(new \DateTimeImmutable());
         $this->entityManager->flush();
-        return $this->redirectToRoute('app_car_index');
+
+        return $this->redirectToRoute('app_car_index'); // Redirekt na listu automobila
     }
 
     return $this->render('car/edit.html.twig', [
@@ -133,8 +136,7 @@ public function edit(Request $request, Car $car): Response
 }
 
 
-
-    // Delete a car (Delete)
+        // Delete a car (Delete)
     #[Route('/cars/delete/{id<\d+>}', name: 'app_car_delete', methods: ['GET', 'DELETE'])]
     #[OA\Delete(
         path: "/cars/delete/{id}",
@@ -148,22 +150,24 @@ public function edit(Request $request, Car $car): Response
             new OA\Response(response: "200", description: "Car deleted successfully")
         ]
     )]
-    public function delete(Request $request, Car $car): Response
+    public function delete(Request $request, #[ValueResolver('car')] Car $car): Response
     {
         if ($request->isMethod('DELETE')) {
             $this->entityManager->remove($car);
             $this->entityManager->flush();
-            return $this->redirectToRoute('app_car_index');
+
+            return $this->redirectToRoute('app_car_index'); // Redirekt na listu automobila
         }
 
         return $this->render('car/delete.html.twig', [
-            'car' => $car,
+            'car' => $car, // Prikazuje detalje automobila pre potvrde brisanja
         ]);
     }
 
 
-          // Expiring registration cars (Read)
-    #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration')]
+
+        // Expiring registration cars (Read)
+    #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration', methods: ['GET'])]
     #[OA\Get(
         path: "/cars/expiring-registration",
         summary: "Get cars with expiring registration",
@@ -177,12 +181,15 @@ public function edit(Request $request, Car $car): Response
     {
         $currentDate = new DateTimeImmutable();
         $endOfThisMonth = $currentDate->modify('last day of this month')->setTime(23, 59, 59);
+
+        // Dohvati automobile čija registracija ističe do kraja meseca
         $cars = $carRepository->findByRegistrationExpiringUntil($endOfThisMonth);
 
         return $this->render('car/expiring_registration.html.twig', [
-            'cars' => $cars,
+            'cars' => $cars, // Prosleđuje listu automobila
         ]);
     }
+
 
 
         // Calculate registration cost for a specific car with a discount code (API endpoint)
@@ -229,7 +236,6 @@ public function edit(Request $request, Car $car): Response
         }
     
 
-        // Registration details for a specific car (Read/Update)
         #[Route('/cars/registration-details/{id<\d+>}', name: 'app_car_registration_details', methods: ['GET', 'POST'])]
         #[OA\Get(
             path: "/cars/registration-details/{id}",
@@ -267,21 +273,21 @@ public function edit(Request $request, Car $car): Response
             if (!$car) {
                 throw $this->createNotFoundException('Car not found');
             }
-    
+
             $baseCost = $this->registrationCostService->calculateRegistrationCost($car);
             $discountCode = null;
             $finalCost = $baseCost;
-    
+
             if ($request->isMethod('POST')) {
                 $discountCode = $request->request->get('discountCode');
                 $finalCost = $this->registrationCostService->applyDiscount($baseCost, $discountCode);
             }
-    
+
             return $this->render('car/registration_details.html.twig', [
                 'car' => $car,
                 'baseCost' => $baseCost,
                 'finalCost' => $finalCost,
             ]);
         }
-    
+
 }

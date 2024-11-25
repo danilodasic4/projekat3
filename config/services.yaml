@@ -22,7 +22,6 @@ services:
             $discountCode: '%discount_code%'  
 
     App\Resolver\CarValueResolver:
-        arguments:
-            $carRepository: '@App\Repository\CarRepository'
         tags:
-            - { name: 'controller.argument_value_resolver' }
+            - { name: 'controller.argument_value_resolver', priority: 150 }
+
