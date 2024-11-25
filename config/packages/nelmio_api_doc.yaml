@@ -1,0 +1,11 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: 'Car API'
+            description: 'API documentation for managing cars'
+            version: '1.0.0'
+    areas:
+        default:
+            path_patterns:
+                - ^/api
+

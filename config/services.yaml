@@ -1,3 +1,4 @@
+
 parameters:
     profile_pictures_directory: '%kernel.project_dir%/%env(PROFILE_PICTURES_DIRECTORY)%'
     registration_base_cost: '%env(resolve:REGISTRATION_BASE_COST)%'
@@ -19,3 +20,9 @@ services:
         arguments:
             $registrationBaseCost: '%registration_base_cost%'  
             $discountCode: '%discount_code%'  
+
+    App\Resolver\CarValueResolver:
+        arguments:
+            $carRepository: '@App\Repository\CarRepository'
+        tags:
+            - { name: 'controller.argument_value_resolver' }
