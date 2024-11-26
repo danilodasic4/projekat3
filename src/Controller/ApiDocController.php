@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -10,6 +11,7 @@ class ApiDocController extends AbstractController
     #[Route('/api/doc', name: 'api_doc', methods: ['GET'])]
     public function index(): Response
     {
-        return $this->render('@NelmioApiDoc/SwaggerUi/index.html.twig');
+        // Correctly reference the path to your Twig template
+        return $this->render('api/doc.html.twig');
     }
 }

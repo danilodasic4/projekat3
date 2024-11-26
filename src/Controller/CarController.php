@@ -44,7 +44,6 @@ class CarController extends AbstractController
         ]);
     }
 
-    // Show car by ID (Read)
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
     #[OA\Get(
         path: "/cars/{id}",
@@ -52,18 +51,27 @@ class CarController extends AbstractController
         description: "Retrieve a single car by its ID",
         tags: ["Car"],
         parameters: [
-            new OA\Parameter(name: "id", in: "path", description: "ID of the car", required: true, schema: new OA\Schema(type: "integer"))
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                description: "ID of the car",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
         ],
-        response: [
-            new OA\Response(response: "200", description: "Car details")
+        responses: [
+            new OA\Response(response: "200", description: "Car details"),
+            new OA\Response(response: "404", description: "Car not found")
         ]
     )]
-    public function show(#[ValueResolver('car')] Car $car): Response
+    public function show(Car $car): Response
     {
+        // The $car parameter is automatically resolved by CarValueResolver
         return $this->render('car/show.html.twig', [
             'car' => $car,
         ]);
     }
+
 
 
     // Create a new car (Create)

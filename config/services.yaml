@@ -22,6 +22,4 @@ services:
             $discountCode: '%discount_code%'  
 
     App\Resolver\CarValueResolver:
-        tags:
-            - { name: 'controller.argument_value_resolver', priority: 150 }
-
+        
