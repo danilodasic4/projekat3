@@ -35,7 +35,7 @@ class CarController extends AbstractController
                 description: 'A list of cars',
                 content: new OA\JsonContent(
                     type: 'array',
-                    items: new OA\Items(ref: '#/components/schemas/Car')
+                    items: new OA\Items()
                 )
             )
         ]
@@ -63,7 +63,7 @@ class CarController extends AbstractController
             new OA\Response(
                 response: 200,
                 description: 'Details of the car',
-                content: new OA\JsonContent(ref: '#/components/schemas/Car')
+                content: new OA\JsonContent()
             ),
             new OA\Response(
                 response: 404,
@@ -87,7 +87,7 @@ class CarController extends AbstractController
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                ref: '#/components/schemas/Car'
+
             )
         ),
         responses: [
@@ -127,7 +127,7 @@ class CarController extends AbstractController
         ],
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\JsonContent(ref: '#/components/schemas/Car')
+            content: new OA\JsonContent()
         ),
         responses: [
             new OA\Response(response: 200, description: 'Car updated successfully'),
@@ -198,7 +198,7 @@ class CarController extends AbstractController
                 description: 'A list of cars with expiring registration',
                 content: new OA\JsonContent(
                     type: 'array',
-                    items: new OA\Items(ref: '#/components/schemas/Car')
+                    items: new OA\Items()
                 )
             ),
             new OA\Response(
@@ -282,7 +282,7 @@ class CarController extends AbstractController
                 description: 'Successfully fetched registration details',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: 'car', ref: '#/components/schemas/Car'),
+                        new OA\Property(property: 'car', ),
                         new OA\Property(property: 'baseCost', type: 'number', format: 'float'),
                         new OA\Property(property: 'finalCost', type: 'number', format: 'float')
                     ]
@@ -312,7 +312,7 @@ class CarController extends AbstractController
                 description: 'Successfully updated registration details',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: 'car', ref: '#/components/schemas/Car'),
+                        new OA\Property(property: 'car', ),
                         new OA\Property(property: 'baseCost', type: 'number', format: 'float'),
                         new OA\Property(property: 'finalCost', type: 'number', format: 'float')
                     ]
