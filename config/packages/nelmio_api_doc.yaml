@@ -98,8 +98,11 @@ nelmio_api_doc:
                         cars:
                             type: array
                             items:
-                            $ref: '#/components/schemas/Car'  # Povezivanje sa Car entitetom
+                            $ref: '#/components/schemas/Car'
                             description: 'The cars owned by the user'
     areas:
         path_patterns:
-            - ^/api/.*
+                - ^/$
+                - ^/cars
+                - ^/login$
+                - ^/register$

@@ -19,3 +19,8 @@ services:
         arguments:
             $registrationBaseCost: '%registration_base_cost%'  
             $discountCode: '%discount_code%'  
+
+    App\Resolver\CarValueResolver:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+
