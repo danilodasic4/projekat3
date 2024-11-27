@@ -35,9 +35,9 @@ class CarController extends AbstractController
 
 
     // Show list of all cars (Read)
-    #[Route('/api/cars', name: 'app_car_index', methods: ['GET'])]
+    #[Route('/cars', name: 'app_car_index', methods: ['GET'])]
     #[OA\Get(
-        path: '/api/cars',
+        path: '/cars',
         summary: 'Get the list of all cars',
         description: 'This route returns a list of all cars available.',
         responses: [
@@ -63,7 +63,7 @@ class CarController extends AbstractController
     // Show details of a specific car (Read)
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
     #[OA\Get(
-        path: '/api/cars/{id}',
+        path: '/cars/{id}',
         summary: 'Get car details',
         description: 'This route returns the details of a car by its ID.',
         parameters: [
@@ -85,9 +85,9 @@ class CarController extends AbstractController
 
 
     // Create a new car (Create)
-    #[Route('/api/cars/create', name: 'app_car_new', methods: ['GET', 'POST'])]
+    #[Route('/cars/create', name: 'app_car_new', methods: ['GET', 'POST'])]
     #[OA\Post(
-        path: '/api/cars/create',
+        path: '/cars/create',
         summary: 'Create a new car',
         description: 'This route creates a new car entry.',
         requestBody: new OA\RequestBody(
@@ -124,7 +124,7 @@ class CarController extends AbstractController
     // Edit an existing car (Update)
     #[Route('/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
     #[OA\Put(
-        path: '/api/cars/update/{id}',
+        path: '/cars/update/{id}',
         summary: 'Update an existing car',
         description: 'This route allows updating the car details by ID.',
         parameters: [
@@ -173,7 +173,7 @@ class CarController extends AbstractController
     // Delete a car (Delete)
     #[Route('/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'DELETE'])]
     #[OA\Delete(
-        path: '/api/cars/delete/{id}',
+        path: '/cars/delete/{id}',
         summary: 'Delete a car',
         description: 'This route allows deleting a car by ID.',
         parameters: [
@@ -202,9 +202,9 @@ class CarController extends AbstractController
 }
 
  // Get list of cars with expiring registration
-    #[Route('/api/cars/expiring-registration', name: 'app_cars_expiring_registration', methods: ['GET'])]
+    #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration', methods: ['GET'])]
     #[OA\Get(
-        path: '/api/cars/expiring-registration',
+        path: '/cars/expiring-registration',
         summary: 'Get list of cars with expiring registration',
         description: 'This route returns a list of cars whose registration expires by the end of the current month.',
         responses: [
@@ -306,7 +306,7 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
 
     #[Route('/cars/registration-details/{id}', name: 'app_car_registration_details', methods: ['GET', 'POST'])]
     #[OA\Get(
-        path: '/api/cars/registration-details/{id}',
+        path: '/cars/registration-details/{id}',
         summary: 'Get registration details for a specific car',
         description: 'This route returns the registration details for a car by its ID, including the base cost and the final cost (with discount if provided).',
         parameters: [
@@ -328,7 +328,7 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
         ]
     )]
     #[OA\Post(
-        path: '/api/cars/registration-details/{id}',
+        path: '/cars/registration-details/{id}',
         summary: 'Update registration details for a specific car with a discount code',
         description: 'This route updates the registration cost for a car with a discount code.',
         parameters: [
