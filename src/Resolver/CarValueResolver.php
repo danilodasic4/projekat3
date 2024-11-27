@@ -17,10 +17,8 @@ class CarValueResolver
 
     public function __invoke(Request $request): Car
     {
-        // Pretpostavljamo da se ID automobila prosleđuje kao deo URL-a
         $carId = $request->get('id');
-
-        // Tražimo car entitet u bazi prema ID-u
+        
         $car = $this->entityManager->getRepository(Car::class)->find($carId);
 
         if (!$car) {
