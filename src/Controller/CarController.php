@@ -10,10 +10,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use DateTimeImmutable;
 use App\Service\RegistrationCostService;
 use OpenApi\Attributes as OA;
+use App\Resolver\CarValueResolver;
 
 class CarController extends AbstractController
 {
@@ -35,9 +35,9 @@ class CarController extends AbstractController
 
 
     // Show list of all cars (Read)
-    #[Route('/api/cars', name: 'app_car_index', methods: ['GET'])]
+    #[Route('/cars', name: 'app_car_index', methods: ['GET'])]
     #[OA\Get(
-        path: '/api/cars',
+        path: '/cars',
         summary: 'Get the list of all cars',
         description: 'This route returns a list of all cars available.',
         responses: [
@@ -61,10 +61,9 @@ class CarController extends AbstractController
     }
 
     // Show details of a specific car (Read)
-    #[Route('/api/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
-    #[ParamConverter('car', class: 'App\Entity\Car')]
+    #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
     #[OA\Get(
-        path: '/api/cars/{id}',
+        path: '/cars/{id}',
         summary: 'Get car details',
         description: 'This route returns the details of a car by its ID.',
         parameters: [
@@ -75,15 +74,10 @@ class CarController extends AbstractController
             new OA\Response(response: 404,description: 'Car not found')
         ]
     )]
-    public function show(Car $car): Response
-    public function show(int $id): Response
+    public function show(
+        #[ValueResolver(CarValueResolver::class)] Car $car
+        ): Response
     {
-        $car = $this->carRepository->find($id);
-
-        if (!$car) {
-            throw $this->createNotFoundException('Car not found');
-        }
-
         return $this->render('car/show.html.twig', [
             'car' => $car,
         ]);
@@ -91,9 +85,9 @@ class CarController extends AbstractController
 
 
     // Create a new car (Create)
-    #[Route('/api/cars/create', name: 'app_car_new', methods: ['GET', 'POST'])]
+    #[Route('/cars/create', name: 'app_car_new', methods: ['GET', 'POST'])]
     #[OA\Post(
-        path: '/api/cars/create',
+        path: '/cars/create',
         summary: 'Create a new car',
         description: 'This route creates a new car entry.',
         requestBody: new OA\RequestBody(
@@ -128,10 +122,10 @@ class CarController extends AbstractController
     }
 
     // Edit an existing car (Update)
-    #[Route('/api/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
+    #[Route('/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
     #[ParamConverter('car', class: 'App\Entity\Car')]
     #[OA\Put(
-        path: '/api/cars/update/{id}',
+        path: '/cars/update/{id}',
         summary: 'Update an existing car',
         description: 'This route allows updating the car details by ID.',
         parameters: [
@@ -147,8 +141,11 @@ class CarController extends AbstractController
             new OA\Response(response: 400, description: 'Invalid input data')
         ]
     )]
-    public function edit(Request $request, Car $car): Response
-    {
+    public function edit(
+        #[ValueResolver(CarValueResolver::class)] Car $car,
+        Request $request
+        ): Response {
+
         $form = $this->createForm(CarFormType::class, $car, [
             'method' => 'PUT',
             'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()]),
@@ -186,10 +183,9 @@ public function edit(Request $request, Car $car): Response
 
 
     // Delete a car (Delete)
-    #[Route('/api/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'DELETE'])]
-    #[ParamConverter('car', class: 'App\Entity\Car')]
+    #[Route('/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'DELETE'])]
     #[OA\Delete(
-        path: '/api/cars/delete/{id}',
+        path: '/cars/delete/{id}',
         summary: 'Delete a car',
         description: 'This route allows deleting a car by ID.',
         parameters: [
@@ -200,8 +196,11 @@ public function edit(Request $request, Car $car): Response
             new OA\Response(response: 404, description: 'Car not found')
         ]
     )]
-    public function delete(Request $request, Car $car): Response
-    {
+    public function delete(
+        #[ValueResolver(CarValueResolver::class)] Car $car, 
+        Request $request
+        ): Response {
+
         if ($request->isMethod('DELETE')) {
             $this->entityManager->remove($car);
             $this->entityManager->flush();
@@ -215,9 +214,9 @@ public function edit(Request $request, Car $car): Response
 }
 
  // Get list of cars with expiring registration
-    #[Route('/api/cars/expiring-registration', name: 'app_cars_expiring_registration', methods: ['GET'])]
+    #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration', methods: ['GET'])]
     #[OA\Get(
-        path: '/api/cars/expiring-registration',
+        path: '/cars/expiring-registration',
         summary: 'Get list of cars with expiring registration',
         description: 'This route returns a list of cars whose registration expires by the end of the current month.',
         responses: [
@@ -260,9 +259,9 @@ public function edit(Request $request, Car $car): Response
     // src/Controller/CarController.php
 
 // Calculate registration cost for a specific car with a discount code (API endpoint)
-#[Route('/api/cars/calculate-registration-cost', name: 'car_calculate_registration_cost', methods: ['GET'])]
+#[Route('/cars/calculate-registration-cost', name: 'car_calculate_registration_cost', methods: ['GET'])]
 #[OA\Get(
-    path: '/api/cars/calculate-registration-cost',
+    path: '/cars/calculate-registration-cost',
     summary: 'Calculate registration cost for a car',
     description: 'This route calculates the registration cost of a car and applies a discount code if provided.',
 )]
@@ -325,10 +324,9 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
 
 
 
-    #[Route('/api/cars/registration-details/{id}', name: 'app_car_registration_details', methods: ['GET', 'POST'])]
-    #[ParamConverter('car', class: 'App\Entity\Car')]
+    #[Route('/cars/registration-details/{id}', name: 'app_car_registration_details', methods: ['GET', 'POST'])]
     #[OA\Get(
-        path: '/api/cars/registration-details/{id}',
+        path: '/cars/registration-details/{id}',
         summary: 'Get registration details for a specific car',
         description: 'This route returns the registration details for a car by its ID, including the base cost and the final cost (with discount if provided).',
         parameters: [
@@ -350,7 +348,7 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
         ]
     )]
     #[OA\Post(
-        path: '/api/cars/registration-details/{id}',
+        path: '/cars/registration-details/{id}',
         summary: 'Update registration details for a specific car with a discount code',
         description: 'This route updates the registration cost for a car with a discount code.',
         parameters: [
@@ -379,8 +377,10 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
             new OA\Response(response: 404, description: 'Car not found')
         ]
     )]
-    public function registrationDetails(Request $request, Car $car): Response
-    {
+    public function registrationDetails(
+        #[ValueResolver(CarValueResolver::class)] Car $car, 
+        Request $request
+        ): Response{
         if (!$car) {
             throw $this->createNotFoundException('Car not found');
         }
