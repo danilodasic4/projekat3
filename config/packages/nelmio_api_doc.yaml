@@ -1,6 +1,105 @@
 nelmio_api_doc:
     documentation:
+        swagger: '2.0'
         info:
-            title: 'API Documentation'
-            description: 'This is the API documentation.'
+            title: 'Car Management API'
+            description: 'API documentation for managing cars'
             version: '1.0.0'
+        components:
+            schemas:
+                Car:
+                    type: object
+                    description: 'Represents a car in the system'
+                    properties:
+                        id:
+                            type: integer
+                            description: 'The unique identifier of the car'
+                        brand:
+                            type: string
+                            description: 'Brand of the car'
+                        model:
+                            type: string
+                            description: 'Model of the car'
+                        year:
+                            type: integer
+                            description: 'Year of manufacture'
+                        engineCapacity:
+                            type: integer
+                            description: 'Engine capacity in cubic centimeters'
+                        horsePower:
+                            type: integer
+                            description: 'Horse power of the car'
+                        color:
+                            type: string
+                            description: 'Color of the car'
+                            nullable: true
+                        user:
+                            $ref: '#/components/schemas/User'
+                            description: 'User who owns the car'
+                        created_at:
+                            type: string
+                            format: date-time
+                            description: 'Creation timestamp'
+                        updated_at:
+                            type: string
+                            format: date-time
+                            description: 'Last updated timestamp'
+                            nullable: true
+                        deleted_at:
+                            type: string
+                            format: date-time
+                            description: 'Timestamp when the car was deleted, if applicable'
+                            nullable: true
+                        registrationDate:
+                            type: string
+                            format: date
+                            description: 'Registration date of the car'
+                User:
+                    type: object
+                    description: 'Represents a user in the system'
+                    properties:
+                        id:
+                            type: integer
+                            description: 'The unique identifier of the user'
+                        email:
+                            type: string
+                            format: email
+                            description: 'The email address of the user'
+                        roles:
+                            type: array
+                            items:
+                                type: string
+                            description: 'The roles assigned to the user'
+                            example: ['ROLE_USER', 'ROLE_ADMIN']
+                        password:
+                            type: string
+                            description: 'The hashed password of the user'
+                        profile_picture:
+                            type: string
+                            format: uri
+                            nullable: true
+                            description: "URL to the user's profile picture"
+                        birthday:
+                            type: string
+                            format: date
+                            nullable: true
+                            description: "The user's date of birth"
+                        gender:
+                            type: string
+                            nullable: true
+                            enum:
+                                - male
+                                - female
+                                - other
+                            description: "The user's gender"
+                        newsletter:
+                            type: boolean
+                            description: 'Indicates if the user is subscribed to the newsletter'
+                        cars:
+                            type: array
+                            items:
+                            $ref: '#/components/schemas/Car'  # Povezivanje sa Car entitetom
+                            description: 'The cars owned by the user'
+    areas:
+        path_patterns:
+            - ^/api/.*
