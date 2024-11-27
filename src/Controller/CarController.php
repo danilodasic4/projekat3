@@ -81,7 +81,8 @@ class CarController extends AbstractController
         return $this->render('car/show.html.twig', [
             'car' => $car,
         ]);
-    }
+    }  
+
 
     // Create a new car (Create)
     #[Route('/cars/create', name: 'app_car_new', methods: ['GET', 'POST'])]
@@ -122,7 +123,6 @@ class CarController extends AbstractController
 
     // Edit an existing car (Update)
     #[Route('/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
-    #[ParamConverter('car', class: 'App\Entity\Car')]
     #[OA\Put(
         path: '/cars/update/{id}',
         summary: 'Update an existing car',
@@ -145,17 +145,22 @@ class CarController extends AbstractController
         Request $request
         ): Response {
 
+        if (!$car) {
+            throw $this->createNotFoundException('Car not found');
+        }
+
+
         $form = $this->createForm(CarFormType::class, $car, [
             'method' => 'PUT',
-            'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()]),
+            'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()])
         ]);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $car->setUpdatedAt(new \DateTimeImmutable());
-            $this->entityManager->flush();
 
+            $this->entityManager->flush();
             return $this->redirectToRoute('app_car_index');
         }
 
@@ -163,7 +168,9 @@ class CarController extends AbstractController
             'form' => $form->createView(),
             'car' => $car,
         ]);
-    }
+}
+
+
 
     // Delete a car (Delete)
     #[Route('/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'DELETE'])]
@@ -188,13 +195,12 @@ class CarController extends AbstractController
             $this->entityManager->remove($car);
             $this->entityManager->flush();
 
-            return $this->redirectToRoute('app_car_index');
-        }
-
-        return $this->render('car/delete.html.twig', [
-            'car' => $car,
-        ]);
+        return $this->redirectToRoute('app_car_index');
     }
+    return $this->render('car/delete.html.twig', [
+        'car' => $car,
+    ]);
+}
 
  // Get list of cars with expiring registration
     #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration', methods: ['GET'])]
@@ -217,22 +223,17 @@ class CarController extends AbstractController
             )
         ]
     )]
-    public function expiringRegistration(): Response
-    {
-        $currentDate = new DateTimeImmutable();
-        $endOfThisMonth = $currentDate->modify('last day of this month')->setTime(23, 59, 59);
-        
-        // Get cars whose registration expires by the end of the current month
-        $cars = $this->carRepository->findByRegistrationExpiringUntil($endOfThisMonth);
 
-        // Return HTML page with the list of cars
+      public function expiringRegistration(CarRepository $carRepository): Response
+      {
+          $currentDate = new DateTimeImmutable();
+          $endOfThisMonth = $currentDate->modify('last day of this month')->setTime(23, 59, 59);
+                $cars = $carRepository->findByRegistrationExpiringUntil($endOfThisMonth);
+      
         return $this->render('car/expiring_registration.html.twig', [
             'cars' => $cars,
         ]);
-    }
-
-
-    // src/Controller/CarController.php
+    
 
 // Calculate registration cost for a specific car with a discount code (API endpoint)
 #[Route('/cars/calculate-registration-cost', name: 'car_calculate_registration_cost', methods: ['GET'])]
@@ -297,6 +298,7 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
         'finalCost' => $finalCost,
     ]);
 }
+
 
 
 
