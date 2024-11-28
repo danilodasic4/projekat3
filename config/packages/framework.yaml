@@ -16,9 +16,15 @@ framework:
     #fragments: true
     php_errors:
         log: true
+        
+    http_client:
+        scoped_clients:
+            default:
+                base_uri: 'http://dev.symfony-6-testing-project.com:84'
 
 when@test:
     framework:
         test: true
         session:
             storage_factory_id: session.storage.factory.mock_file
+    

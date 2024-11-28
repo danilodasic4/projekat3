@@ -15,24 +15,19 @@ use DateTimeImmutable;
 use App\Service\RegistrationCostService;
 use OpenApi\Attributes as OA;
 use App\Resolver\CarValueResolver;
+use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+
 
 class CarController extends AbstractController
 {
     public function __construct(
         private readonly CarRepository $carRepository, 
         private readonly EntityManagerInterface $entityManager, 
-        private readonly RegistrationCostService $registrationCostService
+        private readonly RegistrationCostService $registrationCostService,
+        private readonly HttpClientInterface $httpClient,
     ) {}
-    public function getCar(int $id): JsonResponse
-{
-    $car = $this->getDoctrine()->getRepository(Car::class)->find($id);
-
-    if (!$car) {
-        return new JsonResponse(['error' => 'Car not found'], Response::HTTP_NOT_FOUND);
-    }
-
-    return $this->json($car);
-}
+ 
     #[Route('/api/cars', name:'api_car_index',methods:['GET'])]
     #[OA\Get(
         path: '/api/cars',
@@ -54,11 +49,11 @@ class CarController extends AbstractController
         $cars = $this->carRepository->findAll();
         $carData = array_map(function (car $car){
             return [
-                'id'=>$car->getId(),
-                'brand'=>$car->getBrand(),
-                'model'=>$car->getModel(),
-                'year'=>$car->getYear(),
-                'color'=>$car->getColor(),
+                'id' => $car->getId(),
+                'brand' => $car->getBrand(),
+                'model' => $car->getModel(),
+                'year' => $car->getYear(),
+                'color' => $car->getColor(),
             ];
         },$cars);
         
@@ -83,16 +78,24 @@ class CarController extends AbstractController
             )
         ]
     )]
+
     public function index(): Response
     {
-        $cars = $this->carRepository->findAll();
+        $response = $this->httpClient->request('GET', 'http://dev.symfony-6-testing-project.com:84/api/cars');
+
+        $content = $response->getContent();
+        $rawData = json_decode($content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $rawData = [];
+        }
 
         return $this->render('car/index.html.twig', [
-            'cars' => $cars
+            'cars' => $rawData,
         ]);
     }
 
-    // Show details of a specific car (Read)
+  // Show details of a specific car (Read)
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
     #[OA\Get(
         path: '/cars/{id}',
