@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -11,7 +10,7 @@ use OpenApi\Attributes as OA;
 
 class LoginController extends AbstractController
 {
-    #[Route('/login', name: 'app_login', methods: ['GET'])]
+    #[Route('/login', name: 'app_login', methods: ['GET', 'POST'])]
     #[OA\Get(
         path: '/login',
         summary: 'User Login',
@@ -21,7 +20,16 @@ class LoginController extends AbstractController
             new OA\Response(response: 302, description: 'Redirected to car index page if already logged in')
         ]
     )]
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    #[OA\Post(
+        path: '/login',
+        summary: 'User Login (POST)',
+        description: 'This route handles the user login when the login form is submitted.',
+        responses: [
+            new OA\Response(response: 302, description: 'Redirects to the car index page after successful login'),
+            new OA\Response(response: 400, description: 'Invalid login credentials')
+        ]
+    )]
+    public function login(Request $request, AuthenticationUtils $authenticationUtils): Response
     {
         // Check if the user is already logged in
         if ($this->getUser()) {
@@ -50,6 +58,7 @@ class LoginController extends AbstractController
         ]
     )]
     public function logout(): void
-    {        // The logout method can be blank - Symfony will handle it
+    {
+        // The logout method can be blank - Symfony will handle it
     }
 }
