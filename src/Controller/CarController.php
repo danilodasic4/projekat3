@@ -233,7 +233,7 @@ class CarController extends AbstractController
         return $this->render('car/expiring_registration.html.twig', [
             'cars' => $cars,
         ]);
-    
+      }
 
 // Calculate registration cost for a specific car with a discount code (API endpoint)
 #[Route('/cars/calculate-registration-cost', name: 'car_calculate_registration_cost', methods: ['GET'])]
