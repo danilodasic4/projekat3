@@ -25,7 +25,7 @@ class CarController extends AbstractController
         private readonly CarRepository $carRepository, 
         private readonly EntityManagerInterface $entityManager, 
         private readonly RegistrationCostService $registrationCostService,
-        private readonly HttpClientInterface $httpClient,
+        private  HttpClientInterface $httpClient,
     ) {}
  
     #[Route('/api/cars', name:'api_car_index',methods:['GET'])]
@@ -81,8 +81,10 @@ class CarController extends AbstractController
 
     public function index(): Response
     {
-        $response = $this->httpClient->request('GET', 'http://dev.symfony-6-testing-project.com:84/api/cars');
+        // Postavljamo base_uri za svaki poziv sa HttpClient
+        $client = HttpClient::create();
 
+        $response = $client->request('GET', 'http://symfony-6-testing-project_front:80/api/cars');
         $content = $response->getContent();
         $rawData = json_decode($content, true);
 
