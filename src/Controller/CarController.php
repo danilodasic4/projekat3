@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTimeImmutable;
 use App\Service\RegistrationCostService;
@@ -32,6 +33,37 @@ class CarController extends AbstractController
 
     return $this->json($car);
 }
+    #[Route('/api/cars', name:'api_car_index',methods:['GET'])]
+    #[OA\Get(
+        path: '/api/cars',
+        summary: 'Get the list of all cars in raw JSON format',
+        description: 'This route returns a raw JSON list of all cars available.',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'A raw JSON list of cars',
+                content: new OA\JsonContent(
+                    type: 'array',
+                    items: new OA\Items(ref: '#/components/schemas/Car')
+                )
+            )
+        ]
+    )]
+    public function getCarsApi():JsonResponse
+    {
+        $cars = $this->carRepository->findAll();
+        $carData = array_map(function (car $car){
+            return [
+                'id'=>$car->getId(),
+                'brand'=>$car->getBrand(),
+                'model'=>$car->getModel(),
+                'year'=>$car->getYear(),
+                'color'=>$car->getColor(),
+            ];
+        },$cars);
+        
+        return new JsonResponse($carData); //Returning "raw" JSON
+    }
 
 
     // Show list of all cars (Read)
