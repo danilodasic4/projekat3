@@ -25,7 +25,7 @@ class CarController extends AbstractController
         private readonly CarRepository $carRepository, 
         private readonly EntityManagerInterface $entityManager, 
         private readonly RegistrationCostService $registrationCostService,
-        private  HttpClientInterface $httpClient,
+        private readonly HttpClientInterface $httpClient,
     ) {}
  
     #[Route('/api/cars', name:'api_car_index',methods:['GET'])]
@@ -80,24 +80,25 @@ class CarController extends AbstractController
     )]
 
     public function index(): Response
-    {
-        // Postavljamo base_uri za svaki poziv sa HttpClient
-        $client = HttpClient::create();
+{
+    $client = HttpClient::create();
 
-        $response = $client->request('GET', 'http://symfony-6-testing-project_front:80/api/cars');
-        $content = $response->getContent();
-        $rawData = json_decode($content, true);
+    $response = $client->request('GET', 'http://symfony-6-testing-project_front:80/api/cars');
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $rawData = [];
-        }
+    dd($response->getContent(false));
 
-        return $this->render('car/index.html.twig', [
-            'cars' => $rawData,
-        ]);
+    $content = $response->getContent();
+    $rawData = json_decode($content, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        $rawData = [];
     }
 
-  // Show details of a specific car (Read)
+    return $this->render('car/index.html.twig', [
+        'cars' => $rawData,
+    ]);
+}
+
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
     #[OA\Get(
         path: '/cars/{id}',
