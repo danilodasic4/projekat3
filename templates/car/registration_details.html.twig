@@ -7,27 +7,53 @@
 <body>
     {% include 'base.html.twig' %}
     
-    <div class="container mt-4">
-        <h1>Registration Details for {{ car.brand }} {{ car.model }}</h1>
-        <p><strong>Year:</strong> {{ car.year }}</p>
-        <p><strong>Engine Capacity:</strong> {{ car.engineCapacity }}cc</p>
-        <p><strong>Color:</strong> {{ car.color }}</p>
+    <div class="container mt-5">
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <h1 class="display-5">Registration Details</h1>
+            <p class="lead">Get the details and cost of registering your car.</p>
+        </div>
 
-        <h3>Registration Cost: {{ baseCost }} RSD</h3>
-
-        <form method="POST">
-            <div class="form-group">
-                <label for="discountCode">Discount Code</label>
-                <input type="text" name="discountCode" id="discountCode" class="form-control" placeholder="Enter discount code" />
+        <!-- Car Details -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title">{{ car.brand }} {{ car.model }}</h2>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Year:</strong> {{ car.year }}</li>
+                    <li class="list-group-item"><strong>Engine Capacity:</strong> {{ car.engineCapacity }}cc</li>
+                    <li class="list-group-item"><strong>Color:</strong> {{ car.color }}</li>
+                </ul>
             </div>
-            <button type="submit" class="btn btn-primary">Apply Discount</button>
-        </form>
+        </div>
 
-        {% if finalCost is not same as(baseCost) %}
-        <h3 class="mt-3">Final Cost with Discount: {{ finalCost }} RSD</h3>
-        {% endif %}
-        
-        <a href="{{ path('app_car_index') }}" class="btn btn-secondary mt-3">Back to Car List</a>
+        <!-- Cost Section -->
+        <div class="alert alert-info text-center">
+            <h3>Registration Cost: <strong>{{ baseCost }} RSD</strong></h3>
+        </div>
+
+        <!-- Discount Form -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="discountCode" class="form-label">Discount Code</label>
+                        <input type="text" name="discountCode" id="discountCode" class="form-control" placeholder="Enter discount code">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block mt-3">Apply Discount</button>
+                </form>
+
+                {% if finalCost is not same as(baseCost) %}
+                <div class="alert alert-success mt-4">
+                    <h4>Final Cost with Discount: <strong>{{ finalCost }} RSD</strong></h4>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="text-center">
+            <a href="{{ path('app_car_index') }}" class="btn btn-secondary">Back to Car List</a>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

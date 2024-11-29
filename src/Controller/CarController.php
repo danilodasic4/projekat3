@@ -15,6 +15,8 @@ use DateTimeImmutable;
 use App\Service\RegistrationCostService;
 use OpenApi\Attributes as OA;
 use App\Resolver\CarValueResolver;
+use App\Resolver\UserValueResolver;
+
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -28,37 +30,55 @@ class CarController extends AbstractController
         private readonly HttpClientInterface $httpClient,
     ) {}
  
-    #[Route('/api/cars', name:'api_car_index',methods:['GET'])]
-    #[OA\Get(
-        path: '/api/cars',
-        summary: 'Get the list of all cars in raw JSON format',
-        description: 'This route returns a raw JSON list of all cars available.',
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: 'A raw JSON list of cars',
-                content: new OA\JsonContent(
-                    type: 'array',
-                    items: new OA\Items(ref: '#/components/schemas/Car')
-                )
-            )
-        ]
-    )]
-    public function getCarsApi():JsonResponse
-    {
-        $cars = $this->carRepository->findAll();
-        $carData = array_map(function (car $car){
-            return [
-                'id' => $car->getId(),
-                'brand' => $car->getBrand(),
-                'model' => $car->getModel(),
-                'year' => $car->getYear(),
-                'color' => $car->getColor(),
-            ];
-        },$cars);
-        
-        return new JsonResponse($carData); //Returning "raw" JSON
-    }
+    // #[Route('/user/{user_id}/cars', name:'api_user_cars', methods:['GET'])]
+    // #[OA\Get(
+    //     path: '/user/{user_id}/cars',
+    //     summary: 'Get the list of cars for a specific user',
+    //     description: 'This route returns a raw JSON list of cars owned by a specific user.',
+    //     parameters: [
+    //         new OA\Parameter(
+    //             name: 'user_id',
+    //             in: 'path',
+    //             required: true,
+    //             description: 'ID of the user',
+    //             schema: new OA\Schema(type: 'integer')
+    //         )
+    //     ],
+    //     responses: [
+    //         new OA\Response(
+    //             response: 200,
+    //             description: 'A raw JSON list of cars for the user',
+    //             content: new OA\JsonContent(
+    //                 type: 'array',
+    //                 items: new OA\Items(ref: '#/components/schemas/Car')
+    //             )
+    //         ),
+    //         new OA\Response(
+    //             response: 404,
+    //             description: 'User not found or no cars available for the user'
+    //         )
+    //     ]
+    // )]
+    // public function getUserCars(
+    //     #[ValueResolver(UserValueResolver::class)] User $user
+    // ): JsonResponse {
+    //     // Dohvati sve automobile povezane sa korisnikom
+    //     $cars = $user->getCars();
+
+    //     // Transformacija kolekcije u niz za JSON odgovor
+    //     $carData = $cars->map(function (Car $car) {
+    //         return [
+    //             'id' => $car->getId(),
+    //             'brand' => $car->getBrand(),
+    //             'model' => $car->getModel(),
+    //             'year' => $car->getYear(),
+    //             'color' => $car->getColor(),
+    //         ];
+    //     })->toArray();
+
+    //     return new JsonResponse($carData);
+    // }
+    
 
 
     // Show list of all cars (Read)
@@ -78,26 +98,28 @@ class CarController extends AbstractController
             )
         ]
     )]
+//     public function index(): Response
+// {
+//     $response = $this->httpClient->request('GET', 'http://symfony-6-testing-project_front/api/user/1/cars'); // Replace `1` with the desired user ID
+//     $content = $response->getContent(false);
+//     $rawData = json_decode($content, true);
 
-    public function index(): Response
-{
-    $client = HttpClient::create();
+//     if (json_last_error() !== JSON_ERROR_NONE) {
+//         $rawData = [];
+//     }
 
-    $response = $client->request('GET', 'http://symfony-6-testing-project_front:80/api/cars');
+//     return $this->render('car/index.html.twig', [
+//         'cars' => $rawData,
+//     ]);
+// }
+   public function index(): Response
+   {
+       $cars = $this->carRepository->findAll();
 
-    dd($response->getContent(false));
-
-    $content = $response->getContent();
-    $rawData = json_decode($content, true);
-
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        $rawData = [];
-    }
-
-    return $this->render('car/index.html.twig', [
-        'cars' => $rawData,
-    ]);
-}
+       return $this->render('car/index.html.twig', [
+           'cars' => $cars
+       ]);
+   }
 
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
     #[OA\Get(
@@ -147,17 +169,18 @@ class CarController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $car->setCreatedAt(new \DateTimeImmutable());
+            // Auto je povezan sa korisnikom na osnovu emaila u formi
             $this->entityManager->persist($car);
             $this->entityManager->flush();
 
-            return $this->redirectToRoute('app_car_index');
+            return $this->redirectToRoute('car_list'); // Redirect to a list of cars or another route
         }
 
         return $this->render('car/new.html.twig', [
             'form' => $form->createView(),
         ]);
     }
+
 
     // Edit an existing car (Update)
     #[Route('/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
@@ -206,7 +229,7 @@ class CarController extends AbstractController
             'form' => $form->createView(),
             'car' => $car,
         ]);
-}
+    }
 
 
 
@@ -265,8 +288,8 @@ class CarController extends AbstractController
       public function expiringRegistration(CarRepository $carRepository): Response
       {
           $currentDate = new DateTimeImmutable();
-          $endOfThisMonth = $currentDate->modify('last day of this month')->setTime(23, 59, 59);
-                $cars = $carRepository->findByRegistrationExpiringUntil($endOfThisMonth);
+          $endOfNextMonth = $currentDate->modify('+30 days');
+                $cars = $carRepository->findByRegistrationExpiringUntil($endOfNextMonth);
       
         return $this->render('car/expiring_registration.html.twig', [
             'cars' => $cars,

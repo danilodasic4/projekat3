@@ -21,6 +21,7 @@
                         <th>Horse Power</th>
                         <th>Color</th>
                         <th>Registration Expiry</th>
+                        <th>Owner Email</th>                    
                     </tr>
                 </thead>
                 <tbody>
@@ -31,8 +32,9 @@
                             <td>{{ car.year }}</td>
                             <td>{{ car.engineCapacity }} cc</td>
                             <td>{{ car.horsePower }} HP</td>
-                            <td>{{ car.color }}</td>
+                            <td>{{ car.color }}</td>   
                             <td>{{ car.registrationDate|date('Y-m-d') }}</td>
+                            <td>{{ car.user.email }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

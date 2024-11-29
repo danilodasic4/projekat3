@@ -1,28 +1,38 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Car Details</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    {% include 'partials/header.html.twig' %}
-    
-    <div class="container mt-4">
-        <h1>Car Details</h1>
+{% extends 'base.html.twig' %}
 
-        <p><strong>Brand:</strong> {{ car.brand }}</p>
-        <p><strong>Model:</strong> {{ car.model }}</p>
-        <p><strong>Year:</strong> {{ car.year }}</p>
-        <p><strong>Engine Capacity:</strong> {{ car.engineCapacity }}</p>
-        <p><strong>Horse Power:</strong> {{ car.horsePower }}</p>
-        <p><strong>Color:</strong> {{ car.color }}</p>
-        <p><strong>Registration Date:</strong> {{ car.registrationDate|date('Y-m-d') }}</p>
+{% block title %}Car Details{% endblock %}
 
-        <a href="{{ path('app_car_index') }}" class="btn btn-secondary mt-3">Back to list</a>
+{% block body %}
+    <div class="container">
+        <h1 class="my-4">Car Details</h1>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ car.brand }} {{ car.model }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">Year: {{ car.year }}</h6>
+
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <strong>Engine Capacity:</strong> {{ car.engineCapacity }} cc
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Horse Power:</strong> {{ car.horsePower }} HP
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Color:</strong> {{ car.color|default('Not specified') }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Registration Date:</strong> {{ car.registrationDate|date('Y-m-d') }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Owner:</strong> {{ car.user.email }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a href="{{ path('app_car_index') }}" class="btn btn-secondary">Back to list</a>
+        </div>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.0/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
+{% endblock %}
