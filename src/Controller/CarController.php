@@ -182,9 +182,11 @@ class CarController extends AbstractController
         #[ValueResolver(CarValueResolver::class)] Car $car,
         Request $request
         ): Response {
+
         if (!$car) {
             throw $this->createNotFoundException('Car not found');
         }
+
 
         $form = $this->createForm(CarFormType::class, $car, [
             'method' => 'PUT',
@@ -233,7 +235,6 @@ class CarController extends AbstractController
 
         return $this->redirectToRoute('app_car_index');
     }
-
     return $this->render('car/delete.html.twig', [
         'car' => $car,
     ]);
@@ -270,11 +271,7 @@ class CarController extends AbstractController
         return $this->render('car/expiring_registration.html.twig', [
             'cars' => $cars,
         ]);
-    }
-
-
-
-    // src/Controller/CarController.php
+      }
 
 // Calculate registration cost for a specific car with a discount code (API endpoint)
 #[Route('/cars/calculate-registration-cost', name: 'car_calculate_registration_cost', methods: ['GET'])]
@@ -339,6 +336,7 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
         'finalCost' => $finalCost,
     ]);
 }
+
 
 
 
