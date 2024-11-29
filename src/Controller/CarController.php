@@ -59,17 +59,22 @@ class CarController extends AbstractController
             )
         ]
     )]
-    public function getUserCars(Security $security): JsonResponse
+    public function getUserCars(
+        int $user_id, 
+        #[ValueResolver(UserValueResolver::class)] User $user 
+    ): JsonResponse
     {
-        $user = $security->getUser();
-
-        if (!$user) {
-            return new JsonResponse(['error' => 'User not authenticated'], Response::HTTP_UNAUTHORIZED);
+        if (!$user || $user->getId() !== $user_id) {
+            return new JsonResponse(['error' => 'User not authenticated or invalid user'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $cars = $user->getCars(); 
+        $cars = $this->carRepository->findBy(['user' => $user]);
 
-        $carData = $cars->map(function (Car $car) {
+        if (empty($cars)) {
+            return new JsonResponse(['error' => 'No cars found for this user'], Response::HTTP_NOT_FOUND);
+        }
+
+        $carData = array_map(function (Car $car) {
             return [
                 'id' => $car->getId(),
                 'brand' => $car->getBrand(),
@@ -77,7 +82,7 @@ class CarController extends AbstractController
                 'year' => $car->getYear(),
                 'color' => $car->getColor(),
             ];
-        })->toArray();
+        }, $cars);
 
         return new JsonResponse($carData);
     }
@@ -102,9 +107,9 @@ class CarController extends AbstractController
             )
         ]
     )]
-        public function index(): Response
+    public function index(): Response
     {
-        $response = $this->httpClient->request('GET', 'http://symfony-6-testing-project.com/api/user/1/cars');
+        $response = $this->httpClient->request('GET', 'http://192.168.1.106:84/api/user/1/cars');
         $content = $response->getContent(false);
         $rawData = json_decode($content, true);
         
