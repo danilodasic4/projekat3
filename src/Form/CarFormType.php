@@ -31,14 +31,14 @@ class CarFormType extends AbstractType
             ->add('registrationDate', DateType::class, [
                 'widget' => 'single_text', 'required' => true
             ])
-            // Dodavanje polja za email korisnika
-            ->add('user', EntityType::class, [
-                'class' => User::class, // povezuje sa entitetom User
-                'choice_label' => 'email', // prikazuje email kao opciju
-                'label' => 'Select User',
-                'placeholder' => 'Choose a user', // Dodaje "placeholder" u formu
-                'required' => true, // Polje je obavezno
-            ])
+            // // Dodavanje polja za email korisnika
+            // ->add('user', EntityType::class, [
+            //     'class' => User::class, // povezuje sa entitetom User
+            //     'choice_label' => 'email', // prikazuje email kao opciju
+            //     'label' => 'Select User',
+            //     'placeholder' => 'Choose a user', // Dodaje "placeholder" u formu
+            //     'required' => true, // Polje je obavezno
+            // ])
             ->add('save', SubmitType::class, ['label' => 'Save Car']);
 
         // Kada forma bude podneta, poveži automobil sa korisnikom na osnovu emaila
