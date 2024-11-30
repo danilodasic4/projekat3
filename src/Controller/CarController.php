@@ -16,7 +16,7 @@ use App\Service\RegistrationCostService;
 use OpenApi\Attributes as OA;
 use App\Resolver\CarValueResolver;
 use App\Resolver\UserValueResolver;
-
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -28,6 +28,7 @@ class CarController extends AbstractController
         private readonly EntityManagerInterface $entityManager, 
         private readonly RegistrationCostService $registrationCostService,
         private readonly HttpClientInterface $httpClient,
+        private readonly Security $security,
     ) {}
  
     // #[Route('/user/{user_id}/cars', name:'api_user_cars', methods:['GET'])]

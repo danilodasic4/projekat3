@@ -1,6 +1,6 @@
 FROM php:8.1.0-fpm-alpine
 
-MAINTAINER Miljan Ristic <rista.le@gmail.com>
+LABEL maintainer="Miljan Ristic <rista.le@gmail.com>"
 
 # APK Applications & Libraries
 RUN apk add --no-cache acl \
