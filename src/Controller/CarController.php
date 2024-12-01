@@ -188,7 +188,7 @@ class CarController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            $this->carService->createNewCar($car);  // Prebacujemo logiku u servis
+            $this->carService->createNewCar($car);
 
 
             return $this->redirectToRoute('app_car_index'); // Redirect to a list of cars or another route
