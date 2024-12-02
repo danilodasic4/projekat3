@@ -5,9 +5,10 @@ parameters:
 
 services:
     _defaults:
-        autowire: true
-        autoconfigure: true
+        autowire: true      # Automatsko povezivanje dependencija
+        autoconfigure: true # Automatska konfiguracija servisa
 
+    # Registracija aplikacije, izuzimajući nepoželjne direktorijume
     App\:
         resource: '../src/'
         exclude:
@@ -15,17 +16,27 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    # Registracija servisa sa argumentima
     App\Service\RegistrationCostService:
         arguments:
             $registrationBaseCost: '%registration_base_cost%'  
             $discountCode: '%discount_code%'  
 
+    # Registracija CarValueResolver-a sa EntityManager-om
     App\Resolver\CarValueResolver:
         arguments:
             $entityManager: '@doctrine.orm.entity_manager'
-            
+        tags:
+            - { name: 'controller.argument_value_resolver', priority: 10 }
+
+    # Registracija UserValueResolver-a sa UserRepository-om
+    App\Resolver\UserValueResolver:
+        arguments:
+            $userRepository: '@App\Repository\UserRepository'
+        tags:
+            - { name: 'controller.argument_value_resolver', priority: 10 }
+
+    # Registracija CarController-a sa specifičnim argumentom za API host
     App\Controller\CarController:
         arguments:
             $apiHost: '%env(string:API_HOST)%'
-
-
