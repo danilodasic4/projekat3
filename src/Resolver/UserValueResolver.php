@@ -25,18 +25,14 @@ class UserValueResolver implements ArgumentValueResolverInterface
 
     public function resolve(Request $request, ArgumentMetadata $argument): iterable
 {
-    // Uzima user_id iz rute
     $userId = (int) $request->get('user_id');
     
-    // Pronađi korisnika u bazi
     $user = $this->userRepository->find($userId);
 
-    // Ako korisnik ne postoji, baca se izuzetak
     if (!$user) {
         throw new AccessDeniedException('User not found.');
     }
 
-    // Vraća korisnika kao vrednost koja će biti prosleđena u kontroler
     yield $user;
 }
 

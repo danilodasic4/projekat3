@@ -19,6 +19,7 @@ use App\Resolver\UserValueResolver;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use App\Entity\User;
 
 class CarController extends AbstractController
 {
@@ -35,9 +36,9 @@ class CarController extends AbstractController
  $this->apiHost = $apiHost;
  }
  
-    #[Route('/api/user/{user_id}/cars', name:'api_user_cars', methods:['GET'])]
+    #[Route('/api/users/{user_id}/cars', name:'api_user_cars', methods:['GET'])]
     #[OA\Get(
-        path: '/api/user/{user_id}/cars',
+        path: '/api/users/{user_id}/cars',
         summary: 'Get the list of cars for a specific user',
         description: 'This route returns a raw JSON list of cars owned by a specific user.',
         parameters: [
@@ -64,28 +65,25 @@ class CarController extends AbstractController
             )
         ]
     )]
-      // $cars = $user->getCars();
        
     public function getUserCars(
         #[ValueResolver(UserValueResolver::class)] User $user
      ): JsonResponse {
-        // Dohvati sve automobile povezane sa korisnikom
         $cars = $this->carRepository->findBy(['user' => $user]);
        
         if (empty($cars)) {
             return new JsonResponse(['error' => 'No cars found for this user'], Response::HTTP_NOT_FOUND);
         }
 
-        // Transformacija kolekcije u niz za JSON odgovor
-        $carData = $cars->map(function (Car $car) {
-        return [
-        'id' => $car->getId(),
-        'brand' => $car->getBrand(),
-        'model' => $car->getModel(),
-        'year' => $car->getYear(),
-        'color' => $car->getColor(),
-        ];
-        })->toArray();
+        $carData = array_map(function (Car $car) {
+            return [
+                'id' => $car->getId(),
+                'brand' => $car->getBrand(),
+                'model' => $car->getModel(),
+                'year' => $car->getYear(),
+                'color' => $car->getColor(),
+            ];
+        }, $cars);
        
         return new JsonResponse($carData);
         }
@@ -110,7 +108,7 @@ class CarController extends AbstractController
     )]
     public function index(): Response
         { 
-        $url = $this->apiHost . '/api/user/1/cars';
+        $url = $this->apiHost . '/api/users/'. $this->security->getUser()->getId() .'/cars';
         $response = $this->httpClient->request('GET', $url);
         $content = $response->getContent(false);
         $rawData = json_decode($content, true);
@@ -123,14 +121,6 @@ class CarController extends AbstractController
         ]);
         }
 
-//    public function index(): Response
-//    {
-//        $cars = $this->carRepository->findAll();
-
-//        return $this->render('car/index.html.twig', [
-//            'cars' => $cars
-//        ]);
-//    }
 
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
     #[OA\Get(

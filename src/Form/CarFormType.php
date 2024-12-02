@@ -31,17 +31,15 @@ class CarFormType extends AbstractType
             ->add('registrationDate', DateType::class, [
                 'widget' => 'single_text', 'required' => true
             ])
-            // Dodavanje polja za email korisnika
             ->add('user', EntityType::class, [
-                'class' => User::class, // povezuje sa entitetom User
-                'choice_label' => 'email', // prikazuje email kao opciju
+                'class' => User::class,
+                'choice_label' => 'email', 
                 'label' => 'Select User',
-                'placeholder' => 'Choose a user', // Dodaje "placeholder" u formu
-                'required' => true, // Polje je obavezno
+                'placeholder' => 'Choose a user', 
+                'required' => true, 
             ])
             ->add('save', SubmitType::class, ['label' => 'Save Car']);
 
-        // Kada forma bude podneta, poveži automobil sa korisnikom na osnovu emaila
     }
 
     public function configureOptions(OptionsResolver $resolver)
