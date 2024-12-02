@@ -20,15 +20,20 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-
 class CarController extends AbstractController
 {
-    public function __construct(
-        private readonly CarRepository $carRepository, 
-        private readonly EntityManagerInterface $entityManager, 
-        private readonly RegistrationCostService $registrationCostService,
-        private readonly HttpClientInterface $httpClient,
-    ) {}
+ private readonly string $apiHost;
+
+ public function __construct(
+ private readonly CarRepository $carRepository, 
+ private readonly EntityManagerInterface $entityManager, 
+ private readonly RegistrationCostService $registrationCostService,
+ private readonly HttpClientInterface $httpClient,
+ private readonly Security $security,
+ string $apiHost,
+ ) {
+ $this->apiHost = $apiHost;
+ }
  
     #[Route('/api/user/{user_id}/cars', name:'api_user_cars', methods:['GET'])]
     #[OA\Get(
@@ -59,35 +64,31 @@ class CarController extends AbstractController
             )
         ]
     )]
+      // $cars = $user->getCars();
+       
     public function getUserCars(
-        int $user_id, 
-        #[ValueResolver(UserValueResolver::class)] User $user 
-    ): JsonResponse
-    {
-        if (!$user || $user->getId() !== $user_id) {
-            return new JsonResponse(['error' => 'User not authenticated or invalid user'], Response::HTTP_UNAUTHORIZED);
-        }
-
+        #[ValueResolver(UserValueResolver::class)] User $user
+     ): JsonResponse {
+        // Dohvati sve automobile povezane sa korisnikom
         $cars = $this->carRepository->findBy(['user' => $user]);
-
+       
         if (empty($cars)) {
             return new JsonResponse(['error' => 'No cars found for this user'], Response::HTTP_NOT_FOUND);
         }
 
-        $carData = array_map(function (Car $car) {
-            return [
-                'id' => $car->getId(),
-                'brand' => $car->getBrand(),
-                'model' => $car->getModel(),
-                'year' => $car->getYear(),
-                'color' => $car->getColor(),
-            ];
-        }, $cars);
-
+        // Transformacija kolekcije u niz za JSON odgovor
+        $carData = $cars->map(function (Car $car) {
+        return [
+        'id' => $car->getId(),
+        'brand' => $car->getBrand(),
+        'model' => $car->getModel(),
+        'year' => $car->getYear(),
+        'color' => $car->getColor(),
+        ];
+        })->toArray();
+       
         return new JsonResponse($carData);
-    }
-
-    
+        }
 
 
     // Show list of all cars (Read)
@@ -108,19 +109,19 @@ class CarController extends AbstractController
         ]
     )]
     public function index(): Response
-    {
-        $response = $this->httpClient->request('GET', 'http://192.168.1.106:84/api/user/1/cars');
+        { 
+        $url = $this->apiHost . '/api/user/1/cars';
+        $response = $this->httpClient->request('GET', $url);
         $content = $response->getContent(false);
         $rawData = json_decode($content, true);
-        
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $rawData = [];
+        $rawData = [];
         }
-        
+
         return $this->render('car/index.html.twig', [
-            'cars' => $rawData,
+        'cars' => $rawData,
         ]);
-    }
+        }
 
 //    public function index(): Response
 //    {
