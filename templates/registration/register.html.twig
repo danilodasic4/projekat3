@@ -6,12 +6,6 @@
     <div class="container mt-5">
         <h1 class="text-center">Register</h1>
 
-        {# Showing success message if registration was successful #}
-        {% if app.session.flashbag().has('success') %}
-            <div class="alert alert-success">
-                {{ app.session.flashbag().get('success')[0] }}
-            </div>
-        {% endif %}
 
         {# Showing form validation errors #}
         {% if form_errors(registrationForm) %}

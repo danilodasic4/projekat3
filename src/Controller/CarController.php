@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTimeImmutable;
+use App\Service\CarService;
 use App\Service\RegistrationCostService;
 use OpenApi\Attributes as OA;
 use App\Resolver\CarValueResolver;
@@ -19,73 +20,77 @@ use App\Resolver\UserValueResolver;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-Use App\Service\CarService;
+use App\Entity\User;
 
 class CarController extends AbstractController
 {
-    private readonly string $apiHost;
+ private readonly string $apiHost;
 
-    public function __construct(
-        private readonly CarRepository $carRepository, 
-        private readonly EntityManagerInterface $entityManager, 
-        private readonly RegistrationCostService $registrationCostService,
-        private readonly HttpClientInterface $httpClient,
-        private readonly Security $security,
-        private readonly CarService $carService,
-        string $apiHost,
-    ) {
-        $this->apiHost = $apiHost;
-    }
+ public function __construct(
+ private readonly CarRepository $carRepository, 
+ private readonly EntityManagerInterface $entityManager, 
+ private readonly RegistrationCostService $registrationCostService,
+ private readonly HttpClientInterface $httpClient,
+ private readonly CarService $carService,
+ private readonly Security $security,
+ string $apiHost,
+ ) {
+ $this->apiHost = $apiHost;
+ }
  
-    // #[Route('/user/{user_id}/cars', name:'api_user_cars', methods:['GET'])]
-    // #[OA\Get(
-    //     path: '/user/{user_id}/cars',
-    //     summary: 'Get the list of cars for a specific user',
-    //     description: 'This route returns a raw JSON list of cars owned by a specific user.',
-    //     parameters: [
-    //         new OA\Parameter(
-    //             name: 'user_id',
-    //             in: 'path',
-    //             required: true,
-    //             description: 'ID of the user',
-    //             schema: new OA\Schema(type: 'integer')
-    //         )
-    //     ],
-    //     responses: [
-    //         new OA\Response(
-    //             response: 200,
-    //             description: 'A raw JSON list of cars for the user',
-    //             content: new OA\JsonContent(
-    //                 type: 'array',
-    //                 items: new OA\Items(ref: '#/components/schemas/Car')
-    //             )
-    //         ),
-    //         new OA\Response(
-    //             response: 404,
-    //             description: 'User not found or no cars available for the user'
-    //         )
-    //     ]
-    // )]
-    // public function getUserCars(
-    //     #[ValueResolver(UserValueResolver::class)] User $user
-    // ): JsonResponse {
-    //     // Dohvati sve automobile povezane sa korisnikom
-    //     $cars = $user->getCars();
+    #[Route('/api/users/{user_id}/cars', name:'api_user_cars', methods:['GET'])]
+    #[OA\Get(
+        path: '/api/users/{user_id}/cars',
+        summary: 'Get the list of cars for a specific user',
+        description: 'This route returns a raw JSON list of cars owned by a specific user.',
+        parameters: [
+            new OA\Parameter(
+                name: 'user_id',
+                in: 'path',
+                required: true,
+                description: 'ID of the user',
+                schema: new OA\Schema(type: 'integer')
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'A raw JSON list of cars for the user',
+                content: new OA\JsonContent(
+                    type: 'array',
+                    items: new OA\Items(ref: '#/components/schemas/Car')
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'User not found or no cars available for the user'
+            )
+        ]
+    )]
+       
+    public function getUserCars(
+        #[ValueResolver(UserValueResolver::class)] User $user
+     ): JsonResponse {
+        $cars = $this->carRepository->findBy(['user' => $user]);
+       
+        if (empty($cars)) {
+            return new JsonResponse(['error' => 'No cars found for this user'], Response::HTTP_NOT_FOUND);
+        }
 
-    //     // Transformacija kolekcije u niz za JSON odgovor
-    //     $carData = $cars->map(function (Car $car) {
-    //         return [
-    //             'id' => $car->getId(),
-    //             'brand' => $car->getBrand(),
-    //             'model' => $car->getModel(),
-    //             'year' => $car->getYear(),
-    //             'color' => $car->getColor(),
-    //         ];
-    //     })->toArray();
+        $carData = array_map(function (Car $car) {
+            return [
+                'id' => $car->getId(),
+                'brand' => $car->getBrand(),
+                'model' => $car->getModel(),
+                'year' => $car->getYear(),
+                'color' => $car->getColor(),
+            ];
+        }, $cars);
+       
+        return new JsonResponse($carData);
+        }
 
-    //     return new JsonResponse($carData);
-    // }
-    
+
     // Show list of all cars (Read)
     #[Route('/cars', name: 'app_car_index', methods: ['GET'])]
     #[OA\Get(
@@ -103,28 +108,21 @@ class CarController extends AbstractController
             )
         ]
     )]
-//     public function index(): Response
-// {   
-//     $url = $this->ApiHost . 'api/user/1/cars';
-//     $response = $this->httpClient->request('GET', $url);
-//     $content = $response->getContent(false);
-//     $rawData = json_decode($content, true);
-//     if (json_last_error() !== JSON_ERROR_NONE) {
-//         $rawData = [];
-//     }
-
-//     return $this->render('car/index.html.twig', [
-//         'cars' => $rawData,
-//     ]);
-// }
     public function index(): Response
-    {
-    $cars = $this->carService->getAllCars();
+        { 
+        $url = $this->apiHost . '/api/users/'. $this->security->getUser()->getId() .'/cars';
+        $response = $this->httpClient->request('GET', $url);
+        $content = $response->getContent(false);
+        $rawData = json_decode($content, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+        $rawData = [];
+        }
 
-       return $this->render('car/index.html.twig', [
-           'cars' => $cars
-       ]);
-    }
+        return $this->render('car/index.html.twig', [
+        'cars' => $rawData,
+        ]);
+        }
+
 
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
     #[OA\Get(

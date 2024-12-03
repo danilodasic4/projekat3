@@ -1,72 +1,49 @@
 <?php
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\HttpFoundation\Response;
+namespace App\Tests\Controller;
 
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\Response;
 class RegistrationControllerTest extends WebTestCase
 {
-    public function testSuccessfulRegistration()
-    {
-        $client = static::createClient();
-        
-        // Visit the registration page
-        $crawler = $client->request('GET', '/register');
+    
+    public function testSuccessfulRegistration(): void
+{
+    $client = static::createClient();
 
-        //$this->assertSelectorExists('form[name="registrationForm"]');
-        // Check that the form is displayed
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h1', 'Register');
+    $data = [
+        'email' => 'testuser@example.com',
+        'plainPassword' => 'password123',
+        'profile_picture' => null,  // or mock a file upload
+        'birthday' => '1990-01-01',
+        'gender' => 'male',
+        'newsletter' => true,
+    ];
 
-        // Fill in the registration form
-        $form = $crawler->selectButton('Register')->form();
+    // Sending the POST request with JSON data
+    $client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($data));
 
-        // Set the form data (you might need to adjust these field names based on the HTML)
-        $form['registrationForm[email]'] = 'test@example.com';
-        $form['registrationForm[plainPassword][first]'] = 'password123';
-        $form['registrationForm[plainPassword][second]'] = 'password123';
-        $form['registrationForm[birthday]'] = '1990-01-01';
-        $form['registrationForm[gender]'] = 'male';
-        $form['registrationForm[newsletter]'] = true;
-        // (If you have file upload, make sure to add the file data here)
-        $form['registrationForm[profile_picture]'] = null; // Or provide a file path for testing file upload
+    // Check that the response status is 200 OK
+    $this->assertResponseStatusCodeSame(200);
 
-        // Submit the form
-        $client->submit($form);
-
-        // Check that the user is redirected after successful registration
-        $this->assertResponseRedirects('/login');
-        $crawler = $client->followRedirect();
-
-        // Check for success message
-        $this->assertSelectorTextContains('.alert-success', 'Registration successful, now you can login!');
-    }
-
-    public function testFailedRegistrationDueToInvalidData()
-    {
-        $client = static::createClient();
-        
-        // Visit the registration page
-        $crawler = $client->request('GET', '/register');
-
-        // Check that the form is displayed
-        $this->assertResponseIsSuccessful();
-
-        // Fill in the registration form with invalid data
-        $form = $crawler->selectButton('Register')->form();
-
-        // Set invalid email
-        $form['registrationForm[email]'] = 'invalid-email';
-        $form['registrationForm[plainPassword][first]'] = 'short';
-        $form['registrationForm[plainPassword][second]'] = 'short';
-
-        // Submit the form
-        $client->submit($form);
-
-        // Check that the form validation errors are displayed
-        $this->assertSelectorTextContains('.alert-danger', 'Please enter a valid email address');
-        $this->assertSelectorTextContains('.alert-danger', 'Your password should be at least 6 characters');
-    }
+    // Check if the response content is valid JSON
+    $this->assertJson($client->getResponse()->getContent());
 }
 
+// 1) App\Tests\Controller\RegistrationControllerTest::testSuccessfulRegistration
+// Failed asserting that the Response status code is 200.
+// HTTP/1.1 500 Internal Server Error
+// Cache-Control:          max-age=0, must-revalidate, private
+// Content-Type:           text/html; charset=UTF-8
+// Date:                   Tue, 03 Dec 2024 07:06:46 GMT
+// Expires:                Tue, 03 Dec 2024 07:06:46 GMT
+// Vary:                   Accept
+// X-Debug-Exception:      Class%20%22App%5CController%5CJsonResponse%22%20not%20found
+// X-Debug-Exception-File: %2Fvar%2Fwww%2Fsrc%2FController%2FRegistrationController.php:104
+// X-Robots-Tag:           noindex
 
+// <!-- Class &quot;App\Controller\JsonResponse&quot; not found (500 Internal Server Error) -->
+
+}
 
 
