@@ -21,6 +21,7 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Entity\User;
+use Psr\Log\LoggerInterface;
 
 class CarController extends AbstractController
 {
@@ -33,6 +34,7 @@ class CarController extends AbstractController
  private readonly HttpClientInterface $httpClient,
  private readonly Security $security,
  private readonly CarService $carService,
+ private readonly LoggerInterface $logger,
  string $apiHost,
  ) {
  $this->apiHost = $apiHost;
@@ -284,15 +286,18 @@ class CarController extends AbstractController
             )
         ]
     )]
+    public function expiringRegistration(): Response
+{
+    // Log some information if necessary
+    $this->logger->info('Fetching cars with expiring registration.');
 
-      public function expiringRegistration(): Response
-    {
-        $cars = $this->carService->getCarsWithExpiringRegistration();
+    // Call the service method
+    $cars = $this->carService->expiringRegistration(); // Pozivaj expiringRegistration() umesto getCarsWithExpiringRegistration()
 
-        return $this->render('car/expiring_registration.html.twig', [
-            'cars' => $cars,
-        ]);
-    }
+    return $this->render('car/expiring_registration.html.twig', [
+        'cars' => $cars,
+    ]);
+}
 
 // Calculate registration cost for a specific car with a discount code (API endpoint)
 #[Route('/cars/calculate-registration-cost', name: 'car_calculate_registration_cost', methods: ['GET'])]
