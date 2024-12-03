@@ -110,9 +110,8 @@ class CarController extends AbstractController
     )]
     public function index(): Response
     {
-        $rawData = $this->carService->getAllCarsForUser($this->security->getUser()->getId());
         return $this->render('car/index.html.twig', [
-            'cars' => $rawData,
+            'cars' => $this->carService->getAllCarsForUser($this->security->getUser()->getId()),
         ]);
     }
 
@@ -285,12 +284,10 @@ class CarController extends AbstractController
         ]
     )]
 
-      public function expiringRegistration(): Response
+    public function expiringRegistration(): Response
     {
-        $cars = $this->carService->getCarsWithExpiringRegistration();
-
         return $this->render('car/expiring_registration.html.twig', [
-            'cars' => $cars,
+            'cars' => $this->carService->getCarsWithExpiringRegistration(),
         ]);
     }
 
