@@ -171,9 +171,8 @@ class CarService
         return new Response('Car deleted successfully', Response::HTTP_OK);
     }
 
-    public function expiringRegistration(): array
+    public function expiringRegistration(User $user): array
 {
-    $user = $this->security->getUser();
     if (!$user) {
         $this->logger->info('No user is logged in.');
         return [];
