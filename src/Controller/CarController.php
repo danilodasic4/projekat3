@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Car;
+use App\Service\CarService;
 use App\Form\CarFormType;
 use App\Repository\CarRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,6 +32,7 @@ class CarController extends AbstractController
  private readonly RegistrationCostService $registrationCostService,
  private readonly HttpClientInterface $httpClient,
  private readonly Security $security,
+ private readonly CarService $carService,
  string $apiHost,
  ) {
  $this->apiHost = $apiHost;
@@ -107,19 +109,11 @@ class CarController extends AbstractController
         ]
     )]
     public function index(): Response
-        { 
-        $url = $this->apiHost . '/api/users/'. $this->security->getUser()->getId() .'/cars';
-        $response = $this->httpClient->request('GET', $url);
-        $content = $response->getContent(false);
-        $rawData = json_decode($content, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-        $rawData = [];
-        }
-
+    {
         return $this->render('car/index.html.twig', [
-        'cars' => $rawData,
+            'cars' => $this->carService->getAllCarsForUser($this->security->getUser()->getId()),
         ]);
-        }
+    }
 
 
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
@@ -135,14 +129,12 @@ class CarController extends AbstractController
             new OA\Response(response: 404,description: 'Car not found')
         ]
     )]
-    public function show(
-        #[ValueResolver(CarValueResolver::class)] Car $car
-        ): Response
+    public function show(#[ValueResolver(CarValueResolver::class)] Car $car): Response
     {
         return $this->render('car/show.html.twig', [
             'car' => $car,
         ]);
-    }  
+    }
 
 
     // Create a new car (Create)
@@ -179,10 +171,10 @@ class CarController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->entityManager->persist($car);
-            $this->entityManager->flush();
+            $this->carService->createNewCar($car);  
 
-            return $this->redirectToRoute('car_list'); 
+
+            return $this->redirectToRoute('app_car_index'); 
         }
 
         return $this->render('car/new.html.twig', [
@@ -210,30 +202,28 @@ class CarController extends AbstractController
             new OA\Response(response: 400, description: 'Invalid input data')
         ]
     )]
-    public function edit(
-        #[ValueResolver(CarValueResolver::class)] Car $car,
-        Request $request
-        ): Response {
-
-        if (!$car) {
-            throw $this->createNotFoundException('Car not found');
-        }
-
-
+    public function edit(#[ValueResolver(CarValueResolver::class)] Car $car, Request $request): Response
+    {
         $form = $this->createForm(CarFormType::class, $car, [
             'method' => 'PUT',
             'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()])
         ]);
-
+        
         $form->handleRequest($request);
-
+        
         if ($form->isSubmitted() && $form->isValid()) {
-            $car->setUpdatedAt(new \DateTimeImmutable());
+            $response = $this->carService->updateCar($car);
 
-            $this->entityManager->flush();
-            return $this->redirectToRoute('app_car_index');
+            if ($response->getStatusCode() === Response::HTTP_OK) {
+                return $this->redirectToRoute('app_car_index');
+            }
+            
+            return $this->render('car/edit.html.twig', [
+                'form' => $form->createView(),
+                'car' => $car,
+                'error' => $response->getContent(),
+            ]);
         }
-
         return $this->render('car/edit.html.twig', [
             'form' => $form->createView(),
             'car' => $car,
@@ -257,20 +247,20 @@ class CarController extends AbstractController
         ]
     )]
     public function delete(
-        #[ValueResolver(CarValueResolver::class)] Car $car, 
-        Request $request
-        ): Response {
+        #[ValueResolver(CarValueResolver::class)] Car $car,
+        CarService $carService 
+    ): Response {
+        $response = $carService->deleteCarById($car->getId());
 
-        if ($request->isMethod('DELETE')) {
-            $this->entityManager->remove($car);
-            $this->entityManager->flush();
+        if ($response->getStatusCode() === Response::HTTP_OK) {
+            return $this->redirectToRoute('app_car_index');
+        }
 
-        return $this->redirectToRoute('app_car_index');
+        return $this->render('car/delete.html.twig', [
+            'error' => $response->getContent(),
+        ]);
     }
-    return $this->render('car/delete.html.twig', [
-        'car' => $car,
-    ]);
-}
+
 
  // Get list of cars with expiring registration
     #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration', methods: ['GET'])]
@@ -294,16 +284,12 @@ class CarController extends AbstractController
         ]
     )]
 
-      public function expiringRegistration(CarRepository $carRepository): Response
-      {
-          $currentDate = new DateTimeImmutable();
-          $endOfNextMonth = $currentDate->modify('+30 days');
-                $cars = $carRepository->findByRegistrationExpiringUntil($endOfNextMonth);
-      
+    public function expiringRegistration(): Response
+    {
         return $this->render('car/expiring_registration.html.twig', [
-            'cars' => $cars,
+            'cars' => $this->carService->getCarsWithExpiringRegistration(),
         ]);
-      }
+    }
 
 // Calculate registration cost for a specific car with a discount code (API endpoint)
 #[Route('/cars/calculate-registration-cost', name: 'car_calculate_registration_cost', methods: ['GET'])]
@@ -426,24 +412,28 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
         ]
     )]
     public function registrationDetails(
-        #[ValueResolver(CarValueResolver::class)] Car $car, 
-        Request $request
-        ): Response{
+        #[ValueResolver(CarValueResolver::class)] Car $car,  
+        Request $request,
+        RegistrationCostService $registrationCostService
+    ): Response {
         if (!$car) {
             throw $this->createNotFoundException('Car not found');
         }
-
-        $baseCost = $this->registrationCostService->calculateRegistrationCost($car);
-        $discountCode = null;
-        $finalCost = $baseCost;
-
+    
+        $discountCode = $request->request->get('discountCode', ''); 
+        
+        $registrationDetails = $registrationCostService->getRegistrationDetails($car, $discountCode);
+    
         if ($request->isMethod('POST')) {
-            $discountCode = $request->request->get('discountCode');
-            $finalCost = $this->registrationCostService->applyDiscount($baseCost, $discountCode);
+            $finalCost = $registrationDetails['finalCost'];
+            $baseCost = $registrationDetails['baseCost'];
+        } else {
+            $baseCost = $registrationDetails['baseCost'];
+            $finalCost = $registrationDetails['finalCost'];
         }
-
+    
         return $this->render('car/registration_details.html.twig', [
-            'car' => $car,
+            'car' => $registrationDetails['car'],
             'baseCost' => $baseCost,
             'finalCost' => $finalCost,
         ]);

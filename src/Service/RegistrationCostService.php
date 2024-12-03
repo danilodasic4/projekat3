@@ -10,21 +10,13 @@ class RegistrationCostService
         private readonly string $discountCode
     ) {}
 
-    /**
-     * @param Car $car
-     * @return float
-     */
+  
     public function calculateRegistrationCost(Car $car): float
     {
         return $this->registrationBaseCost + (($car->getYear() - 1960) * 200) + (($car->getEngineCapacity() - 900) * 200);
     }
 
-    /**
-     *
-     * @param float $cost
-     * @param string $inputDiscountCode
-     * @return float
-     */
+  
     public function applyDiscount(float $cost, string $inputDiscountCode): float
     {
         if ($inputDiscountCode === $this->discountCode) {
@@ -33,4 +25,19 @@ class RegistrationCostService
 
         return $cost; 
     }
+        public function getRegistrationDetails(Car $car, ?string $discountCode = null): array
+    {
+        // Calculate the base registration cost
+        $baseCost = $this->calculateRegistrationCost($car);
+
+        // If a discount code is provided, apply it
+        $finalCost = $this->applyDiscount($baseCost, $discountCode ?? '');
+
+        return [
+            'car' => $car,
+            'baseCost' => $baseCost,
+            'finalCost' => $finalCost
+        ];
+    }
 }
+

@@ -31,13 +31,6 @@ class CarFormType extends AbstractType
             ->add('registrationDate', DateType::class, [
                 'widget' => 'single_text', 'required' => true
             ])
-            ->add('user', EntityType::class, [
-                'class' => User::class,
-                'choice_label' => 'email', 
-                'label' => 'Select User',
-                'placeholder' => 'Choose a user', 
-                'required' => true, 
-            ])
             ->add('save', SubmitType::class, ['label' => 'Save Car']);
 
     }
