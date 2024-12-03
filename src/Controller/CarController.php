@@ -112,9 +112,8 @@ class CarController extends AbstractController
     )]
     public function index(): Response
     {
-        $rawData = $this->carService->getAllCarsForUser($this->security->getUser()->getId());
         return $this->render('car/index.html.twig', [
-            'cars' => $rawData,
+            'cars' => $this->carService->getAllCarsForUser($this->security->getUser()->getId()),
         ]);
     }
 
@@ -287,17 +286,12 @@ class CarController extends AbstractController
         ]
     )]
     public function expiringRegistration(): Response
-{
-    // Log some information if necessary
-    $this->logger->info('Fetching cars with expiring registration.');
+    {
 
-    // Call the service method
-    $cars = $this->carService->expiringRegistration(); // Pozivaj expiringRegistration() umesto getCarsWithExpiringRegistration()
-
-    return $this->render('car/expiring_registration.html.twig', [
-        'cars' => $cars,
-    ]);
-}
+        return $this->render('car/expiring_registration.html.twig', [
+            'cars' => $this->carService->getCarsWithExpiringRegistration(),
+        ]);
+    }
 
 // Calculate registration cost for a specific car with a discount code (API endpoint)
 #[Route('/cars/calculate-registration-cost', name: 'car_calculate_registration_cost', methods: ['GET'])]
