@@ -21,7 +21,8 @@ class CarService
         private readonly CarRepository $carRepository,
         private readonly EntityManagerInterFace $entityManager,
         private readonly HttpClientInterface $httpClient,
-        private readonly Security $security, // Security service
+        private readonly Security $security, 
+        private readonly ValidatorInterface $validator,
         string $apiHost,
  )  {
  $this->apiHost = $apiHost;
