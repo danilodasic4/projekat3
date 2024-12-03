@@ -1,13 +1,62 @@
+{% extends 'base.html.twig' %}
 
-<h1>Edit Car</h1>
+{% block title %}Edit Car{% endblock %}
 
-{{ form_start(form) }}
-    {{ form_row(form.brand) }}
-    {{ form_row(form.model) }}
-    {{ form_row(form.year) }}
-    {{ form_row(form.engineCapacity) }}
-    {{ form_row(form.horsePower) }}
-    {{ form_row(form.color) }}
-    {{ form_row(form.registrationDate) }}
-    {{ form_row(form.save) }}
-{{ form_end(form) }}
+{% block body %}
+    <div class="container">
+        <h1 class="my-4">Edit Car</h1>
+        
+        <!-- Display the owner of the car -->
+        <div class="alert alert-info mb-4">
+            <strong>Owner:</strong> {{ car.user.email }}
+        </div>
+
+        {{ form_start(form, {'attr': {'class': 'w-50 mx-auto'}}) }}
+        
+        <div class="mb-3">
+            {{ form_label(form.brand, 'Car Brand') }}
+            {{ form_widget(form.brand, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.model, 'Car Model') }}
+            {{ form_widget(form.model, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.year, 'Year of Manufacture') }}
+            {{ form_widget(form.year, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.engineCapacity, 'Engine Capacity (cc)') }}
+            {{ form_widget(form.engineCapacity, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.horsePower, 'Horse Power') }}
+            {{ form_widget(form.horsePower, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.color, 'Car Color') }}
+            {{ form_widget(form.color, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.registrationDate, 'Registration Date') }}
+            {{ form_widget(form.registrationDate, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.user, 'Select User') }}
+            {{ form_widget(form.user, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

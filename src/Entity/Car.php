@@ -59,9 +59,11 @@ class Car
     #[OA\Property(description: "Color of the car", nullable: true)]
     private ?string $color = null;
 
-    #[ORM\ManyToOne(inversedBy: 'cars')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'cars')]
+    #[ORM\JoinColumn(nullable: false)] 
     #[OA\Property(ref: "#/components/schemas/User", description: "User who owns the car")]
     private ?User $user = null;
+    
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[OA\Property(type: "string", format: "date-time", description: "Creation timestamp")]

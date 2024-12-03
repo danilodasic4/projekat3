@@ -22,7 +22,7 @@ final class Version20241113020844 extends AbstractMigration
         // Create the cars table
         $this->addSql('CREATE TABLE cars (
             id INT AUTO_INCREMENT NOT NULL,
-            user_id INT DEFAULT NULL,
+            user_id INT NOT NULL,
             brand VARCHAR(255) NOT NULL,
             model VARCHAR(255) NOT NULL,
             year INT NOT NULL,

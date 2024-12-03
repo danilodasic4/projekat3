@@ -3,15 +3,25 @@
 {% block title %}Home{% endblock %}
 
 {% block body %}
-    <h1>Welcome to Our Application</h1>
+    <div class="container mt-5">
+        <!-- Logo -->
+        <div class="text-center mb-4">
+            <img src="{{ asset('images/istockphoto-1408605259-1024x1024.jpg') }}" alt="App Logo" class="img-fluid" style="max-width: 400px;">        </div>
 
-    <div>
-        If you are not signed->
-        <a href="{{ path('app_register') }}">Sign Up</a>
-    </div>
+        <h1 class="text-center">Welcome to Our Application</h1>
 
-    <div>
-        If you are already signed->
-        <a href="{{ path('app_login') }}">Login</a>
+        {% if app.user %}
+            <div class="alert alert-success mt-4">
+                Hello, {{ app.user.email }}! You are logged in.
+            </div>
+            <div class="text-center">
+                <a href="{{ path('app_logout') }}" class="btn btn-danger">Logout</a>
+            </div>
+        {% else %}
+            <div class="text-center mt-4">
+                <p>If you are not signed up yet, you can <a href="{{ path('app_register') }}" class="btn btn-primary">Sign Up</a>.</p>
+                <p>Already have an account? <a href="{{ path('app_login') }}" class="btn btn-secondary">Login</a></p>
+            </div>
+        {% endif %}
     </div>
 {% endblock %}

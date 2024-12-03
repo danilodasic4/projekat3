@@ -7,6 +7,9 @@ networks:
             name: symfony-6-testing-project_default
 
 services:
+    #app:
+        #extra_hosts:
+            #- "dev.symfony-6-testing-project.com:host.docker.internal"
     front:
         image: nginx:alpine
         container_name: symfony-6-testing-project_front
