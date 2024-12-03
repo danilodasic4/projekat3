@@ -30,4 +30,6 @@ services:
     App\Controller\CarController:
         arguments:
             $apiHost: '%api_host%' 
-
+    App\Service\CarService:
+        arguments:
+            $apiHost: '%api_host%'

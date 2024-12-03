@@ -109,20 +109,12 @@ class CarController extends AbstractController
         ]
     )]
     public function index(): Response
-
-        { 
-        $url = $this->apiHost . '/api/users/'. $this->security->getUser()->getId() .'/cars';
-        $response = $this->httpClient->request('GET', $url);
-        $content = $response->getContent(false);
-        $rawData = json_decode($content, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-        $rawData = [];
-        }
-
+    {
+        $rawData = $this->carService->getAllCarsForUser($this->security->getUser()->getId());
         return $this->render('car/index.html.twig', [
-        'cars' => $rawData,
+            'cars' => $rawData,
         ]);
-        }
+    }
 
 
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
@@ -138,14 +130,8 @@ class CarController extends AbstractController
             new OA\Response(response: 404,description: 'Car not found')
         ]
     )]
-        public function show(int $id): Response
+    public function show(#[ValueResolver(CarValueResolver::class)] Car $car): Response
     {
-        $car = $this->carService->getCarById($id);
-
-        if (!$car) {
-            return new JsonResponse(['error' => 'Car not found'], Response::HTTP_NOT_FOUND);
-        }
-
         return $this->render('car/show.html.twig', [
             'car' => $car,
         ]);
@@ -186,10 +172,10 @@ class CarController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->carService->createNewCar($car);  // Prebacujemo logiku u servis
+            $this->carService->createNewCar($car);  
 
 
-            return $this->redirectToRoute('car_list'); 
+            return $this->redirectToRoute('app_car_index'); 
         }
 
         return $this->render('car/new.html.twig', [
@@ -217,25 +203,22 @@ class CarController extends AbstractController
             new OA\Response(response: 400, description: 'Invalid input data')
         ]
     )]
-    public function edit(
-        Car $car, // Automaticly taking instance of car from URL parametar
-        Request $request
-    ): Response {
-        if (!$car) {
-            throw $this->createNotFoundException('Car not found');
-        }
+    public function edit(#[ValueResolver(CarValueResolver::class)] Car $car, Request $request): Response
+    {
         $form = $this->createForm(CarFormType::class, $car, [
             'method' => 'PUT',
             'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()])
         ]);
+        
         $form->handleRequest($request);
+        
         if ($form->isSubmitted() && $form->isValid()) {
-            // Calling Service for updating
             $response = $this->carService->updateCar($car);
 
             if ($response->getStatusCode() === Response::HTTP_OK) {
                 return $this->redirectToRoute('app_car_index');
             }
+            
             return $this->render('car/edit.html.twig', [
                 'form' => $form->createView(),
                 'car' => $car,
@@ -265,10 +248,10 @@ class CarController extends AbstractController
         ]
     )]
     public function delete(
-        int $id, 
-        Request $request
+        #[ValueResolver(CarValueResolver::class)] Car $car,
+        CarService $carService 
     ): Response {
-        $response = $this->carService->deleteCarById($id);
+        $response = $carService->deleteCarById($car->getId());
 
         if ($response->getStatusCode() === Response::HTTP_OK) {
             return $this->redirectToRoute('app_car_index');
@@ -432,7 +415,7 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
         ]
     )]
     public function registrationDetails(
-        Car $car, 
+        #[ValueResolver(CarValueResolver::class)] Car $car,  
         Request $request,
         RegistrationCostService $registrationCostService
     ): Response {
@@ -441,6 +424,7 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
         }
     
         $discountCode = $request->request->get('discountCode', ''); 
+        
         $registrationDetails = $registrationCostService->getRegistrationDetails($car, $discountCode);
     
         if ($request->isMethod('POST')) {
