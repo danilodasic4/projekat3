@@ -1,25 +1,67 @@
 <?php
 namespace App\Service;
 
+use App\Entity\User;
 use App\Entity\Car;
 use App\Repository\CarRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface; 
+use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\Security\Core\Security;
 use DateTimeImmutable;
 
 class CarService
 {
-    private LoggerInterface $logger;
+    private readonly string $apiHost;
 
     public function __construct(
         private readonly CarRepository $carRepository,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly EntityManagerInterFace $entityManager,
+        private readonly HttpClientInterface $httpClient,
         private readonly ValidatorInterface $validator,
-        LoggerInterface $logger
-    ) {
-        $this->logger = $logger; 
+        private readonly LoggerInterface $logger,
+        private readonly Security $security, 
+        string $apiHost,
+ )  {
+ $this->apiHost = $apiHost;
+    }
+    public function getCarsForUser(User $user): array
+    {
+        $cars = $this->carRepository->findBy(['user' => $user]);
+
+        if (empty($cars)) {
+            return [];
+        }
+
+        return array_map(function (Car $car) {
+            return [
+                'id' => $car->getId(),
+                'brand' => $car->getBrand(),
+                'model' => $car->getModel(),
+                'year' => $car->getYear(),
+                'color' => $car->getColor(),
+            ];
+        }, $cars);
+    }
+
+    public function getAllCarsForUser(int $userId): array
+    {
+        $url = $this->apiHost . '/api/users/' . $userId . '/cars';
+
+        $response = $this->httpClient->request('GET', $url);
+
+        $content = $response->getContent(false);
+
+        $rawData = json_decode($content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return [];
+        }
+
+        return $rawData;
     }
 
     // Get all cars
@@ -44,12 +86,12 @@ class CarService
     public function getCarById(int $id): ?Car
     {
         try {
-            $this->logger->info('Fetching car with ID', ['car_id' => $id]); // Logovanje info poruke
+            $this->logger->info('Fetching car with ID', ['car_id' => $id]); 
 
             $car = $this->carRepository->find($id);
 
             if (!$car) {
-                $this->logger->error('Car not found', ['car_id' => $id]); // Logovanje error poruke ako nije pronađen
+                $this->logger->error('Car not found', ['car_id' => $id]); 
             }
 
             return $car;
@@ -141,6 +183,7 @@ class CarService
             ]);
             return new Response('Error: ' . $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+
     }
 
     // Get cars with expiring registration

@@ -12,16 +12,15 @@ framework:
         cookie_secure: auto
         cookie_samesite: lax
 
-    #esi: true
-    #fragments: true
+    esi: true
+    fragments: true
     php_errors:
         log: true
-    # config/packages/framework.yaml
 
-    # http_client:
-    #   scoped_clients:
-    #        example_api:
-    #            base_uri: 'http://symfony-6-testing-project_front:80
+    http_client:
+      scoped_clients:
+           example_api:
+               base_uri: 'http://symfony-6-testing-project.com'
 
 when@test:
     framework:

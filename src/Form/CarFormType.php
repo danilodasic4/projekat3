@@ -19,39 +19,29 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class CarFormType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options): void
-{
-    $builder
-        ->add('brand', TextType::class)
-        ->add('model', TextType::class)
-        ->add('year', NumberType::class)
-        ->add('engineCapacity', NumberType::class)
-        ->add('horsePower', NumberType::class)
-        ->add('color', TextType::class, ['required' => false])
-        ->add('registrationDate', DateType::class, [
-            'widget' => 'single_text', 'required' => true
-        ])
-        ->add('save', SubmitType::class, ['label' => 'Save Car']);
 
+    public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+        $builder
+            ->add('brand', TextType::class)
+            ->add('model', TextType::class)
+            ->add('year', NumberType::class)
+            ->add('engineCapacity', NumberType::class)
+            ->add('horsePower', NumberType::class)
+            ->add('color', TextType::class, ['required' => false])
+            ->add('registrationDate', DateType::class, [
+                'widget' => 'single_text', 'required' => true
+            ])
+            ->add('save', SubmitType::class, ['label' => 'Save Car']);
 
-            // // Dodavanje polja za email korisnika
-            // ->add('user', EntityType::class, [
-            //     'class' => User::class, // povezuje sa entitetom User
-            //     'choice_label' => 'email', // prikazuje email kao opciju
-            //     'label' => 'Select User',
-            //     'placeholder' => 'Choose a user', // Dodaje "placeholder" u formu
-            //     'required' => true, // Polje je obavezno
-            // ]);
+    }
 
-        // Kada forma bude podneta, poveži automobil sa korisnikom na osnovu emaila
-}
+    public function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver->setDefaults([
+            'data_class' => Car::class,
+        ]);
+    }
 
- 
-public function configureOptions(OptionsResolver $resolver): void
-{
-    $resolver->setDefaults([
-        'data_class' => Car::class,
-    ]);
-}
 }
 

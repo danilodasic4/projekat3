@@ -2,7 +2,7 @@
 namespace App\Repository;
 
 use App\Entity\Car;
-use App\Entity\User;  
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use DateTimeImmutable;
@@ -30,7 +30,7 @@ class CarRepository extends ServiceEntityRepository
     public function findCarByIdWithUser(int $id): ?Car
     {
         return $this->createQueryBuilder('c')
-            ->leftJoin('c.user', 'u') 
+            ->leftJoin('c.user', 'u')  
             ->addSelect('u')  
             ->where('c.id = :id')
             ->setParameter('id', $id)
@@ -44,7 +44,7 @@ class CarRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('c')
             ->where('c.registrationDate <= :endDate')
             ->setParameter('endDate', $endDate)
-            ->orderBy('c.registrationDate', 'ASC') 
+            ->orderBy('c.registrationDate', 'ASC')  
             ->getQuery()
             ->getResult();
     }

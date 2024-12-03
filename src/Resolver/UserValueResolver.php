@@ -24,6 +24,7 @@ class UserValueResolver implements ArgumentValueResolverInterface
     }
 
     public function resolve(Request $request, ArgumentMetadata $argument): iterable
+
     {
         $userId = (int) $request->get('user_id');
         
@@ -35,5 +36,5 @@ class UserValueResolver implements ArgumentValueResolverInterface
 
         yield $user;
     }
-}
 
+}

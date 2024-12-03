@@ -10,11 +10,12 @@ use OpenApi\Attributes as OA;
 
 class LoginController extends AbstractController
 {
-    #[Route('/login', name: 'app_login', methods: ['GET', 'POST'])]
+
+    #[Route('/login', name: 'app_login', methods: ['GET','POST'])]
     #[OA\Get(
         path: '/login',
-        summary: 'User Login',
-        description: 'This route is used to log the user in. Returns login form or redirects if already logged in.',
+        summary: 'User Login (GET)',
+        description: 'This route is used to display the login form or redirects if the user is already logged in.',
         responses: [
             new OA\Response(response: 200, description: 'Login page loaded successfully'),
             new OA\Response(response: 302, description: 'Redirected to car index page if already logged in')
@@ -23,13 +24,24 @@ class LoginController extends AbstractController
     #[OA\Post(
         path: '/login',
         summary: 'User Login (POST)',
-        description: 'This route handles the user login when the login form is submitted.',
+        description: 'This route is used to authenticate the user and process login credentials.',
+        requestBody: new OA\RequestBody(
+            description: 'User credentials',
+            required: true,
+            content: new OA\JsonContent(
+                type: 'object',
+                properties: [
+                    new OA\Property(property: '_username', type: 'string', example: 'johndoe'),
+                    new OA\Property(property: '_password', type: 'string', example: 'securepassword')
+                ]
+            )
+        ),
         responses: [
-            new OA\Response(response: 302, description: 'Redirects to the car index page after successful login'),
-            new OA\Response(response: 400, description: 'Invalid login credentials')
+            new OA\Response(response: 200, description: 'Login successful, user redirected'),
+            new OA\Response(response: 401, description: 'Invalid credentials')
         ]
     )]
-    public function login(Request $request, AuthenticationUtils $authenticationUtils): Response
+        public function login(AuthenticationUtils $authenticationUtils): Response
     {
         // Check if the user is already logged in
         if ($this->getUser()) {
