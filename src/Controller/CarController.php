@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Car;
 use App\Form\CarFormType;
 use App\Repository\CarRepository;
+use App\Service\CarService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,6 +32,7 @@ class CarController extends AbstractController
  private readonly RegistrationCostService $registrationCostService,
  private readonly HttpClientInterface $httpClient,
  private readonly Security $security,
+ private readonly CarService $carService,
  string $apiHost,
  ) {
  $this->apiHost = $apiHost;
