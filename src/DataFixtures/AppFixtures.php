@@ -1,5 +1,4 @@
 <?php
-
 namespace App\DataFixtures;
 
 use App\Entity\Car;
@@ -8,7 +7,7 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Faker\Factory; // Using fakerphp/faker
-use \DateTime;
+use DateTime;
 use DateTimeImmutable;
 
 class AppFixtures extends Fixture
@@ -25,23 +24,32 @@ class AppFixtures extends Fixture
         // Create a Faker instance to generate fake data
         $faker = Factory::create();
 
-        // Create a new user
-        $user = new User();
-        $user->setEmail('user@example.com');  // Set the user's email
-        $user->setRoles(['ROLE_USER']);        // Assign the user role
+        // Create 3 users
+        $users = [];
 
-        // Hash the password "user123"
-        $hashedPassword = $this->passwordHasher->hashPassword($user, 'user123');
-        $user->setPassword($hashedPassword);
+        for ($i = 0; $i < 3; $i++) {
+            $user = new User();
+            $user->setEmail('user' . ($i + 1) . '@example.com');  // Set the user's email
+            $user->setRoles(['ROLE_USER']);                         // Assign the user role
 
-        // Persist the user to the database
-        $manager->persist($user);
-        $manager->flush(); // Flush after the user is persisted to make sure the user is saved before creating cars
+            // Hash the password "user123"
+            $hashedPassword = $this->passwordHasher->hashPassword($user, 'user123');
+            $user->setPassword($hashedPassword);
+
+            // Persist the user to the database
+            $manager->persist($user);
+
+            // Add the user to the users array for later use
+            $users[] = $user;
+        }
+
+        // Flush to ensure users are created before creating cars
+        $manager->flush();
 
         // Current date to use for created_at and updated_at fields
         $currentDate = new DateTime();
 
-        // Create 10 cars and associate them with the user
+        // Create 10 cars and assign them randomly to users
         for ($i = 0; $i < 10; $i++) {
             $car = new Car();
             $car->setBrand($faker->company);
@@ -51,17 +59,21 @@ class AppFixtures extends Fixture
             $car->setHorsePower($faker->randomNumber(3));
             $car->setColor($faker->colorName);
 
-            $registrationDate = new DateTimeImmutable('+' . rand(1, 365) . ' days'); 
+            // Random registration date within the next year
+            $registrationDate = new DateTimeImmutable('+' . rand(1, 90) . ' days'); 
             $car->setRegistrationDate($registrationDate);
-            
+
             $car->setCreatedAt(new \DateTimeImmutable());
             $car->setUpdatedAt(new \DateTimeImmutable());
-            
-            $car->setUser($user);  
 
+            // Randomly assign a user to the car
+            $car->setUser($users[rand(0, 2)]);  // Randomly choose a user from the users array
+
+            // Persist the car
             $manager->persist($car);
         }
 
+        // Flush all cars to the database
         $manager->flush();
     }
 }
