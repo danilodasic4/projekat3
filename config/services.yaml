@@ -1,7 +1,8 @@
 parameters:
     profile_pictures_directory: '%kernel.project_dir%/%env(PROFILE_PICTURES_DIRECTORY)%'
     registration_base_cost: '%env(resolve:REGISTRATION_BASE_COST)%'
-    discount_code: '%env(DISCOUNT_CODE)%'
+    discount_code: '%env(DISCOUNT_CODE)%' 
+    api_host: '%env(API_HOST)%'
 
 services:
     _defaults:
@@ -28,4 +29,8 @@ services:
         arguments:
             $apiHost: '%env(string:API_HOST)%'
 
+
+    App\Controller\CarController:
+        arguments:
+            $apiHost: '%api_host%' 
 

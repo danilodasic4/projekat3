@@ -41,7 +41,6 @@ class CarFormType extends AbstractType
             // ])
             ->add('save', SubmitType::class, ['label' => 'Save Car']);
 
-        // Kada forma bude podneta, poveži automobil sa korisnikom na osnovu emaila
     }
 
     public function configureOptions(OptionsResolver $resolver)
