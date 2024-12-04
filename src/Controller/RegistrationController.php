@@ -12,9 +12,13 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use OpenApi\Attributes as OA;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
+ use App\Service\RegistrationService;
 
 class RegistrationController extends AbstractController
 {  
+    public function __construct (
+        private readonly RegistrationService $registrationService
+        ,){}
     
     #[Route('/register', name: 'app_register',methods:['POST','GET'])]
     #[OA\Post(
@@ -61,73 +65,40 @@ class RegistrationController extends AbstractController
         ]
     )]
     public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager, ParameterBagInterface $params): Response
-{
-    // Create a new User object
-    $user = new User();
+    {
+        $user = new User();
+        $form = $this->createForm(RegistrationFormType::class, $user);
+        $form->handleRequest($request);
 
-    // Create the registration form and handle the request
-    $form = $this->createForm(RegistrationFormType::class, $user);
-    $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Get password from the form
+            $plainPassword = $form->get('plainPassword')->getData();
 
-    // If the form is submitted and valid
-    if ($form->isSubmitted() && $form->isValid()) {
-        // Set the user role to 'ROLE_USER'
-        $user->setRoles(['ROLE_USER']);
-        
-        // Handle password encryption
-        $plainPassword = $form->get('plainPassword')->getData();
-        $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
-
-        // Handle file upload for profile picture (if provided)
-        /** @var UploadedFile $profilePicture */
-        $profilePicture = $form->get('profile_picture')->getData();
-
-        if ($profilePicture) {
-            // Generate a unique file name based on the current timestamp
-            $newFilename = uniqid() . '.' . $profilePicture->guessExtension();
+            // Handle the profile picture (if any)
+            $profilePicture = $form->get('profile_picture')->getData();
 
             try {
-                // Move the uploaded file to the designated directory for profile pictures
-                $profilePicture->move(
-                    $params->get('profile_pictures_directory'), // Directory for profile pictures
-                    $newFilename
-                );
-            } catch (FileException $e) {
-                // Handle error if the file can't be moved
-                $this->addFlash('error', 'There was an error uploading your file.');
-                return $this->redirectToRoute('app_register');
+                // Register the user
+                $this->registrationService->registerUser($user, $plainPassword, $profilePicture);
+                
+                // Add success message
+                $this->addFlash('success', 'Registration is successful, now you can login!');
+                
+                return $this->redirectToRoute('app_login');
+            } catch (ProfilePictureUploadException $e) {
+                // Handle profile picture upload error
+                $this->addFlash('error', 'Error uploading profile picture: ' . $e->getAdditionalErrorInfo());
+            } catch (\Exception $e) {
+                // Handle general errors
+                $this->addFlash('error', 'An unexpected error occurred: ' . $e->getMessage());
             }
-
-            // Save the file path (just the filename) in the profile_picture field
-            $user->setProfilePicture($newFilename);
         }
 
-        // Handle additional form data like birthday, gender, and newsletter preferences
-        $user->setBirthday($form->get('birthday')->getData());
-        $user->setGender($form->get('gender')->getData());
-        $user->setNewsletter($form->get('newsletter')->getData());
-
-        try {
-            // Persist the user in the database
-            $entityManager->persist($user);
-            $entityManager->flush();
-
-            // Add success flash message
-            $this->addFlash('success', 'Registration is successful, now you can login!');
-
-            // Redirect to the login page
-            return $this->redirectToRoute('app_login');
-        } catch (\Exception $e) {
-            // Catch any other general exception and display it as a generic error
-            $this->addFlash('error', 'An unexpected error occurred: ' . $e->getMessage());
-        }
+        // Render the registration form
+        return $this->render('registration/register.html.twig', [
+            'registrationForm' => $form->createView(),
+        ]);
     }
-
-    // Render the registration form template
-    return $this->render('registration/register.html.twig', [
-        'registrationForm' => $form->createView(),
-    ]);
-}
 
 }
 
