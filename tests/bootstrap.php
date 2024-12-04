@@ -6,6 +6,9 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 
+// Set the environment to 'test' for testing purposes
+$_SERVER['APP_ENV'] = 'test';
+
 require dirname(__DIR__).'/vendor/autoload.php';
 
 if (file_exists(dirname(__DIR__).'/config/bootstrap.php')) {
@@ -14,6 +17,7 @@ if (file_exists(dirname(__DIR__).'/config/bootstrap.php')) {
     (new Dotenv())->bootEnv(dirname(__DIR__).'/.env');
 }
 
+// Clear the cache for the test environment
 $process = new Process(['php', 'bin/console', 'cache:clear', '--env=test']);
 $process->run();
 
