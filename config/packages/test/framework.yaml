@@ -4,3 +4,4 @@ framework:
         storage_factory_id: session.storage.factory.mock_file
     profiler:
         enabled: false
+    secret: '%env(APP_SECRET)%'

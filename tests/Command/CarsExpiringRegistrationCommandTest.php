@@ -1,91 +1,120 @@
-<?php 
+<?php
+
 namespace App\Tests\Command;
 
+use App\Entity\User;
 use App\Command\CarsExpiringRegistrationCommand;
-use App\Entity\Car;
 use App\Repository\CarRepository;
-use DateTimeImmutable;
-use PHPUnit\Framework\TestCase;
+use App\Entity\Car;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Console\Command\Command;
+use DateTimeImmutable;
+use Symfony\Component\Security\Core\Security;
 
-class CarsExpiringRegistrationCommandTest extends TestCase
+class CarsExpiringRegistrationCommandTest extends KernelTestCase
 {
-    private $carRepository;
-    private $command;
+    private CarRepository $carRepositoryMock;
+    private CommandTester $commandTester;
+    private $securityMock;
 
     protected function setUp(): void
     {
-        // Mock za CarRepository
-        $this->carRepository = $this->createMock(CarRepository::class);
+        self::bootKernel();
 
-        // Instanciranje komande sa mock repository-em
-        $this->command = new CarsExpiringRegistrationCommand($this->carRepository);
+        // Create a mock for the CarRepository
+        $this->carRepositoryMock = $this->createMock(CarRepository::class);
+
+        // Get the command service from the container
+        $command = self::getContainer()->get(CarsExpiringRegistrationCommand::class);
+
+        // Inject the mocked repository into the command via reflection
+        $commandReflection = new \ReflectionClass(CarsExpiringRegistrationCommand::class);
+        $property = $commandReflection->getProperty('carRepository');
+        $property->setAccessible(true);
+        $property->setValue($command, $this->carRepositoryMock);
+
+        // Create the CommandTester instance
+        $this->commandTester = new CommandTester($command);
+
+        // Mock the Security service
+        $this->securityMock = $this->createMock(Security::class);
+
+        // Create a user object
+        $user = new User();
+        $user->setEmail('user1@example.com');
+        $user->setPassword('user123'); // Use the same password as in your test data
+
+        // Mock the Security service to return this user when getUser() is called
+        $this->securityMock
+            ->method('getUser')
+            ->willReturn($user);
+
+        // Set the mocked security service in the container
+        self::getContainer()->set('security.helper', $this->securityMock);
     }
 
-    public function testExecuteWithCarsExpiring(): void
+    public function testExecuteWithCars(): void
     {
-        // Pripremamo test podatke
-        $car1 = new Car();
-        $car1->setBrand('Toyota');
-        $car1->setModel('Rav4');
-        $car1->setYear(2020);
-        $car1->setEngineCapacity(1999);
-        $car1->setHorsePower(150);
-        $car1->setColor('Red');
-        // Datum registracije pre kraja sledećeg meseca
-        $car1->setRegistrationDate(new DateTimeImmutable('2025-01-10'));
+        // Create a car associated with the user (simulating a car registration close to expiring)
+        $car = new Car();
+        $car->setBrand('Tesla')
+            ->setModel('Model S')
+            ->setYear(2020)
+            ->setEngineCapacity(1500)
+            ->setHorsePower(350)
+            ->setColor('Red')
+            ->setRegistrationDate(new DateTimeImmutable('2024-12-01'))
+            ->setUser($this->securityMock->getUser()); // Associate car with user
 
-        $car2 = new Car();
-        $car2->setBrand('Toyota');
-        $car2->setModel('Corolla');
-        $car2->setYear(2020);
-        $car2->setEngineCapacity(2000);
-        $car2->setHorsePower(150);
-        $car2->setColor('Red');
-        $car2->setRegistrationDate(new \DateTimeImmutable('2024-12-15'));
-        // Datum registracije pre kraja sledećeg meseca
-        // Mock metode za dobijanje automobila sa isteklim registracijama
-        $this->carRepository->method('findByRegistrationExpiringUntil')
-            ->willReturn([$car1, $car2]);
+        // Configure the mock to return the car when the correct method is called (use correct method name)
+        $this->carRepositoryMock
+            ->expects($this->once())
+            ->method('findByRegistrationExpiringUntil')
+            ->with($this->securityMock->getUser(), $this->anything()) // Match user and expiration date
+            ->willReturn([$car]);
 
-        // Testiranje komande
-        $commandTester = new CommandTester($this->command);
-        
-        // Izvršavanje komande
-        $commandTester->execute([]);
+        // Run the command
+        $this->commandTester->execute([]);
 
-        // Dobijeni izlaz komande
-        $output = $commandTester->getDisplay();
+        // Assert the output contains the expected car details
+        $output = $this->commandTester->getDisplay();
 
-        // Debugging: štampanje izlaza komande za proveru
-        echo "Command Output:\n" . $output . "\n"; 
+        // Check that the output contains the expected car details
+        $this->assertStringContainsString('Tesla', $output);
+        $this->assertStringContainsString('Model S', $output);
+        $this->assertStringContainsString('2020', $output);
+        $this->assertStringContainsString('1500', $output);  // Engine Capacity
+        $this->assertStringContainsString('350', $output);   // Horse Power
+        $this->assertStringContainsString('Red', $output);    // Color
+       $this->assertStringContainsString('user1@example.com', $output);  // User Email
 
-        // Provera da li izlaz sadrži očekivanu poruku
-        $this->assertStringContainsString('Cars with Registration Expiring Before Next Month', $output);
-        $this->assertStringContainsString('Toyota', $output);
-        $this->assertStringContainsString('Toyota', $output);
+        // Assert command success
+        $this->assertEquals(Command::SUCCESS, $this->commandTester->getStatusCode());
     }
 
-    public function testExecuteWithNoCarsExpiring(): void
+    public function testExecuteWithNoCars(): void
     {
-        // Mock za nepostojanje automobila sa isteklim registracijama
-        $this->carRepository->method('findByRegistrationExpiringUntil')
+        // Create a user (simulating a logged-in user)
+        $user = new User();
+        $user->setEmail('user2@example.com');
+        $user->setPassword('user123');  // Use the same password as in your test data
+
+        // Configure the mock to return no cars for the logged-in user
+        $this->carRepositoryMock
+            ->expects($this->once())
+            ->method('findByRegistrationExpiringUntil')
+            ->with($user, $this->anything())  // Match user and DateTime condition
             ->willReturn([]);
 
-        // Testiranje komande
-        $commandTester = new CommandTester($this->command);
-        
-        // Izvršavanje komande
-        $commandTester->execute([]);
+        // Run the command
+        $this->commandTester->execute([]);
 
-        // Dobijeni izlaz komande
-        $output = $commandTester->getDisplay();
-
-        // Debugging: štampanje izlaza komande za proveru
-        echo "Command Output:\n" . $output . "\n"; 
-
-        // Provera da li izlaz sadrži poruku kada nema automobila
+        // Assert the output contains the "no cars found" message
+        $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString('No cars with expiring registrations found.', $output);
+
+        // Assert command success
+        $this->assertEquals(Command::SUCCESS, $this->commandTester->getStatusCode());
     }
 }
-

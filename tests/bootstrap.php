@@ -8,6 +8,7 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 
 // Set the environment to 'test' for testing purposes
 $_SERVER['APP_ENV'] = 'test';
+putenv('DISCOUNT_CODE=discount20'); 
 
 require dirname(__DIR__).'/vendor/autoload.php';
 
