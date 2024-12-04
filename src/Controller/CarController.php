@@ -287,9 +287,8 @@ class CarController extends AbstractController
     )]
     public function expiringRegistration(): Response
     {
-        $user= $this->security->getUser();
         return $this->render('car/expiring_registration.html.twig', [
-            'cars' => $this->carService->expiringRegistration($user),
+            'cars' => $this->carService->expiringRegistration($this->security->getUser()),
         ]);
     }
 
