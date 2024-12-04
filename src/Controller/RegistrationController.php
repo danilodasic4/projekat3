@@ -3,10 +3,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\RegistrationFormType;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,11 +11,16 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use OpenApi\Attributes as OA;
-use App\Exception\ProfilePictureUploadException;
-use App\Service\RegistrationService;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Core\Security;
+ use App\Service\RegistrationService;
 
 class RegistrationController extends AbstractController
-{
+{  
+    public function __construct (
+        private readonly RegistrationService $registrationService
+        ,){}
+    
     #[Route('/register', name: 'app_register',methods:['POST','GET'])]
     #[OA\Post(
         path: '/register',
@@ -70,54 +72,34 @@ class RegistrationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Get password from the form
+            $plainPassword = $form->get('plainPassword')->getData();
+
+            // Handle the profile picture (if any)
+            $profilePicture = $form->get('profile_picture')->getData();
+
             try {
-                // Handle profile picture
-                $profilePicture = $form->get('profile_picture')->getData();
-
-                if ($profilePicture) {
-                    $validMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
-                    $maxSize = 2 * 1024 * 1024; // 2MB
-
-                    // Check MIME type
-                    if (!in_array($profilePicture->getMimeType(), $validMimeTypes)) {
-                        $this->addFlash('error', 'Please upload a valid image (JPEG, PNG, GIF).');
-                        return $this->render('registration/register.html.twig', [
-                            'registrationForm' => $form->createView(),
-                        ]);
-                    }
-
-                    // Check file size
-                    if ($profilePicture->getSize() > $maxSize) {
-                        $this->addFlash('error', 'The file is too large. Maximum allowed size is 2MB.');
-                        return $this->render('registration/register.html.twig', [
-                            'registrationForm' => $form->createView(),
-                        ]);
-                    }
-                }
-
-                // Register user
-                $formData = [
-                    'plainPassword' => $form->get('plainPassword')->getData(),
-                    'birthday' => $form->get('birthday')->getData(),
-                    'gender' => $form->get('gender')->getData(),
-                    'newsletter' => $form->get('newsletter')->getData(),
-                ];
-
-                // Call the registration service to handle user registration
-                $registrationService->registerUser($user, $profilePicture, $formData);
-
-                // Add success message and redirect to login page
-                $this->addFlash('success', 'Registration successful, now you can login!');
+                // Register the user
+                $this->registrationService->registerUser($user, $plainPassword, $profilePicture);
+                
+                // Add success message
+                $this->addFlash('success', 'Registration is successful, now you can login!');
+                
                 return $this->redirectToRoute('app_login');
             } catch (ProfilePictureUploadException $e) {
-                // Handle any errors related to profile picture upload
-                $this->addFlash('error', $e->getMessage());
+                // Handle profile picture upload error
+                $this->addFlash('error', 'Error uploading profile picture: ' . $e->getAdditionalErrorInfo());
+            } catch (\Exception $e) {
+                // Handle general errors
+                $this->addFlash('error', 'An unexpected error occurred: ' . $e->getMessage());
             }
         }
 
-        // If form is not valid or submission failed, render the registration form again
+        // Render the registration form
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form->createView(),
         ]);
     }
+
 }
+
