@@ -14,10 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 
 class RegistrationController extends AbstractController
-{   
-    public function __construct(
-        private readonly Security $security,
-    ){}
+{  
     
     #[Route('/register', name: 'app_register',methods:['POST','GET'])]
     #[OA\Post(
