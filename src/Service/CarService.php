@@ -19,7 +19,7 @@ class CarService
 
     public function __construct(
         private readonly CarRepository $carRepository,
-        private readonly EntityManagerInterFace $entityManager,
+        private readonly EntityManagerInterface $entityManager,
         private readonly HttpClientInterface $httpClient,
         private readonly ValidatorInterface $validator,
         private readonly LoggerInterface $logger,
@@ -27,14 +27,19 @@ class CarService
         string $apiHost,
  )  {
  $this->apiHost = $apiHost;
+
     }
+
     public function getCarsForUser(User $user): array
     {
         $cars = $this->carRepository->findBy(['user' => $user]);
 
         if (empty($cars)) {
+            $this->logger->info('No cars found for user.', ['user_id' => $user->getId()]);
             return [];
         }
+
+        $this->logger->info('Cars retrieved for user.', ['user_id' => $user->getId(), 'car_count' => count($cars)]);
 
         return array_map(function (Car $car) {
             return [
@@ -51,6 +56,8 @@ class CarService
     {
         $url = $this->apiHost . '/api/users/' . $userId . '/cars';
 
+        $this->logger->info('Fetching cars from external API.', ['user_id' => $userId, 'url' => $url]);
+
         $response = $this->httpClient->request('GET', $url);
 
         $content = $response->getContent(false);
@@ -58,8 +65,11 @@ class CarService
         $rawData = json_decode($content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->logger->error('Error parsing JSON data from external API.', ['user_id' => $userId, 'response_content' => $content]);
             return [];
         }
+
+        $this->logger->info('Successfully fetched cars from external API.', ['user_id' => $userId]);
 
         return $rawData;
     }
@@ -69,7 +79,7 @@ class CarService
     {
         $cars = $this->carRepository->findAll();
 
-        $this->logger->info('Fetching all cars'); 
+        $this->logger->info('Retrieved all cars.', ['car_count' => count($cars)]);
 
         return array_map(function (Car $car) {
             return [
@@ -106,13 +116,13 @@ class CarService
     }
 
     // Create new car
+
     public function createNewCar(Car $car): Response
     {
         $errors = $this->validator->validate($car);
         if (count($errors) > 0) {
-            $errorMessage = 'Invalid input data: ' . (string) $errors;
-            $this->logger->error($errorMessage, ['car_data' => $car]);
-            return new Response($errorMessage, Response::HTTP_BAD_REQUEST);
+            $this->logger->error('Validation errors when creating car.', ['car_data' => $car]);
+            return new Response('Invalid input data: ' . (string) $errors, Response::HTTP_BAD_REQUEST);
         }
 
         $car->setCreatedAt(new \DateTimeImmutable());
@@ -121,46 +131,37 @@ class CarService
             $this->entityManager->persist($car);
             $this->entityManager->flush();
 
-            $this->logger->info('Car created successfully', ['car_id' => $car->getId()]);
+            $this->logger->info('Car created successfully.', ['car_id' => $car->getId(), 'user_id' => $car->getUser()->getId()]);
 
             return new Response('Car created successfully', Response::HTTP_CREATED);
         } catch (\Exception $e) {
-            $this->logger->error('Error creating car', [
-                'error_message' => $e->getMessage(),
-                'car_data' => $car,
-            ]);
+            $this->logger->error('Error creating car.', ['error' => $e->getMessage()]);
             return new Response('Error: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
 
-    // Update car
     public function updateCar(Car $car): Response
     {
         $errors = $this->validator->validate($car);
         if (count($errors) > 0) {
-            $errorMessage = 'Invalid input data: ' . (string) $errors;
-            $this->logger->error($errorMessage, ['car_data' => $car]);
-            return new Response($errorMessage, Response::HTTP_BAD_REQUEST);
+            $this->logger->error('Validation errors when updating car.', ['car_data' => $car]);
+            return new Response('Invalid input data: ' . (string) $errors, Response::HTTP_BAD_REQUEST);
         }
 
         $car->setUpdatedAt(new \DateTimeImmutable());
 
         try {
             $this->entityManager->flush();
-
-            $this->logger->info('Car updated successfully', ['car_id' => $car->getId()]);
+            $this->logger->info('Car updated successfully.', ['car_id' => $car->getId()]);
 
             return new Response('Car updated successfully', Response::HTTP_OK);
         } catch (\Exception $e) {
-            $this->logger->error('Error updating car', [
-                'car_id' => $car->getId(),
-                'error_message' => $e->getMessage(),
-            ]);
+            $this->logger->error('Error updating car.', ['car_id' => $car->getId(), 'error' => $e->getMessage()]);
             return new Response('Error: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
 
-    // Delete car by ID
+
     public function deleteCarById(int $id): Response
     {
         try {
@@ -187,7 +188,7 @@ class CarService
     }
 
     // Get cars with expiring registration
-    public function getCarsWithExpiringRegistration(): array
+    public function getCarsWithExpiringRegistration(User $user): array
     {
         try {
             $currentDate = new DateTimeImmutable();
@@ -195,7 +196,7 @@ class CarService
 
             $this->logger->info('Fetching cars with expiring registration', ['end_date' => $endOfThisMonth]);
 
-            return $this->carRepository->findByRegistrationExpiringUntil($endOfThisMonth);
+            return $this->carRepository->findByRegistrationExpiringUntil($user, $endOfThisMonth);
         } catch (\Exception $e) {
             $this->logger->error('Error fetching cars with expiring registration', [
                 'error_message' => $e->getMessage(),

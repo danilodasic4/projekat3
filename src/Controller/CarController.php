@@ -21,6 +21,7 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Entity\User;
+use Psr\Log\LoggerInterface;
 
 class CarController extends AbstractController
 {
@@ -33,7 +34,6 @@ class CarController extends AbstractController
  private readonly HttpClientInterface $httpClient,
  private readonly CarService $carService,
  private readonly Security $security,
-
  string $apiHost,
  ) {
  $this->apiHost = $apiHost;
@@ -278,11 +278,10 @@ class CarController extends AbstractController
         ]
     )]
 
-
     public function expiringRegistration(): Response
     {
         return $this->render('car/expiring_registration.html.twig', [
-            'cars' => $this->carService->getCarsWithExpiringRegistration(),
+            'cars' => $this->carService->expiringRegistration($this->security->getUser()),
         ]);
     }
 

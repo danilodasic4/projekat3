@@ -39,10 +39,12 @@ class CarRepository extends ServiceEntityRepository
     }
 
     // Custom query to fetch cars with registration expiring by a certain date
-    public function findByRegistrationExpiringUntil(DateTimeImmutable $endDate): array
+    public function findByRegistrationExpiringUntil(User $user, DateTimeImmutable $endDate): array
     {
         return $this->createQueryBuilder('c')
-            ->where('c.registrationDate <= :endDate')
+            ->where('c.user = :user')
+            ->andWhere('c.registrationDate <= :endDate')
+            ->setParameter('user',$user)
             ->setParameter('endDate', $endDate)
             ->orderBy('c.registrationDate', 'ASC')  
             ->getQuery()
