@@ -2,7 +2,7 @@
 
 namespace App\Tests\Controller;
 
-use App\Entity\User; // Koristi svoju klasu User
+use App\Entity\User; 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class HomeControllerTest extends WebTestCase
@@ -21,7 +21,6 @@ class HomeControllerTest extends WebTestCase
         $client = static::createClient();
         $container = static::getContainer();
 
-        // Pretpostavljamo da imaš User klasu i korisnika u bazi
         $userRepository = $container->get('doctrine')->getRepository(User::class);
         $testUser = $userRepository->findOneByEmail('user1@example.com');
 
