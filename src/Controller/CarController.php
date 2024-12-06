@@ -164,13 +164,17 @@ class CarController extends AbstractController
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
+
         $car->setUser($user);
         $form = $this->createForm(CarFormType::class, $car);
+
         $form->handleRequest($request);
+
         if ($form->isSubmitted() && $form->isValid()) {
             $this->carService->createNewCar($car);  
             return $this->redirectToRoute('app_car_index'); 
         }
+
         return $this->render('car/new.html.twig', [
             'form' => $form->createView(),
         ]);

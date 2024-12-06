@@ -1,6 +1,7 @@
 <?php
 namespace App\Tests\Controller;
 
+use App\Repository\CarRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 use App\Entity\User;
@@ -38,26 +39,30 @@ class CarControllerTest extends WebTestCase
     
         // Verify that the user has the role ROLE_USER
         $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
-    
+
         // Data for creating a new car
         $carData = [
-            'brand' => 'Toyota',
-            'model' => 'Corolla',
-            'year' => 2020,
-            'engineCapacity' => 1800,  
-            'horsePower' => 150,       
-            'color' => 'Blue',
-            'registrationDate' => '2024-01-01', 
+            'car_form' => [
+                'brand' => 'Toyota',
+                'model' => 'Corolla',
+                'year' => 2020,
+                'engineCapacity' => 1800,
+                'horsePower' => 150,
+                'color' => 'Blue',
+                'registrationDate' => '2024-01-01',
+                'save' => '',
+            ]
         ];
-    
-        // Send a POST request to create the new car
-        $client->request('POST', '/cars/create', [], [], [], json_encode($carData));
+
+
+        $client->request('POST', '/cars/create', $carData);
     
         // Verify that the response status is 201 Created
-        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED, 'Expected response status 201 (Created)');
-    
+        $this->assertResponseStatusCodeSame(Response::HTTP_FOUND, 'Expected response status 201 (Created)');
+
         // Fetch the car from the database to verify it was created
-        $car = $client->getContainer()->get('doctrine')->getRepository(Car::class)->findOneBy(['model' => 'Corolla']);
+        $car = $client->getContainer()->get(CarRepository::class)->findOneBy(['model' => 'Corolla']);
+
         $this->assertNotNull($car, 'Car was not created in the database.');
     
         // Verify that the car details match the input data
