@@ -1,120 +1,88 @@
 <?php
 namespace App\Tests\Controller;
 
+use App\Repository\CarRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 use App\Entity\User;
 use App\Entity\Car;
 use App\Service\RegistrationCostService;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class CarControllerTest extends WebTestCase
 {
-    private $client;
+    private $registrationCostServiceMock;
+    private $carMock;
 
     protected function setUp(): void
     {
         parent::setUp();
-        // Initialize the test client
-        $this->client = static::createClient();
-        // Automatically authenticate the user before each test
-        $this->authenticate('user1@example.com');
+
+        // Create mock for the Car entity
+        $this->carMock = $this->createMock(Car::class);
+        // Mock methods for car data (for example, getYear() and getEngineCapacity())
+        $this->carMock->method('getYear')->willReturn(2020);
+        $this->carMock->method('getEngineCapacity')->willReturn(1200);
+
+        // Create mock for RegistrationCostService
+        $this->registrationCostServiceMock = $this->createMock(RegistrationCostService::class);
     }
-    private function authenticate(string $email): void
+    public function testGetUserCars()
     {
-        // Fetch the user from the database based on the email
-        $user = $this->client->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => $email]);
+        $client = static::createClient();
+        
+        $user = $client->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);
+        $client->loginUser($user);
 
-        if (!$user) {
-            throw new \Exception('User not found in the database for email: ' . $email);
-        }
-
-        // Log the user in
-        $this->client->loginUser($user);
-
-        // Ensure the user has the ROLE_USER role
         $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
+
+        $client->request('GET', '/api/users/' . $user->getId() . '/cars');
+        
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        // $this->assertJsonContains([
+        //     'id' => 1,  
+        // ]);
     }
 
-
-
-    public function testGetUserCars(): void
-{
-    // Send a GET request to fetch the cars associated with the authenticated user
-    $this->client->request('GET', '/api/users/' . $this->getAuthenticatedUser()->getId() . '/cars');
-
-    // Assert that the response status is 200 (OK)
-    $this->assertResponseStatusCodeSame(Response::HTTP_OK);
-
-    // Optional: Assert that the JSON response contains expected data (uncomment if needed)
-    // $this->assertJsonContains([
-    //     'id' => 1,  // Example ID of a car associated with the user
-    // ]);
-}
-
-private function getAuthenticatedUser(): User
-{
-    // Fetch the authenticated user from the database
-    return $this->client->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);
-}
-public function testSubmitValidData(): void
+    public function testCreateCar()
     {
-        $formData = [
-            'brand' => 'Tesla',
-            'model' => 'Model S',
-            'year' => 2022,
-            'engineCapacity' => 3000,
-            'horsePower' => 670,
-            'color' => 'Red',
-            'registrationDate' => '2022-01-01',
-        ];
+        $client = static::createClient();
+    
+        // Log in a user with the role ROLE_USER
+        $user = $client->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);
+        $client->loginUser($user);
+    
+        // Verify that the user has the role ROLE_USER
+        $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
 
-        $expectedCar = new Car();
-        $expectedCar->setBrand('Tesla');
-        $expectedCar->setModel('Model S');
-        $expectedCar->setYear(2022);
-        $expectedCar->setEngineCapacity(3000);
-        $expectedCar->setHorsePower(670);
-        $expectedCar->setColor('Red');
-        $expectedCar->setRegistrationDate(new \DateTime('2022-01-01'));
-
-        $form = $this->factory->create(CarFormType::class, new Car());
-        $form->submit($formData);
-
-        $this->assertTrue($form->isSynchronized());
-        $this->assertEquals($expectedCar, $form->getData());
-    }
-
-    public function testCreateCar(): void
-    {
-        // Prepare data for creating a new car
+        // Data for creating a new car
         $carData = [
-            'car[brand]' => 'Toyota', // Field names must match the ones in the CarFormType
-            'car[model]' => 'Corolla',
-            'car[year]' => 2020,
-            'car[engineCapacity]' => 1800,
-            'car[horsePower]' => 150,
-            'car[color]' => 'Blue',
-            'car[registrationDate]' => '2024-01-01',
-            'car[save]' => 'Save Car', // Submit button value (important)
+            'car_form' => [
+                'brand' => 'Toyota',
+                'model' => 'Corolla',
+                'year' => 2020,
+                'engineCapacity' => 1800,
+                'horsePower' => 150,
+                'color' => 'Blue',
+                'registrationDate' => '2024-01-01',
+                'save' => '',
+            ]
         ];
 
-        // Send a POST request to create the new car
-        $this->client->request(
-            'POST',
-            '/cars/create', // Your route for creating cars
-            $carData, // Send the data as form parameters (application/x-www-form-urlencoded)
-            [],
-            [] // Use correct content type for form submission
-        );
-        // Assert that the response status is 201 (Created)
-        $this->assertResponseStatusCodeSame(Response::HTTP_FOUND);
-        // Fetch the car from the database to verify it was created
-        $car = $this->client->getContainer()->get('doctrine')->getRepository(Car::class)->findAll();
-        dd($car);
-        $this->assertNotNull($car, 'Car was not created in the database.');
 
-        // Verify that the car's details match the input data
+        $client->request('POST', '/cars/create', $carData);
+    
+        // Verify that the response status is 201 Created
+        $this->assertResponseStatusCodeSame(Response::HTTP_FOUND, 'Expected response status 201 (Created)');
+
+        // Fetch the car from the database to verify it was created
+        $car = $client->getContainer()->get(CarRepository::class)->findOneBy(['model' => 'Corolla']);
+
+        $this->assertNotNull($car, 'Car was not created in the database.');
+    
+        // Verify that the car details match the input data
         $this->assertEquals('Toyota', $car->getBrand());
         $this->assertEquals(2020, $car->getYear());
         $this->assertEquals(1800, $car->getEngineCapacity());
@@ -123,7 +91,180 @@ public function testSubmitValidData(): void
         $this->assertEquals('2024-01-01', $car->getRegistrationDate()->format('Y-m-d'));
     }
     
-    public function testShowCar()
+        public function testShowCar(): void
+    {
+        $client = static::createClient();
+
+        // Log in a user with the role ROLE_USER
+        $user = $client->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);
+        $client->loginUser($user);
+
+        // Verify that the user has the role ROLE_USER
+        $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
+
+        // Fetch an existing car from the database for testing
+        $car = $client->getContainer()->get('doctrine')->getRepository(Car::class)->findOneBy([]);
+
+        // Ensure there is a car in the database
+        $this->assertNotNull($car, 'No cars found in the database for testing.');
+
+        // Make a GET request to the /cars/{id} route
+        $client->request('GET', '/cars/' . $car->getId());
+
+        // Verify the response status code
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK, 'Expected response status 200 (OK).');
+
+        // Check if the car details are rendered correctly in the response content
+        $this->assertStringContainsString($car->getBrand(), $client->getResponse()->getContent());
+        $this->assertStringContainsString($car->getModel(), $client->getResponse()->getContent());
+        $this->assertStringContainsString((string)$car->getYear(), $client->getResponse()->getContent());
+        $this->assertStringContainsString((string)$car->getEngineCapacity(), $client->getResponse()->getContent());
+        $this->assertStringContainsString((string)$car->getHorsePower(), $client->getResponse()->getContent());
+        $this->assertStringContainsString($car->getColor(), $client->getResponse()->getContent());
+        $this->assertStringContainsString($car->getRegistrationDate()->format('Y-m-d'), $client->getResponse()->getContent());
+    }
+    public function testEditCar(): void
+    {
+        $client = static::createClient();
+
+        // Log in a user with the role ROLE_USER
+        $user = $client->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);
+        $client->loginUser($user);
+
+        // Verify that the user has the role ROLE_USER
+        $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
+
+        // Fetch an existing car from the database for testing
+        $car = $client->getContainer()->get('doctrine')->getRepository(Car::class)->findOneBy([]);
+
+        // Ensure there is a car in the database
+        $this->assertNotNull($car, 'No cars found in the database for testing.');
+
+        // Data for updating the car
+        $updatedCarData = [
+            'car_form' => [
+                'brand' => 'Honda',
+                'model' => 'Civic',
+                'year' => 2021,
+                'engineCapacity' => 2000,
+                'horsePower' => 180,
+                'color' => 'Red',
+                'registrationDate' => '2025-01-01',
+            ],
+        ];
+
+        // Perform the PUT request to update the car
+        $client->request('PUT', '/cars/update/' . $car->getId(), $updatedCarData);
+
+        // Assert redirection status
+        $this->assertResponseStatusCodeSame(Response::HTTP_FOUND, 'Expected response status 302 (Found).');
+
+        // Assert redirection to the correct route
+        $this->assertTrue($client->getResponse()->isRedirect('/cars'), 'Expected redirect to /cars.');
+
+        // Follow the redirection and verify the car was updated
+        $client->followRedirect();
+        $updatedCar = $client->getContainer()->get('doctrine')->getRepository(Car::class)->find($car->getId());
+        $this->assertEquals('Honda', $updatedCar->getBrand());
+        $this->assertEquals('Civic', $updatedCar->getModel());
+        $this->assertEquals(2021, $updatedCar->getYear());
+        $this->assertEquals(2000, $updatedCar->getEngineCapacity());
+        $this->assertEquals(180, $updatedCar->getHorsePower());
+        $this->assertEquals('Red', $updatedCar->getColor());
+        $this->assertEquals('2025-01-01', $updatedCar->getRegistrationDate()->format('Y-m-d'));
+    }
+
+    public function testDeleteCar()
+    {
+        $client = static::createClient();
+
+        // Log in a user with the role ROLE_USER
+        $user = $client->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);
+        $client->loginUser($user);
+
+        // Verify that the user has the role ROLE_USER
+        $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
+
+        // Choose a car ID to delete (e.g., ID = 4)
+        $carId = 4;
+
+        // Fetch the car from the database to verify it exists
+        $car = $client->getContainer()->get('doctrine')->getRepository(Car::class)->find($carId);
+        $this->assertNotNull($car, 'The car should exist before deleting.');
+
+        // Perform the DELETE request
+        $client->request('DELETE', '/cars/delete/' . $carId);
+
+        // Ensure the response status is a redirect (302 Found)
+        $this->assertResponseRedirects('/cars', Response::HTTP_FOUND);
+
+        // Fetch the car again from the database to check if it was deleted
+        $car = $client->getContainer()->get('doctrine')->getRepository(Car::class)->find($carId);
+
+        // Assert that the car is not in the database anymore (i.e., it is null)
+        $this->assertNull($car, 'The car should be deleted from the database.');
+    }
+
+
+    public function testExpiringRegistration()
+    {
+        $client = static::createClient();
+    
+        // Log in a user with the role ROLE_USER
+        $user = $client->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);
+        $client->loginUser($user);
+    
+        // Verify that the user has the role ROLE_USER
+        $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
+
+        // Data for a car with expiring registration
+        $carData = [
+            'car_form' => [
+                'brand' => 'Toyota',
+                'model' => 'Corolla',
+                'year' => 2020,
+                'engineCapacity' => 1800,
+                'horsePower' => 150,
+                'color' => 'Blue',
+                'registrationDate' => '2024-01-01', // Make sure this registration date is within the expiring range
+                'save' => '',
+            ]
+        ];
+
+        // Send a POST request to create the car
+        $client->request('POST', '/cars/create', $carData);
+
+        // Verify that the response status is HTTP_FOUND (redirect)
+        $this->assertResponseStatusCodeSame(Response::HTTP_FOUND);
+
+        // Fetch the car from the database to verify it was created
+        $car = $client->getContainer()->get(CarRepository::class)->findOneBy(['model' => 'Corolla']);
+
+        $this->assertNotNull($car, 'Car was not created in the database.');
+    
+        // Verify the car details
+        $this->assertEquals('Toyota', $car->getBrand());
+        $this->assertEquals('Corolla', $car->getModel());
+        $this->assertEquals(2020, $car->getYear());
+        $this->assertEquals(1800, $car->getEngineCapacity());
+        $this->assertEquals(150, $car->getHorsePower());
+        $this->assertEquals('Blue', $car->getColor());
+        $this->assertEquals('2024-01-01', $car->getRegistrationDate()->format('Y-m-d'));
+
+        // Now test the GET route for cars with expiring registration
+        $client->request('GET', '/cars/expiring-registration');
+    
+        // Check if the response is OK (200 OK)
+        $this->assertResponseIsSuccessful();
+    
+        // Verify that the car with expiring registration is shown
+        $this->assertSelectorTextContains('.car-list', 'Toyota');
+        $this->assertSelectorTextContains('.car-list', 'Corolla');
+        $this->assertSelectorTextContains('.car-list', '2020');
+        $this->assertSelectorTextContains('.car-list', 'Blue');
+        $this->assertSelectorTextContains('.car-list', '2024-01-01');
+    }
+    public function testCalculateRegistrationCost()
     {
         $client = static::createClient();
     
@@ -134,34 +275,69 @@ public function testSubmitValidData(): void
         // Verify that the user has the role ROLE_USER
         $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
     
-        // Find a car by its ID (assuming ID 1 exists in the database)
-        $car = $client->getContainer()->get('doctrine')->getRepository(Car::class)->find(1);
-        
-        // Ensure the car exists in the database
-        $this->assertNotNull($car, 'Car with ID 1 should exist in the database.');
+        // Data for a car with expiring registration
+        $carData = [
+            'car_form' => [
+                'brand' => 'Mercedes',
+                'model' => 'G class',
+                'year' => 2024,
+                'engineCapacity' => 3500,
+                'horsePower' => 350,
+                'color' => 'Blue',
+                'registrationDate' => '2025-01-01', // Ensure the date is valid and in range
+                'save' => '',
+            ]
+        ];
     
-        // Send a GET request to retrieve the car details
-        $client->request('GET', '/cars/' . $car->getId());
+        // Send a POST request to create the car
+        $client->request('POST', '/cars/create', $carData);
+
+        // Verify that the response status is HTTP_FOUND (redirect)
+        $this->assertResponseStatusCodeSame(Response::HTTP_FOUND);
+
+        // Fetch the car from the database to verify it was created
+        $car = $client->getContainer()->get(CarRepository::class)->findOneBy(['model' => 'G class']);
+    
+        // Get parameters from the container
+        $registrationBaseCost = $client->getContainer()->getParameter('registration_base_cost');
+        $discountCode = $client->getContainer()->getParameter('discount_code');
+    
+        // Send a GET request to calculate registration cost
+        $client->request('GET', '/cars/calculate-registration-cost', [
+            'carId' => $car->getId(),
+            'discountCode' => $discountCode,
+        ]);
     
         // Verify that the response status is 200 OK
-        $this->assertResponseStatusCodeSame(Response::HTTP_OK, 'Expected response status 200 OK');
+        $this->assertResponseStatusCodeSame(200, 'Expected response status 200 (OK)');
     
-        // Verify that the response is in JSON format and contains the correct car details
-        $this->assertJsonContains([
-            'brand' => $car->getBrand(),
-            'model' => $car->getModel(),
-            'year' => $car->getYear(),
-            'engineCapacity' => $car->getEngineCapacity(),
-            'horsePower' => $car->getHorsePower(),
-            'color' => $car->getColor(),
-            'registrationDate' => $car->getRegistrationDate()->format('Y-m-d'),
-            'user' => [
-                'email' => $car->getUser()->getEmail(),
-            ],
-        ]);
+        // Decode JSON response
+        $response = json_decode($client->getResponse()->getContent(), true);
+    
+        // Verify response data structure
+        $this->assertArrayHasKey('carId', $response);
+        $this->assertArrayHasKey('registrationCost', $response);
+        $this->assertArrayHasKey('finalCost', $response);
+    
+        // Verify response data values
+        $this->assertEquals($car->getId(), $response['carId'], 'Car ID does not match.');
+        
+        // Calculate expected costs
+        $expectedBaseCost = $registrationBaseCost 
+            + (($car->getYear() - 1960) * 200) 
+            + (($car->getEngineCapacity() - 900) * 200);
+        $this->assertEquals($expectedBaseCost, $response['registrationCost'], 'Base cost does not match.');
+    
+        $expectedFinalCost = $discountCode === 'discount20' ? $expectedBaseCost * 0.8 : $expectedBaseCost;
+        $this->assertEquals($expectedFinalCost, $response['finalCost'], 'Final cost does not match after applying discount.');
     }
-public function testEditCar()
+    
+
+
+
+    public function testRegistrationDetails()
 {
+    // Create a client to simulate a request
     $client = static::createClient();
 
     // Log in a user with the role ROLE_USER
@@ -171,207 +347,40 @@ public function testEditCar()
     // Verify that the user has the role ROLE_USER
     $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
 
-    // Find the car we want to update (assuming it has ID 1)
-    $car = $client->getContainer()->get('doctrine')->getRepository(Car::class)->find(1);
-    
-    // Ensure the car exists in the database
-    $this->assertNotNull($car, 'Car with ID 1 should exist in the database.');
+    // Simulate a GET request to the registration details page for car with ID 6
+    $crawler = $client->request('GET', 'cars/registration-details/6');  // Adjust the URL as per your route configuration
 
-    // Data we will send for updating the car
-    $updatedCarData = [
-        'brand' => 'Updated Brand',
-        'model' => 'Updated Model',
-        'year' => 2023,
-        'engineCapacity' => 2000,
-        'horsePower' => 150,
-        'color' => 'Blue',
-        'registrationDate' => '2023-12-01',
-    ];
+    // Check that the response status code is 200 (OK)
+    $this->assertResponseIsSuccessful();
 
-    // Send a PUT request to update the car
-    $client->request('PUT', '/cars/update/' . $car->getId(), [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($updatedCarData));
+    // Verify that the page contains the expected title or header text
+    $this->assertSelectorTextContains('h1', 'Registration Details');  // Ensure the title is correct
 
-    // Verify that the response status is 200 OK
-    $this->assertResponseStatusCodeSame(Response::HTTP_OK, 'Expected response status 200 OK');
+    // Verify that car details are rendered correctly
+    $this->assertSelectorTextContains('.card-title', 'Stokes PLC sint');  // Ensure the car name is displayed
 
-    // Verify that the data was updated in the database (retrieve the car from the database after the update)
-    $updatedCar = $client->getContainer()->get('doctrine')->getRepository(Car::class)->find($car->getId());
+    // Assert the Year
+    $this->assertSelectorTextContains('.list-group-item:nth-child(1)', 'Year: 2004');
 
-    // Verify that the car data has been updated
-    $this->assertEquals($updatedCarData['brand'], $updatedCar->getBrand());
-    $this->assertEquals($updatedCarData['model'], $updatedCar->getModel());
-    $this->assertEquals($updatedCarData['year'], $updatedCar->getYear());
-    $this->assertEquals($updatedCarData['engineCapacity'], $updatedCar->getEngineCapacity());
-    $this->assertEquals($updatedCarData['horsePower'], $updatedCar->getHorsePower());
-    $this->assertEquals($updatedCarData['color'], $updatedCar->getColor());
-    $this->assertEquals(new \DateTime($updatedCarData['registrationDate']), $updatedCar->getRegistrationDate());
+    // Assert the Engine Capacity
+    $this->assertSelectorTextContains('.list-group-item:nth-child(2)', 'Engine Capacity: 3551cc');
+
+    // Assert the Color (if you need it)
+    $this->assertSelectorTextContains('.list-group-item:nth-child(3)', 'Color: GreenYellow');
+    // Check that the registration cost is rendered correctly
+    $this->assertSelectorTextContains('.alert-info', '549000 RSD');  // Ensure the registration cost is shown
+
+    // Check that the discount form is present
+    $this->assertCount(1, $crawler->filter('form'));  // Ensure there is exactly one form on the page
+
+    // Simulate submitting a discount code in the form (optional)
+    $form = $crawler->selectButton('Apply Discount')->form();
+    $form['discountCode'] = 'discount20';  // Enter a discount code for testing
+    $crawler = $client->submit($form);
+
+    // Verify that the page has been updated with the discounted price (if applicable)
+    $this->assertSelectorTextContains('.alert-success', 'Final Cost with Discount:');  // Ensure discount is applied and final cost is displayed
 }
 
-public function testDeleteCar()
-{
-    $client = static::createClient();
-
-    // Log in a user with the role ROLE_USER
-    $user = $client->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);
-    $client->loginUser($user);
-
-    // Verify that the user has the role ROLE_USER
-    $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
-
-    // Find the car we want to delete (assuming it has ID 1)
-    $car = $client->getContainer()->get('doctrine')->getRepository(Car::class)->find(1);
     
-    // Ensure the car exists in the database
-    $this->assertNotNull($car, 'Car with ID 1 should exist in the database.');
-
-    // Send a DELETE request to delete the car
-    $client->request('DELETE', '/cars/delete/' . $car->getId());
-
-    // Verify that the response status is 200 OK
-    $this->assertResponseStatusCodeSame(Response::HTTP_OK, 'Expected response status 200 OK');
-
-    // Verify that the car no longer exists in the database
-    $deletedCar = $client->getContainer()->get('doctrine')->getRepository(Car::class)->find($car->getId());
-
-    // Assert that the car is no longer in the database (it should be null)
-    $this->assertNull($deletedCar, 'Car should be deleted from the database.');
-}
-
-public function testCalculateRegistrationCostWithValidCarAndDiscountCode()
-    {
-        // Create a client to send requests
-        $client = static::createClient();
-
-        // Mock the car repository and the car entity
-        $carRepository = $this->createMock(CarRepository::class);
-        $carRepository->method('find')->willReturn($this->createMock(Car::class));
-        
-        // Mock the registration cost service
-        $registrationCostService = $this->createMock(RegistrationCostService::class);
-        $registrationCostService->method('calculateRegistrationCost')->willReturn(500);
-        $registrationCostService->method('applyDiscount')->willReturn(400);
-
-        // Send a GET request with carId and discountCode query parameters
-        $client->request(Request::METHOD_GET, '/cars/calculate-registration-cost', [
-            'carId' => 1,
-            'discountCode' => 'VALID_CODE'
-        ]);
-
-        // Assert that the status code is 200 (OK)
-        $this->assertResponseIsSuccessful();
-
-        // Assert that the response contains the correct values
-        $this->assertJsonContains([
-            'carId' => 1,
-            'registrationCost' => 500,
-            'finalCost' => 400,
-        ]);
-    }
-    public function testCalculateRegistrationCostWithInvalidDiscountCode()
-    {
-        // Create a client to send requests
-        $client = static::createClient();
-
-        // Mock the car repository
-        $carRepository = $this->createMock(CarRepository::class);
-        $carRepository->method('find')->willReturn($this->createMock(Car::class));
-
-        // Mock the registration cost service to return a base cost without applying a discount
-        $registrationCostService = $this->createMock(RegistrationCostService::class);
-        $registrationCostService->method('calculateRegistrationCost')->willReturn(500);
-        $registrationCostService->method('applyDiscount')->willReturn(500); // No discount
-
-        // Send a GET request with carId and an invalid discountCode
-        $client->request(Request::METHOD_GET, '/cars/calculate-registration-cost', [
-            'carId' => 1,
-            'discountCode' => 'INVALID_CODE' // Invalid code
-        ]);
-
-        // Assert that the status code is 200 (OK)
-        $this->assertResponseIsSuccessful();
-
-        // Assert that the response contains the correct values (no discount applied)
-        $this->assertJsonContains([
-            'carId' => 1,
-            'registrationCost' => 500,
-            'finalCost' => 500, // No discount applied
-        ]);
-    }
-    // Test for GET method to fetch registration details for an existing car
-    public function testGetRegistrationDetails()
-    {
-        // Create a client to send requests
-        $client = static::createClient();
-
-        // Mock a car entity (this would be a real entity in your tests)
-        $car = new Car();
-        $car->setId(1);
-        $car->setYear(2020);
-        $car->setEngineCapacity(1500);
-        $car->setBrand('Toyota');
-        $car->setModel('Corolla');
-        $car->setColor('Blue');
-        
-        // Mock the RegistrationCostService to return base and final cost
-        $registrationCostService = $this->createMock(RegistrationCostService::class);
-        $registrationCostService->method('getRegistrationDetails')
-            ->willReturn([
-                'car' => $car,
-                'baseCost' => 1000.0,
-                'finalCost' => 800.0
-            ]);
-
-        // Send GET request to fetch registration details for the car with ID 1
-        $client->request(Request::METHOD_GET, '/cars/registration-details/1');
-
-        // Assert that the status code is 200 (OK)
-        $this->assertResponseIsSuccessful();
-
-        // Assert that the page contains the car brand and model
-        $this->assertSelectorTextContains('.card-title', 'Toyota Corolla');
-        
-        // Assert that the registration cost (base cost) is displayed correctly
-        $this->assertSelectorTextContains('.alert-info', '1000.0 RSD');
-        
-        // Assert that the final cost with discount is displayed correctly
-        $this->assertSelectorTextContains('.alert-success', '800.0 RSD');
-    }
-      // Test for POST method to apply a discount code and fetch updated registration details
-      public function testPostRegistrationDetailsWithDiscount()
-      {
-          // Create a client to send requests
-          $client = static::createClient();
-  
-          // Mock a car entity (this would be a real entity in your tests)
-          $car = new Car();
-          $car->setId(1);
-          $car->setYear(2020);
-          $car->setEngineCapacity(1500);
-          $car->setBrand('Toyota');
-          $car->setModel('Corolla');
-          $car->setColor('Blue');
-  
-          // Mock the RegistrationCostService to return base and final cost with discount
-          $registrationCostService = $this->createMock(RegistrationCostService::class);
-          $registrationCostService->method('getRegistrationDetails')
-              ->willReturn([
-                  'car' => $car,
-                  'baseCost' => 1000.0,
-                  'finalCost' => 800.0 // Discount applied
-              ]);
-  
-          // Send POST request to apply a discount code
-          $client->request(Request::METHOD_POST, '/cars/registration-details/1', [
-              'discountCode' => 'DISCOUNT2020'
-          ]);
-  
-          // Assert that the status code is 200 (OK)
-          $this->assertResponseIsSuccessful();
-  
-          // Assert that the page contains the updated final cost with the discount applied
-          $this->assertSelectorTextContains('.alert-success', '800.0 RSD');
-      }
-
-
-
 }
