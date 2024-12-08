@@ -188,7 +188,7 @@ class CarService
     }
 
     // Get cars with expiring registration
-    public function getCarsWithExpiringRegistration(User $user): array
+    public function expiringRegistration(User $user): array
     {
         try {
             $currentDate = new DateTimeImmutable();

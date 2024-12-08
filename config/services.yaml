@@ -4,7 +4,6 @@ parameters:
     discount_code: '%env(DISCOUNT_CODE)%' 
     api_host: '%env(API_HOST)%'
 
-
 services:
     _defaults:
         autowire: true     
@@ -37,6 +36,11 @@ services:
     App\Controller\CarController:
         arguments:
             $apiHost: '%api_host%' 
+
     App\Service\CarService:
         arguments:
-            $apiHost: '%api_host%'
+            $apiHost: '%api_host%' 
+
+    App\Command\CarsExpiringRegistrationCommand: 
+        tags:
+            - { name: 'console.command', command: 'app:cars-expiring-registration' }

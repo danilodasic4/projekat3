@@ -1,7 +1,6 @@
 <?php
 namespace App\Tests\Controller;
 
-use App\Repository\CarRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 use App\Entity\User;
@@ -11,61 +10,111 @@ use Symfony\Component\HttpFoundation\Request;
 
 class CarControllerTest extends WebTestCase
 {
-    public function testGetUserCars()
+    private $client;
+
+    protected function setUp(): void
     {
-        $client = static::createClient();
-        
-        $user = $client->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);
-        $client->loginUser($user);
+        parent::setUp();
+        // Initialize the test client
+        $this->client = static::createClient();
+        // Automatically authenticate the user before each test
+        $this->authenticate('user1@example.com');
+    }
+    private function authenticate(string $email): void
+    {
+        // Fetch the user from the database based on the email
+        $user = $this->client->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => $email]);
 
+        if (!$user) {
+            throw new \Exception('User not found in the database for email: ' . $email);
+        }
+
+        // Log the user in
+        $this->client->loginUser($user);
+
+        // Ensure the user has the ROLE_USER role
         $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
-
-        $client->request('GET', '/api/users/' . $user->getId() . '/cars');
-        
-        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
-
-        // $this->assertJsonContains([
-        //     'id' => 1,  
-        // ]);
     }
 
-    public function testCreateCar()
-    {
-        $client = static::createClient();
-    
-        // Log in a user with the role ROLE_USER
-        $user = $client->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);
-        $client->loginUser($user);
-    
-        // Verify that the user has the role ROLE_USER
-        $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
 
-        // Data for creating a new car
-        $carData = [
-            'car_form' => [
-                'brand' => 'Toyota',
-                'model' => 'Corolla',
-                'year' => 2020,
-                'engineCapacity' => 1800,
-                'horsePower' => 150,
-                'color' => 'Blue',
-                'registrationDate' => '2024-01-01',
-                'save' => '',
-            ]
+
+    public function testGetUserCars(): void
+{
+    // Send a GET request to fetch the cars associated with the authenticated user
+    $this->client->request('GET', '/api/users/' . $this->getAuthenticatedUser()->getId() . '/cars');
+
+    // Assert that the response status is 200 (OK)
+    $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+
+    // Optional: Assert that the JSON response contains expected data (uncomment if needed)
+    // $this->assertJsonContains([
+    //     'id' => 1,  // Example ID of a car associated with the user
+    // ]);
+}
+
+private function getAuthenticatedUser(): User
+{
+    // Fetch the authenticated user from the database
+    return $this->client->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);
+}
+public function testSubmitValidData(): void
+    {
+        $formData = [
+            'brand' => 'Tesla',
+            'model' => 'Model S',
+            'year' => 2022,
+            'engineCapacity' => 3000,
+            'horsePower' => 670,
+            'color' => 'Red',
+            'registrationDate' => '2022-01-01',
         ];
 
+        $expectedCar = new Car();
+        $expectedCar->setBrand('Tesla');
+        $expectedCar->setModel('Model S');
+        $expectedCar->setYear(2022);
+        $expectedCar->setEngineCapacity(3000);
+        $expectedCar->setHorsePower(670);
+        $expectedCar->setColor('Red');
+        $expectedCar->setRegistrationDate(new \DateTime('2022-01-01'));
 
-        $client->request('POST', '/cars/create', $carData);
-    
-        // Verify that the response status is 201 Created
-        $this->assertResponseStatusCodeSame(Response::HTTP_FOUND, 'Expected response status 201 (Created)');
+        $form = $this->factory->create(CarFormType::class, new Car());
+        $form->submit($formData);
 
+        $this->assertTrue($form->isSynchronized());
+        $this->assertEquals($expectedCar, $form->getData());
+    }
+
+    public function testCreateCar(): void
+    {
+        // Prepare data for creating a new car
+        $carData = [
+            'car[brand]' => 'Toyota', // Field names must match the ones in the CarFormType
+            'car[model]' => 'Corolla',
+            'car[year]' => 2020,
+            'car[engineCapacity]' => 1800,
+            'car[horsePower]' => 150,
+            'car[color]' => 'Blue',
+            'car[registrationDate]' => '2024-01-01',
+            'car[save]' => 'Save Car', // Submit button value (important)
+        ];
+
+        // Send a POST request to create the new car
+        $this->client->request(
+            'POST',
+            '/cars/create', // Your route for creating cars
+            $carData, // Send the data as form parameters (application/x-www-form-urlencoded)
+            [],
+            [] // Use correct content type for form submission
+        );
+        // Assert that the response status is 201 (Created)
+        $this->assertResponseStatusCodeSame(Response::HTTP_FOUND);
         // Fetch the car from the database to verify it was created
-        $car = $client->getContainer()->get(CarRepository::class)->findOneBy(['model' => 'Corolla']);
-
+        $car = $this->client->getContainer()->get('doctrine')->getRepository(Car::class)->findAll();
+        dd($car);
         $this->assertNotNull($car, 'Car was not created in the database.');
-    
-        // Verify that the car details match the input data
+
+        // Verify that the car's details match the input data
         $this->assertEquals('Toyota', $car->getBrand());
         $this->assertEquals(2020, $car->getYear());
         $this->assertEquals(1800, $car->getEngineCapacity());
