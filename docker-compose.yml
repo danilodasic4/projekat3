@@ -48,17 +48,3 @@ services:
         networks:
             - default
             - symfony-6-testing-project_default
-
-    # phpmyadmin:
-    #     image: phpmyadmin/phpmyadmin
-    #     container_name: symfony-6-testing-project_phpmyadmin
-    #     environment:
-    #         PMA_HOST: db  # Using name of container for MySQL like host
-    #         PMA_PORT: 3306
-    #     ports:
-    #         - 8080:80  # Log in phpMyAdmin-u on http://localhost:8080
-    #     depends_on:
-    #         - db
-    #     networks:
-    #         - default
-    #         - symfony-6-testing-project_default

@@ -11,34 +11,35 @@
                 No cars found with expiring registration this month.
             </div>
         {% else %}
-            <table class="table table-bordered table-striped">
-                <thead>
-                    <tr class="table-primary">
-                        <th>Brand</th>
-                        <th>Model</th>
-                        <th>Year</th>
-                        <th>Engine Capacity</th>
-                        <th>Horse Power</th>
-                        <th>Color</th>
-                        <th>Registration Expiry</th>
-                        <th>Owner Email</th>                    
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for car in cars %}
-                        <tr class="{{ car.registrationDate < 'now' ? 'table-danger' : 'table-success' }}">
-                            <td>{{ car.brand }}</td>
-                            <td>{{ car.model }}</td>
-                            <td>{{ car.year }}</td>
-                            <td>{{ car.engineCapacity }} cc</td>
-                            <td>{{ car.horsePower }} HP</td>
-                            <td>{{ car.color }}</td>   
-                            <td>{{ car.registrationDate|date('Y-m-d') }}</td>
-                            <td>{{ car.user.email }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+           <table class="table table-bordered table-striped car-list">
+    <thead>
+        <tr class="table-primary">
+            <th>Brand</th>
+            <th>Model</th>
+            <th>Year</th>
+            <th>Engine Capacity</th>
+            <th>Horse Power</th>
+            <th>Color</th>
+            <th>Registration Expiry</th>
+            <th>Owner Email</th>                    
+        </tr>
+    </thead>
+    <tbody>
+        {% for car in cars %}
+            <tr>
+                <td>{{ car.brand }}</td>
+                <td>{{ car.model }}</td>
+                <td>{{ car.year }}</td>
+                <td>{{ car.engineCapacity }} cc</td>
+                <td>{{ car.horsePower }} HP</td>
+                <td>{{ car.color }}</td>   
+                <td>{{ car.registrationDate|date('Y-m-d') }}</td>
+                <td>{{ car.user.email }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
         {% endif %}
         <a href="{{ path('app_car_index') }}" class="btn btn-primary mt-4">Back to Cars</a>
     </div>

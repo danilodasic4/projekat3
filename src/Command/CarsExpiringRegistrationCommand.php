@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Command;
 
 use App\Repository\CarRepository;
@@ -32,7 +31,8 @@ class CarsExpiringRegistrationCommand extends Command
         $currentDate = new DateTimeImmutable();
         $nextMonth = $currentDate->modify('first day of next month');
 
-        $cars = $this->carRepository->findByRegistrationExpiringBefore($nextMonth);
+        // Use the existing method `findByRegistrationExpiringUntil`
+        $cars = $this->carRepository->findByRegistrationExpiringUntil($nextMonth);
 
         if (!$cars) {
             $io->note('No cars with expiring registrations found.');

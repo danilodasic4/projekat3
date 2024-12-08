@@ -5,6 +5,14 @@
 {% block body %}
     <h1>Login</h1>
 
+    {# Prikazivanje flash poruke za uspešnu registraciju ako postoji #}
+    {% if app.session.flashbag().has('success') %}
+        <div class="alert alert-success">
+            {{ app.session.flashbag().get('success')[0] }}
+        </div>
+    {% endif %}
+
+    {# Prikazivanje greške ako postoji #}
     {% if error %}
         <div class="alert alert-danger">
             {{ error.messageKey|trans(error.messageData, 'security') }}

@@ -10,6 +10,7 @@ use OpenApi\Attributes as OA;
 
 class LoginController extends AbstractController
 {
+
     #[Route('/login', name: 'app_login', methods: ['GET','POST'])]
     #[OA\Get(
         path: '/login',
@@ -41,7 +42,6 @@ class LoginController extends AbstractController
         ]
     )]
         public function login(AuthenticationUtils $authenticationUtils): Response
-
     {
         // Check if the user is already logged in
         if ($this->getUser()) {

@@ -32,9 +32,8 @@ class CarController extends AbstractController
  private readonly EntityManagerInterface $entityManager, 
  private readonly RegistrationCostService $registrationCostService,
  private readonly HttpClientInterface $httpClient,
- private readonly Security $security,
  private readonly CarService $carService,
- private readonly LoggerInterface $logger,
+ private readonly Security $security,
  string $apiHost,
  ) {
  $this->apiHost = $apiHost;
@@ -115,7 +114,7 @@ class CarController extends AbstractController
         return $this->render('car/index.html.twig', [
             'cars' => $this->carService->getAllCarsForUser($this->security->getUser()->getId()),
         ]);
-    }
+        }
 
 
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
@@ -160,22 +159,19 @@ class CarController extends AbstractController
     {
         $car = new Car();
 
-        $user = $security->getUser();
+        $user = $this->getUser();
 
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
 
         $car->setUser($user);
-
         $form = $this->createForm(CarFormType::class, $car);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->carService->createNewCar($car);  
-
-
             return $this->redirectToRoute('app_car_index'); 
         }
 
@@ -285,6 +281,7 @@ class CarController extends AbstractController
             )
         ]
     )]
+
     public function expiringRegistration(): Response
     {
         return $this->render('car/expiring_registration.html.twig', [

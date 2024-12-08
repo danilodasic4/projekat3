@@ -6,6 +6,7 @@ use App\Form\RegistrationFormType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -64,7 +65,7 @@ class RegistrationController extends AbstractController
             new OA\Response(response: 200, description: 'Successfully loaded registration form'),
         ]
     )]
-    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager, ParameterBagInterface $params): Response
+    public function register(Request $request, RegistrationService $registrationService): Response
     {
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);

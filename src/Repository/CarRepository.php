@@ -19,7 +19,7 @@ class CarRepository extends ServiceEntityRepository
     public function findAllCarsWithUser(): array
     {
         return $this->createQueryBuilder('c')
-            ->leftJoin('c.user', 'u')  
+            ->leftJoin('c.user', 'u')
             ->addSelect('u') 
             ->orderBy('c.brand', 'ASC') 
             ->getQuery()

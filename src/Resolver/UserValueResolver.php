@@ -24,16 +24,17 @@ class UserValueResolver implements ArgumentValueResolverInterface
     }
 
     public function resolve(Request $request, ArgumentMetadata $argument): iterable
-{
-    $userId = (int) $request->get('user_id');
-    
-    $user = $this->userRepository->find($userId);
 
-    if (!$user) {
-        throw new AccessDeniedException('User not found.');
+    {
+        $userId = (int) $request->get('user_id');
+        
+        $user = $this->userRepository->find($userId);
+
+        if (!$user) {
+            throw new AccessDeniedException('User not found.');
+        }
+
+        yield $user;
     }
-
-    yield $user;
-}
 
 }
