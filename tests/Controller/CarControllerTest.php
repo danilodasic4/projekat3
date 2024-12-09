@@ -26,39 +26,50 @@ class CarControllerTest extends WebTestCase
         $this->registrationCostServiceMock = $this->createMock(RegistrationCostService::class);
     }
     public function testGetUserCars(): void
-    {   
-    $client = static::createClient();
-
-    $user = $client->getContainer()
-        ->get('doctrine')
-        ->getRepository(User::class)
-        ->findOneBy(['email' => 'user1@example.com']);
-
-    $this->assertNotNull($user, 'Test user does not exist.');
-    $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
-
-    $client->loginUser($user);
-
-    $client->request('GET', '/api/users/' . $user->getId() . '/cars');
+    {
+        $client = static::createClient();
     
-    $this->assertResponseStatusCodeSame(Response::HTTP_OK);
-
-    $responseContent = $client->getResponse()->getContent();
-    $this->assertJson($responseContent, 'Response should be a valid JSON.');
-
-    $cars = json_decode($responseContent, true);
-    $this->assertIsArray($cars, 'Response should be an array.');
-
-    $this->assertNotEmpty($cars, 'User should have at least one car.');
-
-    foreach ($cars as $car) {
-        $this->assertArrayHasKey('id', $car, 'Car should have an ID.');
-        $this->assertArrayHasKey('brand', $car, 'Car should have a brand.');
-        $this->assertArrayHasKey('model', $car, 'Car should have a model.');
-        $this->assertArrayHasKey('year', $car, 'Car should have a year.');
-        $this->assertArrayHasKey('color', $car, 'Car should have a color.');
+        $user = $client->getContainer()
+            ->get('doctrine')
+            ->getRepository(User::class)
+            ->findOneBy(['email' => 'user1@example.com']);
+    
+        $this->assertNotNull($user, 'Test user does not exist.');
+        $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
+    
+        $client->loginUser($user);
+    
+        $client->request('GET', '/api/users/' . $user->getId() . '/cars');
+        
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+    
+        $responseContent = $client->getResponse()->getContent();
+        $this->assertJson($responseContent, 'Response should be a valid JSON.');
+    
+        $cars = json_decode($responseContent, true);
+        $this->assertIsArray($cars, 'Response should be an array.');
+        $this->assertNotEmpty($cars, 'User should have at least one car.');
+    
+        $found = false;
+        foreach ($cars as $car) {
+            $this->assertNotNull($car['id'], 'Car must have an ID.');
+            $this->assertNotNull($car['brand'], 'Car must have a brand.');
+            $this->assertNotNull($car['model'], 'Car must have a model.');
+            $this->assertNotNull($car['year'], 'Car must have a year.');
+            $this->assertNotNull($car['color'], 'Car must have a color.');
+    
+            if ($car['id'] === 6) {
+                $found = true;
+                $this->assertSame('Stokes PLC', $car['brand'], 'Car brand mismatch.');
+                $this->assertSame('sint', $car['model'], 'Car model mismatch.');
+                $this->assertSame(2004, $car['year'], 'Car year mismatch.');
+                $this->assertSame('GreenYellow', $car['color'], 'Car color mismatch.');
+            }
         }
+    
+        $this->assertTrue($found, 'Car with ID 6 was not found in the response.');
     }
+    
 
     public function testCreateCar()
     {
