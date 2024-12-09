@@ -32,8 +32,9 @@ class LoginController extends AbstractController
                 type: 'object',
                 properties: [
                     new OA\Property(property: '_username', type: 'string', example: 'johndoe'),
-                    new OA\Property(property: '_password', type: 'string', example: 'securepassword')
-                ]
+                    new OA\Property(property: '_password', type: 'string', example: 'securepassword'),
+                    new OA\Property(property: '_remember_me', type: 'boolean', example: true)
+                    ]
             )
         ),
         responses: [
