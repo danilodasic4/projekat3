@@ -15,8 +15,6 @@ use DateTimeImmutable;
 
 class CarService
 {
-    private readonly string $apiHost;
-
     public function __construct(
         private readonly CarRepository $carRepository,
         private readonly EntityManagerInterface $entityManager,
@@ -24,9 +22,8 @@ class CarService
         private readonly ValidatorInterface $validator,
         private readonly LoggerInterface $logger,
         private readonly Security $security, 
-        string $apiHost,
+        private readonly string $apiHost,
  )  {
- $this->apiHost = $apiHost;
 
     }
 

@@ -44,16 +44,16 @@ class RegistrationControllerTest extends WebTestCase
     ]);
 
     // Assert that the response is a redirection (302)
-    $this->assertResponseStatusCodeSame(200);
+    $this->assertResponseStatusCodeSame(302);
 
     // // Assert that the redirection goes to the login page
-    // $this->assertResponseHeaderSame('Location', '/login');
+     $this->assertResponseHeaderSame('Location', '/login');
 
     // // Follow the redirect
-    // $client->followRedirect();
+    $client->followRedirect();
 
     // // Now, we should be on the login page after a successful registration
-    // $this->assertSelectorTextContains('h1', 'Login');  // Ensure the login page contains 'Login' text
+    $this->assertSelectorTextContains('h1', 'Login'); 
 }
     public function testInvalidRegistration(): void
 {

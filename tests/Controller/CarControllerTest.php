@@ -19,31 +19,45 @@ class CarControllerTest extends WebTestCase
     {
         parent::setUp();
 
-        // Create mock for the Car entity
         $this->carMock = $this->createMock(Car::class);
-        // Mock methods for car data (for example, getYear() and getEngineCapacity())
         $this->carMock->method('getYear')->willReturn(2020);
         $this->carMock->method('getEngineCapacity')->willReturn(1200);
 
-        // Create mock for RegistrationCostService
         $this->registrationCostServiceMock = $this->createMock(RegistrationCostService::class);
     }
-    public function testGetUserCars()
-    {
-        $client = static::createClient();
-        
-        $user = $client->getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => 'user1@example.com']);
-        $client->loginUser($user);
+    public function testGetUserCars(): void
+    {   
+    $client = static::createClient();
 
-        $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
+    $user = $client->getContainer()
+        ->get('doctrine')
+        ->getRepository(User::class)
+        ->findOneBy(['email' => 'user1@example.com']);
 
-        $client->request('GET', '/api/users/' . $user->getId() . '/cars');
-        
-        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+    $this->assertNotNull($user, 'Test user does not exist.');
+    $this->assertContains('ROLE_USER', $user->getRoles(), 'User must have ROLE_USER.');
 
-        // $this->assertJsonContains([
-        //     'id' => 1,  
-        // ]);
+    $client->loginUser($user);
+
+    $client->request('GET', '/api/users/' . $user->getId() . '/cars');
+    
+    $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+
+    $responseContent = $client->getResponse()->getContent();
+    $this->assertJson($responseContent, 'Response should be a valid JSON.');
+
+    $cars = json_decode($responseContent, true);
+    $this->assertIsArray($cars, 'Response should be an array.');
+
+    $this->assertNotEmpty($cars, 'User should have at least one car.');
+
+    foreach ($cars as $car) {
+        $this->assertArrayHasKey('id', $car, 'Car should have an ID.');
+        $this->assertArrayHasKey('brand', $car, 'Car should have a brand.');
+        $this->assertArrayHasKey('model', $car, 'Car should have a model.');
+        $this->assertArrayHasKey('year', $car, 'Car should have a year.');
+        $this->assertArrayHasKey('color', $car, 'Car should have a color.');
+        }
     }
 
     public function testCreateCar()
@@ -336,7 +350,7 @@ class CarControllerTest extends WebTestCase
 
 
     public function testRegistrationDetails()
-{
+    {
     // Create a client to simulate a request
     $client = static::createClient();
 
@@ -380,7 +394,7 @@ class CarControllerTest extends WebTestCase
 
     // Verify that the page has been updated with the discounted price (if applicable)
     $this->assertSelectorTextContains('.alert-success', 'Final Cost with Discount:');  // Ensure discount is applied and final cost is displayed
+    }
+ 
 }
 
-    
-}

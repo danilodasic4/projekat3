@@ -25,8 +25,6 @@ use Psr\Log\LoggerInterface;
 
 class CarController extends AbstractController
 {
- private readonly string $apiHost;
-
  public function __construct(
  private readonly CarRepository $carRepository, 
  private readonly EntityManagerInterface $entityManager, 
@@ -34,10 +32,8 @@ class CarController extends AbstractController
  private readonly HttpClientInterface $httpClient,
  private readonly CarService $carService,
  private readonly Security $security,
- string $apiHost,
- ) {
- $this->apiHost = $apiHost;
- }
+ private readonly string $apiHost,
+) {}
  
     #[Route('/api/users/{user_id}/cars', name:'api_user_cars', methods:['GET'])]
     #[OA\Get(
