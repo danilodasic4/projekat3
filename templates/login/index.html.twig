@@ -12,7 +12,7 @@
         </div>
     {% endif %}
 
-    {# Showing error if exist #}
+    {# Showing error if exists #}
     {% if error %}
         <div class="alert alert-danger">
             {{ error.messageKey|trans(error.messageData, 'security') }}
@@ -28,6 +28,11 @@
         <div class="form-group">
             <label for="password">Password</label>
             <input type="password" id="password" name="_password" required class="form-control">
+        </div>
+
+        <div class="form-check mt-3">
+            <input type="checkbox" id="remember_me" name="_remember_me" class="form-check-input">
+            <label for="remember_me" class="form-check-label">Remember Me</label>
         </div>
 
         <button type="submit" class="btn btn-primary mt-3">Login</button>
