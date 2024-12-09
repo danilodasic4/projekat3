@@ -6,27 +6,25 @@ use App\Entity\Car;
 use App\Repository\CarRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface; 
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\Security\Core\Security;
 use DateTimeImmutable;
-use Psr\Log\LoggerInterface;  
 
 class CarService
 {
-    private readonly string $apiHost;
-
     public function __construct(
         private readonly CarRepository $carRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly HttpClientInterface $httpClient,
-        private readonly Security $security, 
-        private readonly LoggerInterface $logger,
         private readonly ValidatorInterface $validator,
-        string $apiHost
-    ) {
-        $this->apiHost = $apiHost;
+        private readonly LoggerInterface $logger,
+        private readonly Security $security, 
+        private readonly string $apiHost,
+ )  {
+
     }
 
     public function getCarsForUser(User $user): array
@@ -94,16 +92,27 @@ class CarService
     // Get car by ID
     public function getCarById(int $id): ?Car
     {
-        $car = $this->carRepository->find($id);
+        try {
+            $this->logger->info('Fetching car with ID', ['car_id' => $id]); 
 
-        if ($car) {
-            $this->logger->info('Car found by ID.', ['car_id' => $id]);
-        } else {
-            $this->logger->warning('Car not found by ID.', ['car_id' => $id]);
+            $car = $this->carRepository->find($id);
+
+            if (!$car) {
+                $this->logger->error('Car not found', ['car_id' => $id]); 
+            }
+
+            return $car;
+        } catch (\Exception $e) {
+           
+            $this->logger->error('Error fetching car by ID', [
+                'car_id' => $id,
+                'error_message' => $e->getMessage(),
+            ]);
+            throw $e; 
         }
-
-        return $car;
     }
+
+    // Create new car
 
     public function createNewCar(Car $car): Response
     {
@@ -114,7 +123,7 @@ class CarService
         }
 
         $car->setCreatedAt(new \DateTimeImmutable());
-        
+
         try {
             $this->entityManager->persist($car);
             $this->entityManager->flush();
@@ -140,7 +149,6 @@ class CarService
 
         try {
             $this->entityManager->flush();
-
             $this->logger->info('Car updated successfully.', ['car_id' => $car->getId()]);
 
             return new Response('Car updated successfully', Response::HTTP_OK);
@@ -150,48 +158,47 @@ class CarService
         }
     }
 
+
     public function deleteCarById(int $id): Response
     {
-        // Find car by ID
-        $car = $this->entityManager->getRepository(Car::class)->find($id);
+        try {
+            $car = $this->entityManager->getRepository(Car::class)->find($id);
 
-        if (!$car) {
-            $this->logger->warning('Car not found for deletion.', ['car_id' => $id]);
-            // Return error response if car is not found
-            return new Response('Car not found', Response::HTTP_NOT_FOUND);
+            if (!$car) {
+                $this->logger->error('Car not found for deletion', ['car_id' => $id]); 
+                return new Response('Car not found', Response::HTTP_NOT_FOUND);
+            }
+            $this->entityManager->remove($car);
+            $this->entityManager->flush();
+
+            $this->logger->info('Car deleted successfully', ['car_id' => $id]);
+
+            return new Response('Car deleted successfully', Response::HTTP_OK);
+        } catch (\Exception $e) {
+            $this->logger->error('Error deleting car', [
+                'car_id' => $id,
+                'error_message' => $e->getMessage(),
+            ]);
+            return new Response('Error: ' . $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        // Remove the car
-        $this->entityManager->remove($car);
-        $this->entityManager->flush();
-
-        $this->logger->info('Car deleted successfully.', ['car_id' => $id]);
-
-        // Return success response
-        return new Response('Car deleted successfully', Response::HTTP_OK);
     }
 
+    // Get cars with expiring registration
     public function expiringRegistration(User $user): array
-{
-    if (!$user) {
-        $this->logger->info('No user is logged in.');
-        return [];
+    {
+        try {
+            $currentDate = new DateTimeImmutable();
+            $endOfThisMonth = $currentDate->modify('+30 days');
+
+            $this->logger->info('Fetching cars with expiring registration', ['end_date' => $endOfThisMonth]);
+
+            return $this->carRepository->findByRegistrationExpiringUntil($user, $endOfThisMonth);
+        } catch (\Exception $e) {
+            $this->logger->error('Error fetching cars with expiring registration', [
+                'error_message' => $e->getMessage(),
+            ]);
+            throw $e; 
+        }
     }
-    $this->logger->info('Fetching cars with expiring registration for user.', ['user_id' => $user->getId()]);
-
-    $currentDate = new DateTimeImmutable();
-    $endOfThisMonth = $currentDate->modify('last day of this month')->setTime(23, 59, 59);
-
-    // Get cars with registration expiring until the end of this month
-    $cars = $this->carRepository->findByRegistrationExpiringUntil($user, $endOfThisMonth);
-
-    if (empty($cars)) {
-        $this->logger->info('No cars found with expiring registration.');
-    }
-
-    return $cars;
 }
-}
-
-
-

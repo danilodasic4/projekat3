@@ -1,0 +1,8 @@
+framework:
+    test: true
+    profiler:
+        enabled: false
+    secret: '%env(APP_SECRET)%'
+    form:
+        csrf_protection:
+            enabled: false

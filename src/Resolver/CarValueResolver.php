@@ -5,8 +5,10 @@ use App\Entity\Car;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Controller\ArgumentValueResolverInterface;
+use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 
-class CarValueResolver
+class CarValueResolver implements ArgumentValueResolverInterface
 {
     private $entityManager;
 
@@ -15,7 +17,12 @@ class CarValueResolver
         $this->entityManager = $entityManager;
     }
 
-    public function __invoke(Request $request): Car
+    public function supports(Request $request, ArgumentMetadata $argument): bool
+    {
+        return $argument->getType() === Car::class;
+    }
+
+    public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
         $carId = $request->get('id');
         
@@ -25,7 +32,7 @@ class CarValueResolver
             throw new NotFoundHttpException('Car not found');
         }
 
-        return $car;
+        yield $car;
     }
 }
 

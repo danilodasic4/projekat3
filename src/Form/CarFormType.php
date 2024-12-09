@@ -19,7 +19,8 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class CarFormType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options)
+
+    public function buildForm(FormBuilderInterface $builder, array $options) : void
     {
         $builder
             ->add('brand', TextType::class)
@@ -41,4 +42,6 @@ class CarFormType extends AbstractType
             'data_class' => Car::class,
         ]);
     }
+
 }
+

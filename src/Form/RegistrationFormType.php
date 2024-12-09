@@ -27,39 +27,29 @@ class RegistrationFormType extends AbstractType
         $builder
             // Email field
             ->add('email', EmailType::class, [
-                'constraints' => [
-                    new NotBlank(['message' => 'Please enter an email']),
-                    new Email(['message' => 'Please enter a valid email address']),
+                'label' => 'Email Address',
                 ],
-            ])
+            )
             
             // Password and Confirm Password fields
-            ->add('plainPassword', RepeatedType::class, [
-                'type' => PasswordType::class,
-                'first_options'  => ['label' => 'Password'],
-                'second_options' => ['label' => 'Confirm Password'],
-                'invalid_message' => 'Passwords do not match.',
-                'mapped' => false,
-                'attr' => ['autocomplete' => 'new-password'],
-                'constraints' => [
-                    new NotBlank(['message' => 'Please enter a password']),
-                    new Length([
-                        'min' => 6,
-                        'minMessage' => 'Your password should be at least {{ limit }} characters',
-                        // max length allowed by Symfony for security reasons
-                        'max' => 4096,
-                    ]),
-                ],
-            ])
+           // Password and Confirm Password fields
+           ->add('plainPassword', RepeatedType::class, [
+            'type' => PasswordType::class,
+            'first_options' => [
+                'label' => 'Password',
+            ],
+            'second_options' => [
+                'label' => 'Confirm Password',
+            ],
+            'invalid_message' => 'Passwords do not match.',
+            'mapped' => false,
+            'attr' => ['autocomplete' => 'new-password'],
+        ])
             
             // Agree terms checkbox
             ->add('agreeTerms', CheckboxType::class, [
                 'mapped' => false,
-                'constraints' => [
-                    new IsTrue([
-                        'message' => 'You should agree to our terms.',
-                    ]),
-                ],
+                'required' => true,
             ])
             
             // Birthday field (optional)
@@ -84,18 +74,9 @@ class RegistrationFormType extends AbstractType
             ->add('profile_picture', FileType::class, [
                 'label' => 'Profile Picture (Optional)',
                 'required' => false,
-                'mapped' => false, // We handle the file upload separately in the controller
-                'constraints' => [
-                    new File([
-                        'maxSize' => '2M', // Limit file size to 2MB
-                        'mimeTypes' => [
-                            'image/jpeg',
-                            'image/png',
-                            'image/gif',
-                        ],
-                        'mimeTypesMessage' => 'Please upload a valid image (JPEG, PNG, GIF).',
-                    ])
-                ]
+                'attr' => [
+                    'accept' => 'image/jpeg,image/png,image/gif', // MIME types accepted
+                ],
             ]);
     }
 

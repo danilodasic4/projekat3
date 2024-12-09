@@ -1,15 +1,13 @@
 parameters:
     profile_pictures_directory: '%kernel.project_dir%/%env(PROFILE_PICTURES_DIRECTORY)%'
-    registration_base_cost: '%env(resolve:REGISTRATION_BASE_COST)%'
+    registration_base_cost: '%env(REGISTRATION_BASE_COST)%'
     discount_code: '%env(DISCOUNT_CODE)%' 
     api_host: '%env(API_HOST)%'
 
-
-
 services:
     _defaults:
-        autowire: true
-        autoconfigure: true
+        autowire: true     
+        autoconfigure: true 
 
     App\:
         resource: '../src/'
@@ -26,10 +24,23 @@ services:
     App\Resolver\CarValueResolver:
         arguments:
             $entityManager: '@doctrine.orm.entity_manager'
+        tags:
+            - { name: 'controller.argument_value_resolver', priority: 10 }
+
+    App\Resolver\UserValueResolver:
+        arguments:
+            $userRepository: '@App\Repository\UserRepository'
+        tags:
+            - { name: 'controller.argument_value_resolver', priority: 10 }
 
     App\Controller\CarController:
         arguments:
             $apiHost: '%api_host%' 
+
     App\Service\CarService:
         arguments:
-            $apiHost: '%api_host%'
+            $apiHost: '%api_host%' 
+
+    App\Command\CarsExpiringRegistrationCommand: 
+        tags:
+            - { name: 'console.command', command: 'app:cars-expiring-registration' }
