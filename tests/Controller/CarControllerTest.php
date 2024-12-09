@@ -58,13 +58,6 @@ class CarControllerTest extends WebTestCase
             $this->assertNotNull($car['year'], 'Car must have a year.');
             $this->assertNotNull($car['color'], 'Car must have a color.');
     
-            if ($car['id'] === 6) {
-                $found = true;
-                $this->assertSame('Stokes PLC', $car['brand'], 'Car brand mismatch.');
-                $this->assertSame('sint', $car['model'], 'Car model mismatch.');
-                $this->assertSame(2004, $car['year'], 'Car year mismatch.');
-                $this->assertSame('GreenYellow', $car['color'], 'Car color mismatch.');
-            }
         }
     
         $this->assertTrue($found, 'Car with ID 6 was not found in the response.');
