@@ -208,24 +208,5 @@ class CarService
             throw $e; 
         }
     }
-    public function getUsersWithExpiringCars(DateTimeImmutable $endDate): array
-    {
-        // Get all users
-        $users = $this->userRepository->findAll();
-        $usersWithExpiringCars = [];
-
-        // Iterate over users and find cars with expiring registrations
-        foreach ($users as $user) {
-            // Fetch cars where registration expires before the given end date (next 30 days)
-            $expiringCars = $this->carRepository->findByRegistrationExpiringUntil($user, $endDate);
-
-            // If there are any cars with expiring registrations, add them to the list
-            if (!empty($expiringCars)) {
-                $usersWithExpiringCars[$user->getEmail()] = $expiringCars;
-            }
-        }
-
-        return $usersWithExpiringCars;
-    }
-
+    
 }
