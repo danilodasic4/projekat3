@@ -206,4 +206,28 @@ class CarService
             throw $e; 
         }
     }
+    /**
+     * Fetch all cars with registrations expiring until the specified date
+     * and group them by user email.
+     *
+     * @param DateTimeImmutable $endDate
+     * @return array
+     */
+    public function getCarsGroupedByUserWithExpiringRegistration(DateTimeImmutable $endDate): array
+    {
+        // Fetch cars with registration expiring until the given date
+        $cars = $this->carRepository->findAllExpiringUntil($endDate);
+
+        // Group cars by user email
+        $groupedCars = [];
+        foreach ($cars as $car) {
+            $userEmail = $car->getUser()->getEmail();
+            if (!isset($groupedCars[$userEmail])) {
+                $groupedCars[$userEmail] = [];
+            }
+            $groupedCars[$userEmail][] = $car;
+        }
+
+        return $groupedCars;
+    }
 }
