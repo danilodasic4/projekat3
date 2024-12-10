@@ -50,26 +50,31 @@ class CarService
     }
 
     public function getAllCarsForUser(int $userId): array
-    {
-        $url = $this->apiHost . '/api/users/' . $userId . '/cars';
+{
+    $url = $this->apiHost . '/api/users/' . $userId . '/cars';
 
-        $this->logger->info('Fetching cars from external API.', ['user_id' => $userId, 'url' => $url]);
+    $this->logger->info('Fetching cars from external API.', ['user_id' => $userId, 'url' => $url]);
 
-        $response = $this->httpClient->request('GET', $url);
+    $response = $this->httpClient->request('GET', $url);
 
-        $content = $response->getContent(false);
+    $content = $response->getContent(false);
 
-        $rawData = json_decode($content, true);
+    $rawData = json_decode($content, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->logger->error('Error parsing JSON data from external API.', ['user_id' => $userId, 'response_content' => $content]);
-            return [];
-        }
-
-        $this->logger->info('Successfully fetched cars from external API.', ['user_id' => $userId]);
-
-        return $rawData;
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        $this->logger->error('Error parsing JSON data from external API.', ['user_id' => $userId, 'response_content' => $content]);
+        return [];
     }
+
+    if (isset($rawData['error'])) {
+        $this->logger->info('No cars found for this user.', ['user_id' => $userId]);
+        return []; 
+    }
+
+    $this->logger->info('Successfully fetched cars from external API.', ['user_id' => $userId]);
+
+    return $rawData;
+}
 
     // Get all cars
     public function getAllCars(): array
