@@ -4,6 +4,7 @@ namespace App\Service;
 use App\Entity\User;
 use App\Entity\Car;
 use App\Repository\CarRepository;
+use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -17,6 +18,7 @@ class CarService
 {
     public function __construct(
         private readonly CarRepository $carRepository,
+        private readonly UserRepository $userRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly HttpClientInterface $httpClient,
         private readonly ValidatorInterface $validator,
@@ -206,4 +208,24 @@ class CarService
             throw $e; 
         }
     }
+    public function getUsersWithExpiringCars(DateTimeImmutable $endDate): array
+    {
+        // Get all users
+        $users = $this->userRepository->findAll();
+        $usersWithExpiringCars = [];
+
+        // Iterate over users and find cars with expiring registrations
+        foreach ($users as $user) {
+            // Fetch cars where registration expires before the given end date (next 30 days)
+            $expiringCars = $this->carRepository->findByRegistrationExpiringUntil($user, $endDate);
+
+            // If there are any cars with expiring registrations, add them to the list
+            if (!empty($expiringCars)) {
+                $usersWithExpiringCars[$user->getEmail()] = $expiringCars;
+            }
+        }
+
+        return $usersWithExpiringCars;
+    }
+
 }

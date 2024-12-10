@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+        h1 { color: #2c3e50; font-size: 24px; }
+        p { font-size: 16px; color: #34495e; }
+        a { color: #3498db; text-decoration: none; }
+        .email-container { width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; }
+        .email-footer { font-size: 14px; color: #7f8c8d; text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <h1>Password Reset Request</h1>
+        <p>Hi,</p>
+        <p>We received a request to reset your password. To do so, please click the link below:</p>
+        <p><a href="{{ resetPasswordUrl }}" target="_blank">Reset your password</a></p>
+        <p>If you did not request this, please ignore this email.</p>
+        <p>Cheers,<br>Your Company</p>
+    </div>
+    <div class="email-footer">
+        <p>If you have any questions, feel free to contact our support team.</p>
+    </div>
+</body>
+</html>
