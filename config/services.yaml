@@ -40,6 +40,10 @@ services:
     App\Service\CarService:
         arguments:
             $apiHost: '%api_host%' 
+    
+    App\Controller\ResetPasswordController:
+        arguments:
+            $apiHost: '%api_host%'
 
     App\Command\CarsExpiringRegistrationCommand: 
         tags:
