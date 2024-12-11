@@ -26,9 +26,10 @@ class ResetPasswordController extends AbstractController
     use ResetPasswordControllerTrait;
 
     public function __construct(
-        private ResetPasswordHelperInterface $resetPasswordHelper,
-        private EntityManagerInterface $entityManager,
-        private string $apiHost
+        private readonly ResetPasswordHelperInterface $resetPasswordHelper,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly string $apiHost,
+        private readonly string $appHost,
     ) {
     }
 
@@ -163,7 +164,7 @@ class ResetPasswordController extends AbstractController
             ->htmlTemplate('reset_password/email.html.twig')
             ->context([
                 'resetToken' => $resetToken,
-                'resetUrl' => $this->apiHost . '/reset-password/reset/' . $resetToken->getToken(),
+                'resetUrl' => $this->appHost .'/reset-password/reset/' . $resetToken->getToken(),
             ])
         ;
 
