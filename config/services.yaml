@@ -3,6 +3,7 @@ parameters:
     registration_base_cost: '%env(REGISTRATION_BASE_COST)%'
     discount_code: '%env(DISCOUNT_CODE)%' 
     api_host: '%env(API_HOST)%'
+    app_host: '%env(APP_HOST)%'
 
 services:
     _defaults:
@@ -40,6 +41,10 @@ services:
     App\Service\CarService:
         arguments:
             $apiHost: '%api_host%' 
+    
+    App\Controller\ResetPasswordController:
+        arguments:
+            $appHost: '%app_host%'
 
     App\Command\CarsExpiringRegistrationCommand: 
         tags:
