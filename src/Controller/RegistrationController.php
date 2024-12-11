@@ -2,25 +2,25 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Entity\VerifyUser;
 use App\Form\RegistrationFormType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use OpenApi\Attributes as OA;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
- use App\Service\RegistrationService;
+use App\Service\RegistrationService;
 
 class RegistrationController extends AbstractController
 {  
     public function __construct (
         private readonly RegistrationService $registrationService
-        ,){}
-    
+    ) {}
+
     #[Route('/register', name: 'app_register',methods:['POST','GET'])]
     #[OA\Post(
         path: '/register',
@@ -65,7 +65,7 @@ class RegistrationController extends AbstractController
             new OA\Response(response: 200, description: 'Successfully loaded registration form'),
         ]
     )]
-    public function register(Request $request, RegistrationService $registrationService): Response
+    public function register(Request $request): Response
     {
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
@@ -83,9 +83,10 @@ class RegistrationController extends AbstractController
                 $this->registrationService->registerUser($user, $plainPassword, $profilePicture);
                 
                 // Add success message
-                $this->addFlash('success', 'Registration is successful, now you can login!');
+                $this->addFlash('success', 'Registration is successful, please verify your email!');
                 
-                return $this->redirectToRoute('app_login');
+                // Redirect to the success page
+                return $this->redirectToRoute('registration_success');
             } catch (ProfilePictureUploadException $e) {
                 // Handle profile picture upload error
                 $this->addFlash('error', 'Error uploading profile picture: ' . $e->getAdditionalErrorInfo());
@@ -101,5 +102,37 @@ class RegistrationController extends AbstractController
         ]);
     }
 
-}
+    #[Route('/registration/success', name: 'registration_success')]
+    public function registrationSuccess(): Response
+    {
+        return $this->render('registration/success.html.twig');
+    }
 
+    #[Route('/users/{userId}/verify/{token}', name: 'verify_email')]
+    public function verifyEmail(int $userId, string $token, EntityManagerInterface $entityManager): Response
+    {
+        $verifyUser = $entityManager->getRepository(VerifyUser::class)->findOneBy([
+            'user' => $userId,
+            'token' => $token,
+        ]);
+
+        if (!$verifyUser) {
+            throw $this->createNotFoundException('Invalid verification link.');
+        }
+
+        // Set user as verified
+        $user = $verifyUser->getUser();
+        $user->setVerified(true);
+
+        $entityManager->remove($verifyUser);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('verify_email_success');
+    }
+
+    #[Route('/emails/verification/success', name: 'verify_email_success')]
+    public function verificationSuccess(): Response
+    {
+        return $this->render('verified.html.twig');
+    }
+}

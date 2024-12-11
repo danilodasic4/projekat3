@@ -47,6 +47,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'boolean')]
     private bool $newsletter = false;
+    
+    #[ORM\Column(type: 'boolean')]
+    private bool $verified = false;
 
     /**
      * @var Collection<int, Car>
@@ -97,13 +100,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @return list<string>
      */
     public function getRoles(): array
-    {
-        $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
+{
+    $roles = $this->roles;
+    $roles[] = 'ROLE_USER';
 
-        return array_unique($roles);
+    if ($this->verified) {
+        $roles[] = 'ROLE_VERIFIED';
     }
+
+    return array_unique($roles);
+}
 
     /**
      * @param list<string> $roles
@@ -160,7 +166,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeCar(Car $car): static
     {
         if ($this->cars->removeElement($car)) {
-            // set the owning side to null (unless already changed)
             if ($car->getUser() === $this) {
                 $car->setUser(null);
             }
@@ -169,7 +174,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    // New getters and setters for additional fields:
 
     public function getProfilePicture(): ?string
     {
@@ -218,4 +222,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+    public function getVerified(): bool
+{
+    return $this->verified;
+}
+
+public function setVerified(bool $verified): static
+{
+    $this->verified = $verified;
+    return $this;
+}
 }
