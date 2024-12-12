@@ -27,48 +27,52 @@ class RegistrationService
         private readonly string $appHost,
     ) {}
 
-    public function registerUser(User $user, string $plainPassword, $profilePicture): Response
-    {
-        // Set the user password
-        $user->setPassword($this->passwordHasher->hashPassword($user, $plainPassword));
-        if ($profilePicture) {
-            try {
-                $this->uploadProfilePicture($user, $profilePicture);
-            } catch (ProfilePictureUploadException $e) {
-                $this->logger->error($e->getAdditionalErrorInfo());
-                return new Response($e->getMessage(), 400);
-            }
-        }
-        // Set user as unverified initially
-        $user->setVerified(false);
-        $user->setRoles(['ROLE_USER']); // Initially ROLE_USER
-        
-        // Generate verification token
-        $token = bin2hex(random_bytes(16));
+    public function registerUser(User $user, string $plainPassword, $profilePicture): string
+{
+    // Set the user password
+    $user->setPassword($this->passwordHasher->hashPassword($user, $plainPassword));
 
-        // Create and persist VerifyUser entity
-        $verifyUser = new VerifyUser();
-        $verifyUser->setUser($user);
-        $verifyUser->setToken($token);
-        $this->entityManager->persist($verifyUser);
-
-        // Persist User entity
+    if ($profilePicture) {
         try {
-            $this->entityManager->persist($user);
-            $this->entityManager->flush();
-
-            // Send verification email
-            $this->sendVerificationEmail($user, $token);
-
-            // Log the successful registration
-            $this->logger->info('User registered successfully', ['email' => $user->getEmail()]);
-
-            return new Response('Registration successful! Please check your email for verification.', 200);
-        } catch (\Exception $e) {
-            $this->logger->error('Error registering user', ['error' => $e->getMessage(), 'user' => $user->getEmail()]);
-            return new Response('An error occurred during registration. Please try again later.', 500);
+            $this->uploadProfilePicture($user, $profilePicture);
+        } catch (ProfilePictureUploadException $e) {
+            $this->logger->error($e->getAdditionalErrorInfo());
+            // Return a message that the controller can handle
+            throw new \RuntimeException($e->getMessage());
         }
     }
+
+    // Set user as unverified initially
+    $user->setVerified(false);
+    $user->setRoles(['ROLE_USER']); // Initially ROLE_USER
+
+    // Generate verification token
+    $token = bin2hex(random_bytes(16));
+
+    // Create and persist VerifyUser entity
+    $verifyUser = new VerifyUser();
+    $verifyUser->setUser($user);
+    $verifyUser->setToken($token);
+    $this->entityManager->persist($verifyUser);
+
+    try {
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
+        // Send verification email
+        $this->sendVerificationEmail($user, $token);
+
+        // Log the successful registration
+        $this->logger->info('User registered successfully', ['email' => $user->getEmail()]);
+
+        // Return a message to be handled in the controller
+        return 'Registration successful! Please check your email for verification.';
+    } catch (\Exception $e) {
+        $this->logger->error('Error registering user', ['error' => $e->getMessage(), 'user' => $user->getEmail()]);
+        // Return a message to be handled in the controller
+        throw new \RuntimeException('An error occurred during registration. Please try again later.');
+    }
+}
 
     // Send verification email to user
     private function sendVerificationEmail(User $user, string $token): void

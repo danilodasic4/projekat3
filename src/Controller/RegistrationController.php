@@ -67,9 +67,8 @@ class RegistrationController extends AbstractController
             new OA\Response(response: 200, description: 'Successfully loaded registration form'),
         ]
     )]
-    public function register(Request $request): Response
+        public function register(Request $request): Response
     {
-        
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
@@ -79,19 +78,24 @@ class RegistrationController extends AbstractController
             $profilePicture = $form->get('profile_picture')->getData();
 
             try {
-                // Registration user
-                $this->registrationService->registerUser($user, $plainPassword, $profilePicture);
-                
-                // Message about successful registration
-                $this->addFlash('success', 'Registration is successful, please verify your email!');
+                // Call the service to register the user
+                $message = $this->registrationService->registerUser($user, $plainPassword, $profilePicture);
+
+                // Show success message via flash
+                $this->addFlash('success', $message);
+
+                // Redirect to a success page
                 return $this->redirectToRoute('registration_success');
-            }  catch (ProfilePictureUploadException $e) {
+            } catch (ProfilePictureUploadException $e) {
+                // Handle the exception specifically for the profile picture upload error
                 $this->addFlash('error', 'Error uploading profile picture: ' . $e->getMessage());
             } catch (\Exception $e) {
+                // Handle any other general errors
                 $this->addFlash('error', 'An unexpected error occurred: ' . $e->getMessage());
             }
         }
 
+        // If the form isn't valid or after handling success/error, render the form again
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form->createView(),
         ]);
@@ -111,7 +115,7 @@ class RegistrationController extends AbstractController
             // First calling method from RegistrationService for verification email
             $this->registrationService->verifyUserEmail($userId, $token);
 
-            $this->addFlash('success', 'Email verified successfully!');
+            $this->addFlash('success', $message );
         } catch (\Exception $e) {
             $this->addFlash('error', 'Verification failed: ' . $e->getMessage());
         }

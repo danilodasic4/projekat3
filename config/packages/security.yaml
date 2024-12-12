@@ -39,11 +39,7 @@ security:
     access_control:
     - { path: ^/login, roles: PUBLIC_ACCESS }
     - { path: ^/register, roles: PUBLIC_ACCESS }
-    - { path: ^/cars/create, roles: ROLE_VERIFIED }
-    - { path: ^/cars/update, roles: ROLE_VERIFIED }
-    - { path: ^/cars/delete, roles: ROLE_VERIFIED }
-    - { path: ^/cars, roles: ROLE_USER }
-    - { path: ^/cars/expiring-registration, roles: ROLE_USER }
-    - { path: ^/cars/calculate-registration-cost, roles: ROLE_USER }
-    - { path: ^/cars/registration-details, roles: ROLE_USER }
+    - { path: ^/cars/, roles: ROLE_VERIFIED } 
+    - { path: ^/cars$, roles: ROLE_USER } 
+
 
