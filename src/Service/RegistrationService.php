@@ -35,7 +35,6 @@ class RegistrationService
             try {
                 $this->uploadProfilePicture($user, $profilePicture);
             } catch (ProfilePictureUploadException $e) {
-                // Logujemo detalje greške i prekidamo proces registracije
                 $this->logger->error($e->getAdditionalErrorInfo());
                 return new Response($e->getMessage(), 400);
             }
