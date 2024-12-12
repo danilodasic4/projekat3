@@ -14,6 +14,8 @@ use OpenApi\Attributes as OA;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use App\Service\RegistrationService;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+
 
 class RegistrationController extends AbstractController
 {  
@@ -67,36 +69,27 @@ class RegistrationController extends AbstractController
     )]
     public function register(Request $request): Response
     {
+        
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Get password from the form
             $plainPassword = $form->get('plainPassword')->getData();
-
-            // Handle the profile picture (if any)
             $profilePicture = $form->get('profile_picture')->getData();
 
             try {
-                // Register the user
+                // Registration user
                 $this->registrationService->registerUser($user, $plainPassword, $profilePicture);
                 
-                // Add success message
+                // Message about successful registration
                 $this->addFlash('success', 'Registration is successful, please verify your email!');
-                
-                // Redirect to the success page
                 return $this->redirectToRoute('registration_success');
-            } catch (ProfilePictureUploadException $e) {
-                // Handle profile picture upload error
-                $this->addFlash('error', 'Error uploading profile picture: ' . $e->getAdditionalErrorInfo());
             } catch (\Exception $e) {
-                // Handle general errors
                 $this->addFlash('error', 'An unexpected error occurred: ' . $e->getMessage());
             }
         }
 
-        // Render the registration form
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form->createView(),
         ]);
@@ -108,31 +101,28 @@ class RegistrationController extends AbstractController
         return $this->render('registration/success.html.twig');
     }
 
+    // New route for verification email
     #[Route('/users/{userId}/verify/{token}', name: 'verify_email')]
-    public function verifyEmail(int $userId, string $token, EntityManagerInterface $entityManager): Response
+    public function verifyEmail(int $userId, string $token): Response
     {
-        $verifyUser = $entityManager->getRepository(VerifyUser::class)->findOneBy([
-            'user' => $userId,
-            'token' => $token,
-        ]);
+        try {
+            // First calling method from RegistrationService for verification email
+            $this->registrationService->verifyUserEmail($userId, $token);
 
-        if (!$verifyUser) {
-            throw $this->createNotFoundException('Invalid verification link.');
+            $this->addFlash('success', 'Email verified successfully!');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Verification failed: ' . $e->getMessage());
         }
 
-        // Set user as verified
-        $user = $verifyUser->getUser();
-        $user->setVerified(true);
-
-        $entityManager->remove($verifyUser);
-        $entityManager->flush();
-
-        return $this->redirectToRoute('verify_email_success');
+        // Redirection on page with confirming verification
+        return $this->redirectToRoute('registration_verified');
     }
 
-    #[Route('/emails/verification/success', name: 'verify_email_success')]
-    public function verificationSuccess(): Response
+
+    #[Route('/registration/verified', name: 'registration_verified')]
+    public function verified(): Response
     {
-        return $this->render('verified.html.twig');
+        return $this->render('registration/verified.html.twig');
     }
 }
+

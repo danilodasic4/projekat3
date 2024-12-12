@@ -27,26 +27,27 @@ class RegistrationService
         private readonly string $appHost,
     ) {}
 
-    public function registerUser(User $user, string $plainPassword, ?UploadedFile $profilePicture): Response
+    public function registerUser(User $user, string $plainPassword, $profilePicture): Response
     {
         // Set the user password
         $user->setPassword($this->passwordHasher->hashPassword($user, $plainPassword));
-
-        // Handle the profile picture upload
         if ($profilePicture) {
             $this->uploadProfilePicture($user, $profilePicture);
         }
-
+        // Set user as unverified initially
+        $user->setVerified(false);
+        $user->setRoles(['ROLE_USER']); // Initially ROLE_USER
+        
         // Generate verification token
-        $token = bin2hex(random_bytes(16)); 
+        $token = bin2hex(random_bytes(16));
 
-        // Create and save VerifyUser entity
+        // Create and persist VerifyUser entity
         $verifyUser = new VerifyUser();
         $verifyUser->setUser($user);
         $verifyUser->setToken($token);
         $this->entityManager->persist($verifyUser);
 
-        // Save the user to the database
+        // Persist User entity
         try {
             $this->entityManager->persist($user);
             $this->entityManager->flush();
@@ -57,15 +58,67 @@ class RegistrationService
             // Log the successful registration
             $this->logger->info('User registered successfully', ['email' => $user->getEmail()]);
 
-            // Redirect or return success response
             return new Response('Registration successful! Please check your email for verification.', 200);
         } catch (\Exception $e) {
-            // Log the error if saving the user fails
             $this->logger->error('Error registering user', ['error' => $e->getMessage(), 'user' => $user->getEmail()]);
-            
-            // Return error response to user
             return new Response('An error occurred during registration. Please try again later.', 500);
         }
+    }
+
+    // Send verification email to user
+    private function sendVerificationEmail(User $user, string $token): void
+    {
+        try {
+            $email = (new TemplatedEmail())
+                ->from(new Address('noreply@yourdomain.com', 'Your App'))
+                ->to($user->getEmail())
+                ->subject('Email verification')
+                ->htmlTemplate('emails/verify_email.html.twig')
+                ->context([
+                    'verifyUrl' => $this->appHost . '/users/' . $user->getId() . '/verify/' . $token,
+                    'user' => $user,
+                ]);
+
+            $this->mailer->send($email);
+            $this->logger->info('Verification email sent', ['email' => $user->getEmail()]);
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to send verification email', [
+                'error' => $e->getMessage(),
+                'user' => $user->getEmail(),
+            ]);
+            throw new \RuntimeException('Failed to send verification email. Please try again later.');
+        }
+    }
+
+    // Verify the user's email via token
+    public function verifyUserEmail(int $userId, string $token): Response
+    {
+        // Find the user by ID
+        $user = $this->entityManager->getRepository(User::class)->find($userId);
+        if (!$user) {
+            throw new \Exception('Invalid verification link.');
+        }
+
+        // Find the verification record by token
+        $verifyUser = $this->entityManager->getRepository(VerifyUser::class)->findOneBy([
+            'user' => $user,
+            'token' => $token,
+        ]);
+
+        // If verification record is not found, return error
+        if (!$verifyUser) {
+            throw new \Exception('Invalid verification link.');
+        }
+
+        // Mark the user as verified
+        $user->setVerified(true);
+        $user->setRoles(['ROLE_VERIFIED']);
+
+        // Remove the VerifyUser entity
+        $this->entityManager->remove($verifyUser);
+        $this->entityManager->flush();
+
+        return new Response('Email verified successfully!', 200);
     }
 
     private function uploadProfilePicture(User $user, UploadedFile $profilePicture): void
@@ -95,24 +148,5 @@ class RegistrationService
             throw new ProfilePictureUploadException($profilePicture->getClientOriginalName(), $e->getCode());
         }
     }
-
-    public function sendVerificationEmail(User $user, string $token): void
-    {
-        try {
-            $email = (new TemplatedEmail())
-                ->from('noreply@yourdomain.com', 'AutoDiler Bot')
-                ->to($user->getEmail())
-                ->subject('Email verification')
-                ->htmlTemplate('emails/verify_email.html.twig')
-                ->context([
-                    'verifyUrl' => $this->appHost . '/users/' . $user->getId() . '/verify/' . $token,
-                ]);
-
-            $this->mailer->send($email);
-            $this->logger->info('Verification email sent', ['email' => $user->getEmail()]);
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to send verification email', ['error' => $e->getMessage(), 'user' => $user->getEmail()]);
-            throw new \RuntimeException('Failed to send verification email. Please try again later.');
-        }
-    }
 }
+

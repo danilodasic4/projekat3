@@ -48,7 +48,7 @@ services:
     
     App\Service\RegistrationService:
         arguments:
-            $appHost: '%env(APP_HOST)%'
+            $appHost: '%app_host%'
 
     App\Command\CarsExpiringRegistrationCommand: 
         tags:
