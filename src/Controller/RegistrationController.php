@@ -85,6 +85,8 @@ class RegistrationController extends AbstractController
                 // Message about successful registration
                 $this->addFlash('success', 'Registration is successful, please verify your email!');
                 return $this->redirectToRoute('registration_success');
+            }  catch (ProfilePictureUploadException $e) {
+                $this->addFlash('error', 'Error uploading profile picture: ' . $e->getMessage());
             } catch (\Exception $e) {
                 $this->addFlash('error', 'An unexpected error occurred: ' . $e->getMessage());
             }

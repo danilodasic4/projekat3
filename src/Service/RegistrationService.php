@@ -32,7 +32,13 @@ class RegistrationService
         // Set the user password
         $user->setPassword($this->passwordHasher->hashPassword($user, $plainPassword));
         if ($profilePicture) {
-            $this->uploadProfilePicture($user, $profilePicture);
+            try {
+                $this->uploadProfilePicture($user, $profilePicture);
+            } catch (ProfilePictureUploadException $e) {
+                // Logujemo detalje greške i prekidamo proces registracije
+                $this->logger->error($e->getAdditionalErrorInfo());
+                return new Response($e->getMessage(), 400);
+            }
         }
         // Set user as unverified initially
         $user->setVerified(false);
