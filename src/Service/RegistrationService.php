@@ -100,34 +100,29 @@ class RegistrationService
     }
 
     // Verify the user's email via token
-    public function verifyUserEmail(int $userId, string $token): Response
+    public function verifyUserEmail(User $user, string $token): string
     {
-        // Find the user by ID
-        $user = $this->entityManager->getRepository(User::class)->find($userId);
-        if (!$user) {
-            throw new \Exception('Invalid verification link.');
-        }
-
         // Find the verification record by token
         $verifyUser = $this->entityManager->getRepository(VerifyUser::class)->findOneBy([
             'user' => $user,
             'token' => $token,
         ]);
-
-        // If verification record is not found, return error
+    
+        // If verification record is not found, throw an exception
         if (!$verifyUser) {
             throw new \Exception('Invalid verification link.');
         }
-
+    
         // Mark the user as verified
         $user->setVerified(true);
         $user->setRoles(['ROLE_VERIFIED']);
-
+    
         // Remove the VerifyUser entity
         $this->entityManager->remove($verifyUser);
         $this->entityManager->flush();
-
-        return new Response('Email verified successfully!', 200);
+    
+        // Return success message
+        return 'Email verified successfully!';
     }
 
     private function uploadProfilePicture(User $user, UploadedFile $profilePicture): void

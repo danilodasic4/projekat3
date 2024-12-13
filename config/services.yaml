@@ -34,6 +34,12 @@ services:
         tags:
             - { name: 'controller.argument_value_resolver', priority: 10 }
 
+    App\Resolver\VerifyUserValueResolver:
+        arguments:
+            $userRepository: '@App\Repository\UserRepository'
+        tags:
+            - { name: 'controller.argument_value_resolver', priority: 10 }
+    
     App\Controller\CarController:
         arguments:
             $apiHost: '%api_host%' 
