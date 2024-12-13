@@ -15,7 +15,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use App\Service\RegistrationService;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use App\Resolver\VerifyUserValueResolver;
 use App\Resolver\UserValueResolver;
 
 
@@ -117,17 +116,13 @@ class RegistrationController extends AbstractController
         RegistrationService $registrationService
     ): Response {
         try {
-            // Pozivaj servisnu metodu za verifikaciju emaila
             $response = new Response($registrationService->verifyUserEmail($user, $token));
     
-            // Dodaj flash poruku za uspeh
             $this->addFlash('success', $response->getContent());
         } catch (\Exception $e) {
-            // Dodaj flash poruku za grešku
             $this->addFlash('error', 'Verification failed: ' . $e->getMessage());
         }
     
-        // Redirektuj korisnika na stranicu sa potvrdom verifikacije
         return $this->redirectToRoute('registration_verified');
     }
 
