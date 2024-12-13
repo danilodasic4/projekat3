@@ -1,0 +1,22 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification</title>
+</head>
+<body>
+    <h2>Hello {{ user.email }},</h2>
+
+    <p>Thank you for registering on our platform! To complete your registration and verify your email, please click the link below:</p>
+
+    <p>
+        <a href="{{ verifyUrl }}" target="_blank">Click here to verify your email address</a>
+    </p>
+
+    <p>If you didn't register on our platform, please ignore this email.</p>
+
+    <p>Best regards,<br>The AutoDiler Team</p>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Registration Successful{% endblock %}
+
+{% block body %}
+    <h1>You have successfully registered!</h1>
+    <p>Please check your email for account verification.</p>
+    <p>
+        If you'd like to continue without verification, you can log in right away.
+    </p>
+
+    <a href="{{ path('app_login') }}" class="btn btn-primary">Proceed to Login</a>
+{% endblock %}

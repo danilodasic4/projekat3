@@ -2,25 +2,28 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Entity\VerifyUser;
 use App\Form\RegistrationFormType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use OpenApi\Attributes as OA;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
- use App\Service\RegistrationService;
+use App\Service\RegistrationService;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use App\Resolver\UserValueResolver;
+
 
 class RegistrationController extends AbstractController
 {  
     public function __construct (
         private readonly RegistrationService $registrationService
-        ,){}
-    
+    ) {}
+
     #[Route('/register', name: 'app_register',methods:['POST','GET'])]
     #[OA\Post(
         path: '/register',
@@ -65,41 +68,69 @@ class RegistrationController extends AbstractController
             new OA\Response(response: 200, description: 'Successfully loaded registration form'),
         ]
     )]
-    public function register(Request $request, RegistrationService $registrationService): Response
+        public function register(Request $request): Response
     {
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Get password from the form
             $plainPassword = $form->get('plainPassword')->getData();
-
-            // Handle the profile picture (if any)
             $profilePicture = $form->get('profile_picture')->getData();
 
             try {
-                // Register the user
-                $this->registrationService->registerUser($user, $plainPassword, $profilePicture);
-                
-                // Add success message
-                $this->addFlash('success', 'Registration is successful, now you can login!');
-                
-                return $this->redirectToRoute('app_login');
+                // Call the service to register the user
+                $message = $this->registrationService->registerUser($user, $plainPassword, $profilePicture);
+
+                // Show success message via flash
+                $this->addFlash('success', $message);
+
+                // Redirect to a success page
+                return $this->redirectToRoute('registration_success');
             } catch (ProfilePictureUploadException $e) {
-                // Handle profile picture upload error
-                $this->addFlash('error', 'Error uploading profile picture: ' . $e->getAdditionalErrorInfo());
+                // Handle the exception specifically for the profile picture upload error
+                $this->addFlash('error', 'Error uploading profile picture: ' . $e->getMessage());
             } catch (\Exception $e) {
-                // Handle general errors
+                // Handle any other general errors
                 $this->addFlash('error', 'An unexpected error occurred: ' . $e->getMessage());
             }
         }
 
-        // Render the registration form
+        // If the form isn't valid or after handling success/error, render the form again
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form->createView(),
         ]);
     }
 
+    #[Route('/registration/success', name: 'registration_success')]
+    public function registrationSuccess(): Response
+    {
+        return $this->render('registration/success.html.twig');
+    }
+
+    // New route for verification email
+    #[Route('/users/{user_id}/verify/{token}', name: 'verify_email')]
+    public function verifyEmail(
+        #[ValueResolver(UserValueResolver::class)] User $user,
+        string $token,
+        RegistrationService $registrationService
+    ): Response {
+        try {
+            $response = new Response($registrationService->verifyUserEmail($user, $token));
+    
+            $this->addFlash('success', $response->getContent());
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Verification failed: ' . $e->getMessage());
+        }
+    
+        return $this->redirectToRoute('registration_verified');
+    }
+
+
+    #[Route('/registration/verified', name: 'registration_verified')]
+    public function verified(): Response
+    {
+        return $this->render('registration/verified.html.twig');
+    }
 }
 

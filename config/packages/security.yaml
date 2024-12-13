@@ -33,9 +33,14 @@ security:
                 lifetime: 604800 # 1 week in seconds
                 path: /
                 httponly: true
+            access_denied_url: /access-denied
             security: true
 
     access_control:
-        - { path: ^/cars, roles: ROLE_USER }
-        - { path: ^/login, roles: PUBLIC_ACCESS }
-        - { path: ^/register, roles: PUBLIC_ACCESS }
+    - { path: ^/login, roles: PUBLIC_ACCESS }
+    - { path: ^/register, roles: PUBLIC_ACCESS }
+    - { path: ^/cars/, roles: ROLE_VERIFIED } 
+    - { path: ^/cars$, roles: ROLE_USER } 
+    - { path: ^/users/\d+/verify/, roles: PUBLIC_ACCESS }
+    - { path: ^/registration_verified, roles: PUBLIC_ACCESS}
+
