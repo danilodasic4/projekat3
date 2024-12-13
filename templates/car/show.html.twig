@@ -36,13 +36,17 @@
             {% if appointments is empty %}
                 <p>No appointments scheduled for this car.</p>
             {% else %}
-                <ul>
+                <ul class="list-group">
                     {% for appointment in appointments %}
-                        <li>{{ appointment.scheduledAt|date('Y-m-d H:i') }}</li>
+                        <li class="list-group-item">
+                            <strong>Scheduled At:</strong> {{ appointment.scheduledAt|date('Y-m-d H:i') }} <br>
+                            <strong>Appointment Type:</strong> 
+                            <span class="badge bg-info">{{ appointment.appointmentType|trans }}</span>
+                        </li>
                     {% endfor %}
                 </ul>
             {% endif %}
-                <a href="{{ path('car_create_appointment', { id: car.id }) }}" class="btn btn-primary">Schedule Appointment</a>
+            <a href="{{ path('car_create_appointment', { id: car.id }) }}" class="btn btn-primary mt-3">Schedule Appointment</a>
         </div>
 
         <div class="mt-3">

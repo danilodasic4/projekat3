@@ -3,12 +3,71 @@
 <head>
     <title>List of Cars</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .table th, .table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+        .table thead {
+            background-color: #f8f9fa;
+            transition: background-color 0.3s;
+        }
+        .table thead:hover {
+            background-color: #e9ecef;
+        }
+        .table tbody tr:hover {
+            background-color: #f1f1f1;
+            cursor: pointer;
+        }
+        .btn-sm {
+            margin: 0 5px;
+            transition: transform 0.2s ease-in-out;
+        }
+        .btn-sm:hover {
+            transform: scale(1.1);
+        }
+        .btn-sm:focus {
+            box-shadow: none;
+        }
+        .table td a {
+            margin: 0 5px;
+        }
+        .table th {
+            font-weight: bold;
+            color: #495057;
+        }
+        .table td {
+            font-size: 14px;
+        }
+        .btn-info,
+        .btn-warning,
+        .btn-danger,
+        .btn-primary {
+            transition: all 0.3s ease;
+        }
+        .btn-info:hover {
+            background-color: #17a2b8;
+            border-color: #138496;
+        }
+        .btn-warning:hover {
+            background-color: #ffc107;
+            border-color: #e0a800;
+        }
+        .btn-danger:hover {
+            background-color: #dc3545;
+            border-color: #c82333;
+        }
+        .btn-primary:hover {
+            background-color: #007bff;
+            border-color: #0069d9;
+        }
+    </style>
 </head>
 <body>
     {% include 'base.html.twig' %}
     
     <div class="container mt-4">
-        <h1>List of Cars</h1>
+        <h1 class="my-4">List of Cars</h1>
         <a href="{{ path('app_cars_expiring_registration') }}" class="btn btn-info mb-3">View Cars with Expiring Registration</a>
 
         <table class="table table-bordered table-striped">
@@ -20,6 +79,7 @@
                     <th>Color</th>
                     <th>Actions</th>
                     <th>Registration Cost</th>
+                    <th>Appointment</th>
                 </tr>
             </thead>
             <tbody>
@@ -28,26 +88,25 @@
                     <td>{{ car.brand }}</td>
                     <td>{{ car.model }}</td>
                     <td>{{ car.year }}</td>
-                    <td>{{ car.color }}</td>
+                    <td>{{ car.color|default('Not specified') }}</td>
                     <td>
-                        <a href="{{ path('app_car_show', { id: car.id }) }}" class="btn btn-info btn-sm">View</a>
-                        <a href="{{ path('app_car_edit', { id: car.id }) }}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{{ path('app_car_show', { id: car.id }) }}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i> View</a>
+                        <a href="{{ path('app_car_edit', { id: car.id }) }}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i> Edit</a>
                         <form action="{{ path('app_car_delete', { id: car.id }) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this car?');">
                             <input type="hidden" name="_method" value="DELETE">
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i> Delete</button>
                         </form>
                     </td>
                     <td>
-                        <a href="{{ path('app_car_registration_details', { id: car.id }) }}" class="btn btn-info btn-sm">See Registration Cost</a>
+                        <a href="{{ path('app_car_registration_details', { id: car.id }) }}" class="btn btn-info btn-sm"><i class="fas fa-dollar-sign"></i> See Registration Cost</a>
                     </td>
                     <td>
-                        <!-- Link to schedule an appointment for the car -->
-                        <a href="{{ path('car_create_appointment', { id: car.id }) }}" class="btn btn-primary btn-sm">Schedule Appointment</a>
+                        <a href="{{ path('car_create_appointment', { id: car.id }) }}" class="btn btn-primary btn-sm"><i class="fas fa-calendar-plus"></i> Schedule Appointment</a>
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6">No cars available.</td>
+                    <td colspan="7">No cars available.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -59,5 +118,6 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.0/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
 </body>
 </html>

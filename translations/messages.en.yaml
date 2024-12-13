@@ -1,0 +1,6 @@
+appointment:
+    type:
+        maintenance: "Maintenance"
+        registration: "Registration"
+        polishing: "Polishing"
+        painting: "Painting"

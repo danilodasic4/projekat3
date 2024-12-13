@@ -1,23 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Schedule Appointment for {{ car.brand }} {{ car.model }}</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .form-group label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .form-control {
+            border-radius: .375rem;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #0069d9;
+            border-color: #0056b3;
+        }
+        .container {
+            max-width: 800px;
+            padding: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 .2rem rgba(0, 123, 255, .25);
+        }
+        .btn-secondary {
+            margin-top: 10px;
+        }
+        .form-check-label {
+            font-weight: normal;
+            margin-left: 10px;
+        }
+    </style>
 </head>
 <body>
     {% include 'base.html.twig' %}
     
     <div class="container mt-4">
-        <h1>Schedule Appointment for {{ car.brand }} {{ car.model }}</h1>
-
-        {{ form_start(form) }}
-            {{ form_row(form.appointmentType) }}
-            {{ form_row(form.scheduledAt) }}
-            <!-- Ovdje će biti samo jedno submit dugme generisano od strane forme -->
-            {{ form_row(form.submit) }} 
-        {{ form_end(form) }}
+        <h1 class="mb-4">Schedule Appointment for {{ car.brand }} {{ car.model }}</h1>
         
-        <a href="{{ path('app_car_index') }}" class="btn btn-secondary mt-3">Back to Cars</a>
+        <div class="card">
+            <div class="card-header">
+                Appointment Details
+            </div>
+            <div class="card-body">
+                {{ form_start(form) }}
+
+                <div class="form-group">
+                    {{ form_label(form.appointmentType, 'Appointment Type') }}
+                    <div class="form-check">
+                        {% for choice in form.appointmentType %}
+                            <div class="form-check">
+                                {{ form_widget(choice, {'attr': {'class': 'form-check-input'}}) }}
+                                {{ form_label(choice, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {{ form_errors(form.appointmentType) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.scheduledAt, 'Scheduled Date & Time') }}
+                    {{ form_widget(form.scheduledAt, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.scheduledAt) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_widget(form.submit, {'attr': {'class': 'btn btn-primary btn-block'}}) }}
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+        
+        <a href="{{ path('app_car_index') }}" class="btn btn-secondary">Back to Cars</a>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

@@ -13,33 +13,45 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 use App\Enum\AppointmentTypeEnum; 
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Core\Security;
+
 
 class AppointmentController extends AbstractController
 {
     public function __construct(
         private readonly SchedulingService $schedulingService,
         private readonly EntityManagerInterface $entityManager,
+        private readonly Security $security,
+
     ) {}
 
     #[Route('/car/{id}/appointment', name: 'car_create_appointment', methods: ['GET', 'POST'])]
     public function createAppointment(Request $request, Car $car): Response
     {
         $appointment = new Appointment();
-        $appointment->setCar($car); 
-
+        $appointment->setCar($car);
+    
+        $user = $this->security->getUser();
+        
+        if ($user) {
+            $appointment->setUser($user); 
+        } else {
+            return $this->redirectToRoute('app_login');
+        }
+    
         $form = $this->createForm(AppointmentType::class, $appointment);
-
+    
         $form->handleRequest($request);
-
+    
         if ($form->isSubmitted() && $form->isValid()) {
             $appointment->setCreatedAt(new \DateTime());
-
+    
             $this->entityManager->persist($appointment);
             $this->entityManager->flush();
-
+    
             return $this->redirectToRoute('app_car_index');
         }
-
+    
         return $this->render('appointment/create.html.twig', [
             'form' => $form->createView(),
             'car' => $car,

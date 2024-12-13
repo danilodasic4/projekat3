@@ -20,7 +20,7 @@ class Appointment
     private \DateTimeInterface $scheduledAt;
 
     #[ORM\Column(type: "string")]
-    private AppointmentTypeEnum $appointmentType;
+    private string $appointmentType;
 
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $createdAt;
@@ -56,17 +56,16 @@ class Appointment
         return $this;
     }
 
-    public function getAppointmentType(): AppointmentTypeEnum
+    public function getAppointmentType(): string
     {
         return $this->appointmentType;
     }
-
+    
     public function setAppointmentType(AppointmentTypeEnum $appointmentType): self
     {
-        $this->appointmentType = $appointmentType;
+        $this->appointmentType = $appointmentType->value;  
         return $this;
     }
-
     public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
