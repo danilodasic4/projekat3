@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Schedule Appointment for {{ car.brand }} {{ car.model }}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    {% include 'base.html.twig' %}
+    
+    <div class="container mt-4">
+        <h1>Schedule Appointment for {{ car.brand }} {{ car.model }}</h1>
+
+        {{ form_start(form) }}
+            {{ form_row(form.appointmentType) }}
+            {{ form_row(form.scheduledAt) }}
+            <!-- Ovdje će biti samo jedno submit dugme generisano od strane forme -->
+            {{ form_row(form.submit) }} 
+        {{ form_end(form) }}
+        
+        <a href="{{ path('app_car_index') }}" class="btn btn-secondary mt-3">Back to Cars</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

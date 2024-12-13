@@ -22,6 +22,7 @@ use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Entity\User;
 use Psr\Log\LoggerInterface;
+use App\Service\SchedulingService;
 
 class CarController extends AbstractController
 {
@@ -32,6 +33,7 @@ class CarController extends AbstractController
  private readonly HttpClientInterface $httpClient,
  private readonly CarService $carService,
  private readonly Security $security,
+ private readonly SchedulingService $schedulingService,
  private readonly string $apiHost,
 ) {}
  
@@ -126,12 +128,16 @@ class CarController extends AbstractController
             new OA\Response(response: 404,description: 'Car not found')
         ]
     )]
-    public function show(#[ValueResolver(CarValueResolver::class)] Car $car): Response
+    public function show(Car $car): Response
     {
+        $appointments = $this->schedulingService->getAppointmentsForCar($car);
+
         return $this->render('car/show.html.twig', [
             'car' => $car,
+            'appointments' => $appointments,
         ]);
     }
+    
 
 
     // Create a new car (Create)

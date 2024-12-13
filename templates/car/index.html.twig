@@ -38,8 +38,11 @@
                         </form>
                     </td>
                     <td>
-                        <!-- Link to registration details page -->
                         <a href="{{ path('app_car_registration_details', { id: car.id }) }}" class="btn btn-info btn-sm">See Registration Cost</a>
+                    </td>
+                    <td>
+                        <!-- Link to schedule an appointment for the car -->
+                        <a href="{{ path('car_create_appointment', { id: car.id }) }}" class="btn btn-primary btn-sm">Schedule Appointment</a>
                     </td>
                 </tr>
                 {% else %}

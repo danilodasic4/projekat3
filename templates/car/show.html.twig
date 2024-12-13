@@ -31,6 +31,20 @@
             </div>
         </div>
 
+        <div class="appointments mt-4">
+            <h3>Appointments for this Car</h3>
+            {% if appointments is empty %}
+                <p>No appointments scheduled for this car.</p>
+            {% else %}
+                <ul>
+                    {% for appointment in appointments %}
+                        <li>{{ appointment.scheduledAt|date('Y-m-d H:i') }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+                <a href="{{ path('car_create_appointment', { id: car.id }) }}" class="btn btn-primary">Schedule Appointment</a>
+        </div>
+
         <div class="mt-3">
             <a href="{{ path('app_car_index') }}" class="btn btn-secondary">Back to list</a>
         </div>
