@@ -50,10 +50,22 @@
 </head>
 <body>
     {% include 'base.html.twig' %}
-    
+
     <div class="container mt-4">
         <h1 class="mb-4">Schedule Appointment for {{ car.brand }} {{ car.model }}</h1>
-        
+
+        <!-- Flash messages for error or success -->
+        {% for label, messages in app.flashes %}
+            <div class="alert alert-{{ label == 'error' ? 'danger' : 'success' }} alert-dismissible fade show" role="alert">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+
         <div class="card">
             <div class="card-header">
                 Appointment Details
@@ -87,7 +99,7 @@
                 {{ form_end(form) }}
             </div>
         </div>
-        
+
         <a href="{{ path('app_car_index') }}" class="btn btn-secondary">Back to Cars</a>
     </div>
 

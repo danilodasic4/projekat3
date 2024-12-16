@@ -11,34 +11,44 @@ use Symfony\Component\HttpFoundation\Request;
 
 class SchedulingService
 {
-    private AppointmentRepository $appointmentRepository;
-    private EntityManagerInterface $entityManager;
+    public function __construct(
+        private readonly AppointmentRepository $appointmentRepository,
+        private readonly EntityManagerInterface $entityManager,
+        )
+    {}
 
-    public function __construct(AppointmentRepository $appointmentRepository, EntityManagerInterface $entityManager)
-    {
-        $this->appointmentRepository = $appointmentRepository;
-        $this->entityManager = $entityManager;
+
+    public function scheduleAppointment(Appointment $appointment): void
+{
+    $appointment->setScheduledAt($this->roundToNearestHalfHour($appointment->getScheduledAt()));
+
+    $existingAppointment = $this->appointmentRepository->findOneBy([
+        'car' => $appointment->getCar(),
+        'scheduledAt' => $appointment->getScheduledAt(),
+    ]);
+    
+    if ($existingAppointment) {
+        throw new DuplicateAppointmentException(
+            $existingAppointment,
+            'An appointment is already scheduled for this time.'
+        );
     }
 
+    $this->entityManager->persist($appointment);
+    $this->entityManager->flush();
+}
 
-   public function scheduleAppointment(Appointment $appointment): void
-   {
-       // Check if there's already an appointment at the same time for the car
-       $existingAppointment = $this->appointmentRepository->findOneBy([
-           'car' => $appointment->getCar(),
-           'scheduledAt' => $appointment->getScheduledAt(),
-       ]);
-
-       if ($existingAppointment) {
-           throw new DuplicateAppointmentException('An appointment is already scheduled for this time.');
-       }
-
-       // Proceed with saving the new appointment
-       $this->entityManager->persist($appointment);
-       $this->entityManager->flush();
-   }
+    
    public function getAppointmentsForCar(Car $car): array
     {
         return $this->appointmentRepository->findAppointmentsByCar($car);
     }
+    
+    public function roundToNearestHalfHour(\DateTime $dateTime): \DateTime
+{
+    $minute = $dateTime->format('i');
+    $minute = round($minute / 30) * 30; 
+    $dateTime->setTime($dateTime->format('H'), $minute, 0); 
+    return $dateTime;
+}
 }

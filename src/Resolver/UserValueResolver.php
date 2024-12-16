@@ -11,12 +11,8 @@ use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 
 class UserValueResolver implements ArgumentValueResolverInterface
 {
-    private UserRepository $userRepository;
-
-    public function __construct(UserRepository $userRepository)
-    {
-        $this->userRepository = $userRepository;
-    }
+    public function __construct(private readonly UserRepository $userRepository)
+    {}
 
     public function supports(Request $request, ArgumentMetadata $argument): bool
     {

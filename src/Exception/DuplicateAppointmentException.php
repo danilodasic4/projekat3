@@ -1,11 +1,21 @@
 <?php
-
 namespace App\Exception;
+
+use App\Entity\Appointment;
 
 class DuplicateAppointmentException extends \Exception
 {
-    
-     protected $message = 'An appointment already exists at this time for the selected car.';
-    
+    private Appointment $existingAppointment;
+
+    public function __construct(Appointment $existingAppointment, string $message = "", int $code = 0, \Throwable $previous = null)
+    {
+        $this->existingAppointment = $existingAppointment;
+        parent::__construct($message, $code, $previous);
+    }
+
+    public function getExistingAppointment(): Appointment
+    {
+        return $this->existingAppointment;
+    }
 }
 
