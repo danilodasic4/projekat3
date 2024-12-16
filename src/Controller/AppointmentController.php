@@ -17,8 +17,6 @@ use App\Enum\AppointmentTypeEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use App\Exception\DuplicateAppointmentException;
-use App\Resolver\CarValueResolver;
-use App\Resolver\UserValueResolver;
 
 class AppointmentController extends AbstractController
 {
