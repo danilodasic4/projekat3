@@ -5,7 +5,18 @@
 {% block body %}
     <div class="container">
         <h1 class="my-4">Edit Car</h1>
-        
+
+        <!-- Display errors if there are any -->
+        {% if errors is defined and errors|length > 0 %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for error in errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
         <!-- Display the owner of the car -->
         <div class="alert alert-info mb-4">
             <strong>Owner:</strong> {{ car.user.email }}

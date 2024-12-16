@@ -23,6 +23,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Entity\User;
 use Psr\Log\LoggerInterface;
 use App\Service\SchedulingService;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Form\FormFactoryInterface;
 
 class CarController extends AbstractController
 {
@@ -129,7 +131,7 @@ class CarController extends AbstractController
             new OA\Response(response: 404,description: 'Car not found')
         ]
     )]
-    public function show(#[ValueResolver(CarValueResolver::class)]
+    public function showCar(#[ValueResolver(CarValueResolver::class)]
         Car $car): Response
         {
         $appointments = $this->schedulingService->getAppointmentsForCar($car);
@@ -185,54 +187,82 @@ class CarController extends AbstractController
     }
 
 
-    // Edit an existing car (Update)
-    #[Route('/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
-    #[OA\Put(
-        path: '/cars/update/{id}',
-        summary: 'Update an existing car',
-        description: 'This route allows updating the car details by ID.',
-        parameters: [
-            new OA\Parameter(name: 'id', in: 'path', description: 'Car ID', required: true, schema: new OA\Schema(type: 'integer'))
-        ],
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\JsonContent(ref: '#/components/schemas/Car')
-        ),
-        responses: [
-            new OA\Response(response: 200, description: 'Car updated successfully'),
-            new OA\Response(response: 404, description: 'Car not found'),
-            new OA\Response(response: 400, description: 'Invalid input data')
-        ]
-    )]
-    public function edit(#[ValueResolver(CarValueResolver::class)] Car $car, Request $request): Response
+        // Edit an existing car (Update)
+        #[Route('/cars/edit/{id}', name: 'app_car_edit', methods: ['GET'])]
+        #[OA\Put(
+            path: '/cars/edit/{id}',
+            summary: 'Update an existing car',
+            description: 'This route allows updating the car details by ID.',
+            parameters: [
+                new OA\Parameter(name: 'id', in: 'path', description: 'Car ID', required: true, schema: new OA\Schema(type: 'integer'))
+            ],
+            requestBody: new OA\RequestBody(
+                required: true,
+                content: new OA\JsonContent(ref: '#/components/schemas/Car')
+            ),
+            responses: [
+                new OA\Response(response: 200, description: 'Car updated successfully'),
+                new OA\Response(response: 404, description: 'Car not found'),
+                new OA\Response(response: 400, description: 'Invalid input data')
+            ]
+        )]
+        public function edit(#[ValueResolver(CarValueResolver::class)] Car $car): Response
     {
         $form = $this->createForm(CarFormType::class, $car, [
             'method' => 'PUT',
-            'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()])
+            'action' => $this->generateUrl('app_car_update', ['id' => $car->getId()])
         ]);
-        
-        $form->handleRequest($request);
-        
-        if ($form->isSubmitted() && $form->isValid()) {
-            $response = $this->carService->updateCar($car);
 
-            if ($response->getStatusCode() === Response::HTTP_OK) {
-                return $this->redirectToRoute('app_car_index');
-            }
-            
-            return $this->render('car/edit.html.twig', [
-                'form' => $form->createView(),
-                'car' => $car,
-                'error' => $response->getContent(),
-            ]);
-        }
         return $this->render('car/edit.html.twig', [
             'form' => $form->createView(),
             'car' => $car,
         ]);
     }
 
-
+    #[Route('/cars/{id}', name: 'app_car_update', methods: ['GET', 'POST', 'PUT'])]
+    public function updateCar(
+        #[ValueResolver(CarValueResolver::class)] Car $car,
+        Request $request,
+        ValidatorInterface $validator,
+        FormFactoryInterface $formFactory
+    ): Response {
+        $form = $formFactory->create(CarFormType::class, $car, [
+            'method' => 'PUT',
+            'action' => $this->generateUrl('app_car_update', ['id' => $car->getId()])
+        ]);
+    
+        $form->handleRequest($request);
+    
+        if ($form->isSubmitted() && $form->isValid()) {
+            $errors = $validator->validate($car);
+    
+            if (count($errors) > 0) {
+                $errorMessages = [];
+                foreach ($errors as $error) {
+                    $errorMessages[] = $error->getMessage();
+                }
+                return $this->render('car/edit.html.twig', [
+                    'form' => $form->createView(),
+                    'car' => $car,
+                    'errors' => $errorMessages,
+                ]);
+            }
+    
+            $car->setUpdatedAt(new \DateTimeImmutable());
+    
+            try {
+                $this->entityManager->flush();
+                    return $this->redirectToRoute('app_car_index');
+            } catch (\Exception $e) {
+                return new JsonResponse(['error' => 'Failed to update car: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+        }
+    
+        return $this->render('car/edit.html.twig', [
+            'form' => $form->createView(),
+            'car' => $car,
+        ]);
+    }
 
     // Delete a car (Delete)
     #[Route('/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'DELETE'])]

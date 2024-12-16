@@ -6,6 +6,7 @@ use App\Repository\CarRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use OpenApi\Attributes as OA;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CarRepository::class)]
 #[ORM\Table(name: "cars")]
@@ -37,22 +38,34 @@ class Car
 
     #[ORM\Column(length: 255)]
     #[OA\Property(description: "Brand of the car")]
+    #[Assert\NotBlank(message: "Brand cannot be empty.")]
     private ?string $brand = null;
 
     #[ORM\Column(length: 255)]
     #[OA\Property(description: "Model of the car")]
+    #[Assert\NotBlank(message: "Model cannot be empty.")]
     private ?string $model = null;
 
     #[ORM\Column]
     #[OA\Property(description: "Year of manufacture")]
-    private ?int $year = null;
+    #[Assert\NotBlank(message: "Year cannot be empty.")]
+    #[Assert\Range(
+    min: 1900,
+    max: 2099,
+    notInRangeMessage: "Please enter a year between {{ min }} and {{ max }}."
+)]
+private ?int $year = null;
 
     #[ORM\Column]
     #[OA\Property(description: "Engine capacity in cubic centimeters")]
+    #[Assert\NotBlank(message: "Engine capacity cannot be empty.")]
+    #[Assert\Positive(message: "Engine capacity must be positive.")]
     private ?int $engineCapacity = null;
 
     #[ORM\Column]
     #[OA\Property(description: "Horse power of the car")]
+    #[Assert\NotBlank(message: "Horse power cannot be empty.")]
+    #[Assert\Positive(message: "Horse power must be positive.")]
     private ?int $horsePower = null;
 
     #[ORM\Column(length: 50, nullable: true)]
@@ -64,7 +77,6 @@ class Car
     #[OA\Property(ref: "#/components/schemas/User", description: "User who owns the car")]
     private ?User $user = null;
     
-
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[OA\Property(type: "string", format: "date-time", description: "Creation timestamp")]
     private ?\DateTimeInterface $created_at = null;
@@ -79,6 +91,8 @@ class Car
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     #[OA\Property(type: "string", format: "date", description: "Registration date of the car")]
+    #[Assert\NotBlank(message: "Registration date cannot be empty.")]
+    #[Assert\Date(message: "Please enter a valid date.")]
     private ?\DateTimeInterface $registrationDate = null;
 
     public function getId(): ?int
