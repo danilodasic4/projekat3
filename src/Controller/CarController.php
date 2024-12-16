@@ -111,6 +111,7 @@ class CarController extends AbstractController
     {
         return $this->render('car/index.html.twig', [
             'cars' => $this->carService->getAllCarsForUser($this->security->getUser()->getId()),
+            'user' => $this->security->getUser()
         ]);
         }
 
@@ -128,15 +129,16 @@ class CarController extends AbstractController
             new OA\Response(response: 404,description: 'Car not found')
         ]
     )]
-    public function show(Car $car): Response
-    {
+    public function show(#[ValueResolver(CarValueResolver::class)]
+        Car $car): Response
+        {
         $appointments = $this->schedulingService->getAppointmentsForCar($car);
 
         return $this->render('car/show.html.twig', [
             'car' => $car,
             'appointments' => $appointments,
         ]);
-    }
+        }
     
 
 

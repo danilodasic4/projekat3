@@ -2,6 +2,7 @@
 namespace App\Controller;
 
 use App\Entity\Appointment;
+use App\Repository\AppointmentRepository;
 use App\Entity\Car;
 use App\Entity\User;
 use App\Form\AppointmentType;
@@ -16,23 +17,30 @@ use App\Enum\AppointmentTypeEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use App\Exception\DuplicateAppointmentException;
+use App\Resolver\CarValueResolver;
+use App\Resolver\UserValueResolver;
 
 class AppointmentController extends AbstractController
 {
     public function __construct(
         private readonly SchedulingService $schedulingService,
         private readonly Security $security,
-
+        private readonly AppointmentRepository $appointmentRepository,
     ) {}
-        #[Route('/car/{id}/appointment', name: 'car_create_appointment', methods: ['GET', 'POST'])]
-        public function createAppointment(
-        #[ValueResolver(CarValueResolver::class)] Car $car,
-        #[ValueResolver(UserValueResolver::class)] User $user,
-        Request $request
-    ): Response {
+    #[Route('/car/{id}/appointment', name: 'car_create_appointment', methods: ['GET', 'POST'])]
+    public function createAppointment(Car $car, Request $request): Response
+    {
         $appointment = new Appointment();
+
         $appointment->setCar($car);
-        $appointment->setUser($user);
+
+        $user = $this->security->getUser();
+        if ($user) {
+            $appointment->setUser($user);
+        } else {
+            $this->addFlash('error', 'You must be logged in to create an appointment.');
+            return $this->redirectToRoute('login');
+        }
 
         $form = $this->createForm(AppointmentType::class, $appointment);
         $form->handleRequest($request);
@@ -58,21 +66,32 @@ class AppointmentController extends AbstractController
         ]);
     }
 
-    #[Route('/api/appointments', name: 'api_user_appointments', methods: ['GET'])]
-    public function getUserAppointments(AppointmentRepository $appointmentRepository): JsonResponse
+   
+    #[Route('/user/{user_id}/appointments', name: 'user_appointments', methods: ['GET'])]
+    public function listAppointments(int $user_id): Response
     {
-        $user = $this->security->getUser();
-        $appointments = $appointmentRepository->findBy(['user' => $user]);
+        $appointments = $this->appointmentRepository->findBy(['user' => $user_id]);
+    
+        return $this->render('appointment/user_appointments.html.twig', [
+            'appointments' => $appointments,
+            'user_id' => $user_id, 
+        ]);
+    }
+    #[Route('/appointment/delete/{id}', name: 'appointment_delete', methods: ['GET', 'DELETE'])]
+    public function delete(int $id): Response
+    {
+        $result = $this->schedulingService->deleteAppointmentById($id);
 
-        $appointmentData = array_map(function (Appointment $appointment) {
-            return [
-                'id' => $appointment->getId(),
-                'car' => $appointment->getCar()->getId(),
-                'scheduledAt' => $appointment->getScheduledAt()->format('Y-m-d H:i:s'),
-                'appointmentType' => $appointment->getAppointmentType()->value,
-            ];
-        }, $appointments);
+        if ($result === 'Appointment deleted successfully') {
+            $this->addFlash('success', $result);
+        } else {
+            $this->addFlash('error', $result);
+        }
 
-        return new JsonResponse($appointmentData);
+        return $this->redirectToRoute('user_appointments', [
+            'user_id' => $this->getUser()->getId() 
+        ]);
     }
 }
+
+

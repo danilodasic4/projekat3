@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>List of Cars</title>
+    <title>Your Cars</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .table th, .table td {
@@ -61,13 +61,46 @@
             background-color: #007bff;
             border-color: #0069d9;
         }
+        .appointment-link {
+            margin-top: 20px;
+            display: inline-block;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .appointment-link a {
+            color: #fff;
+            text-decoration: none;
+        }
+        .appointment-link a:hover {
+            text-decoration: none;
+        }
+        .appointment-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .appointment-btn:hover {
+            background-color: #0056b3;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        .appointment-btn i {
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body>
     {% include 'base.html.twig' %}
     
     <div class="container mt-4">
-        <h1 class="my-4">List of Cars</h1>
+        <h1 class="my-4">Your Cars</h1>
         <a href="{{ path('app_cars_expiring_registration') }}" class="btn btn-info mb-3">View Cars with Expiring Registration</a>
 
         <table class="table table-bordered table-striped">
@@ -113,6 +146,13 @@
         </table>
 
         <a href="{{ path('app_car_new') }}" class="btn btn-primary">Create a new car</a>
+        <br>
+        <div class="appointment-link mt-4">
+            <p>If you want to see what you have booked already, press down below</p>
+            <a href="{{ path('user_appointments', { user_id: user.id }) }}" class="appointment-btn">
+                <i class="fas fa-calendar-alt"></i> See your appointments
+            </a>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

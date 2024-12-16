@@ -14,29 +14,40 @@ final class Version20241213092228 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Add user_id to appointment and fix foreign keys';
+        return 'Create appointment table with car and user relationship';
     }
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE appointment DROP FOREIGN KEY FK_FE38F844C3C6F69F');
+        // Create appointment table
+        $this->addSql('CREATE TABLE appointment (
+            id INT AUTO_INCREMENT NOT NULL, 
+            car_id INT NOT NULL, 
+            scheduled_at DATETIME NOT NULL, 
+            appointment_type ENUM("maintenance", "registration", "polishing", "painting") NOT NULL, 
+            created_at DATETIME NOT NULL, 
+            user_id INT NOT NULL,
+            INDEX IDX_FE38F844C3C6F69F (car_id), 
+            INDEX IDX_FE38F844A76ED395 (user_id),
+            PRIMARY KEY(id)
+        ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
         
-        $this->addSql('ALTER TABLE appointment ADD user_id INT NOT NULL, CHANGE car_id car_id INT NOT NULL, CHANGE appointment_type appointment_type ENUM("maintenance", "registration", "polishing", "painting") NOT NULL');
+        // Add foreign key constraints
+        $this->addSql('ALTER TABLE appointment 
+            ADD CONSTRAINT FK_FE38F844C3C6F69F 
+            FOREIGN KEY (car_id) REFERENCES cars (id) 
+            ON DELETE CASCADE');
         
-        $this->addSql('ALTER TABLE appointment ADD CONSTRAINT FK_FE38F844A76ED395 FOREIGN KEY (user_id) REFERENCES `users` (id)');
-        $this->addSql('ALTER TABLE appointment ADD CONSTRAINT FK_FE38F844C3C6F69F FOREIGN KEY (car_id) REFERENCES cars (id)');
-        
-        $this->addSql('CREATE INDEX IDX_FE38F844A76ED395 ON appointment (user_id)');
+        $this->addSql('ALTER TABLE appointment 
+            ADD CONSTRAINT FK_FE38F844A76ED395 
+            FOREIGN KEY (user_id) REFERENCES users (id)');
     }
 
     public function down(Schema $schema): void
     {
+        // Drop foreign key constraints and table
         $this->addSql('ALTER TABLE appointment DROP FOREIGN KEY FK_FE38F844A76ED395');
         $this->addSql('ALTER TABLE appointment DROP FOREIGN KEY FK_FE38F844C3C6F69F');
-        $this->addSql('DROP INDEX IDX_FE38F844A76ED395 ON appointment');
-        
-        $this->addSql('ALTER TABLE appointment DROP user_id, CHANGE car_id car_id INT NOT NULL, CHANGE appointment_type appointment_type VARCHAR(50) NOT NULL');
-        
-        $this->addSql('ALTER TABLE appointment ADD CONSTRAINT FK_FE38F844C3C6F69F FOREIGN KEY (car_id) REFERENCES cars (id) ON UPDATE NO ACTION ON DELETE CASCADE');
+        $this->addSql('DROP TABLE appointment');
     }
 }

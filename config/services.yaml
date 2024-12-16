@@ -50,10 +50,6 @@ services:
     App\Service\RegistrationService:
         arguments:
             $appHost: '%app_host%'
-    
-    App\Service\SchedulingService:
-        arguments:
-            $entityManager: '@doctrine.orm.entity_manager'
             
     App\Command\CarsExpiringRegistrationCommand: 
         tags:
