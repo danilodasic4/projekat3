@@ -44,6 +44,16 @@
                 margin-top: 30px;
             }
         }
+
+        /* Active (bold and blue) link style */
+        .active-link {
+            font-weight: bold;
+        }
+
+        /* Optional: Add a hover effect for active link */
+        .active-link:hover {
+            text-decoration: underline;
+        }
     </style>
 
     <meta charset="UTF-8">
@@ -71,21 +81,27 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ path('homepage') }}">Home</a>
+                        <a class="nav-link {% if app.request.get('_route') == 'homepage' %}active-link{% endif %}" href="{{ path('homepage') }}">Home</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_register') }}">Register</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_login') }}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_car_index') }}">Cars</a>
-                    </li>
-                    {# Add logout link if user is logged in (example) #}
+
                     {% if app.user %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_logout') }}">Logout</a>
+                            <a class="nav-link {% if app.request.get('_route') == 'app_car_index' %}active-link{% endif %}" href="{{ path('app_car_index') }}">Cars</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link {% if app.request.get('_route') == 'user_appointments' %}active-link{% endif %}" href="{{ path('user_appointments', { user_id: app.user.id }) }}">Appointments</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if app.request.get('_route') == 'app_logout' %}active-link{% endif %}" href="{{ path('app_logout') }}">Logout</a>
+                        </li>
+                    {% else %}
+                        <!-- Links visible when user is not logged in -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if app.request.get('_route') == 'app_register' %}active-link{% endif %}" href="{{ path('app_register') }}">Register</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if app.request.get('_route') == 'app_login' %}active-link{% endif %}" href="{{ path('app_login') }}">Login</a>
                         </li>
                     {% endif %}
                 </ul>
