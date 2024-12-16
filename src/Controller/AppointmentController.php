@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
-use App\Enum\AppointmentTypeEnum; 
+use App\Enum\AppointmentTypeEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use App\Exception\DuplicateAppointmentException;
@@ -27,20 +27,22 @@ class AppointmentController extends AbstractController
         private readonly Security $security,
         private readonly AppointmentRepository $appointmentRepository,
     ) {}
+
     #[Route('/car/{id}/appointment', name: 'car_create_appointment', methods: ['GET', 'POST'])]
-    public function createAppointment(Car $car, Request $request): Response
+    public function createAppointment(
+        Car $car,
+        Request $request
+    ): Response
     {
-        $appointment = new Appointment();
-
-        $appointment->setCar($car);
-
         $user = $this->security->getUser();
-        if ($user) {
-            $appointment->setUser($user);
-        } else {
+        if (!$user) {
             $this->addFlash('error', 'You must be logged in to create an appointment.');
-            return $this->redirectToRoute('login');
+            return $this->redirectToRoute('login'); 
         }
+
+        $appointment = new Appointment();
+        $appointment->setCar($car);
+        $appointment->setUser($user); 
 
         $form = $this->createForm(AppointmentType::class, $appointment);
         $form->handleRequest($request);
@@ -50,7 +52,6 @@ class AppointmentController extends AbstractController
 
             try {
                 $this->schedulingService->scheduleAppointment($appointment);
-
                 $this->addFlash('success', 'Appointment created successfully.');
                 return $this->redirectToRoute('app_car_index');
             } catch (DuplicateAppointmentException $e) {
@@ -66,20 +67,32 @@ class AppointmentController extends AbstractController
         ]);
     }
 
-   
-    #[Route('/user/{user_id}/appointments', name: 'user_appointments', methods: ['GET'])]
-    public function listAppointments(int $user_id): Response
+    #[Route('/user/appointments', name: 'user_appointments', methods: ['GET'])]
+    public function listAppointments(): Response
     {
-        $appointments = $this->appointmentRepository->findBy(['user' => $user_id]);
-    
+        $user = $this->security->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'You must be logged in to view your appointments.');
+            return $this->redirectToRoute('login'); 
+        }
+
+        $appointments = $this->appointmentRepository->findBy(['user' => $user]);
+
         return $this->render('appointment/user_appointments.html.twig', [
             'appointments' => $appointments,
-            'user_id' => $user_id, 
+            'user_id' => $user->getId(), 
         ]);
     }
+
     #[Route('/appointment/delete/{id}', name: 'appointment_delete', methods: ['GET', 'DELETE'])]
     public function delete(int $id): Response
     {
+        $user = $this->security->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'You must be logged in to delete an appointment.');
+            return $this->redirectToRoute('login'); 
+        }
+
         $result = $this->schedulingService->deleteAppointmentById($id);
 
         if ($result === 'Appointment deleted successfully') {
@@ -89,9 +102,7 @@ class AppointmentController extends AbstractController
         }
 
         return $this->redirectToRoute('user_appointments', [
-            'user_id' => $this->getUser()->getId() 
+            'user_id' => $user->getId()
         ]);
     }
 }
-
-
