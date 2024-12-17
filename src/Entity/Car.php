@@ -92,7 +92,7 @@ private ?int $year = null;
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     #[OA\Property(type: "string", format: "date", description: "Registration date of the car")]
     #[Assert\NotBlank(message: "Registration date cannot be empty.")]
-    #[Assert\Date(message: "Please enter a valid date.")]
+    #[Assert\DateTime(format: "Y-m-d")]
     private ?\DateTimeInterface $registrationDate = null;
 
     public function getId(): ?int

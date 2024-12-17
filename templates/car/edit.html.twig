@@ -23,6 +23,7 @@
         </div>
 
         {{ form_start(form, {'attr': {'class': 'w-50 mx-auto'}}) }}
+         <input type="hidden" name="_method" value="PUT">
         
         <div class="mb-3">
             {{ form_label(form.brand, 'Car Brand') }}

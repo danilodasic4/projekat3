@@ -207,33 +207,36 @@ class CarController extends AbstractController
             ]
         )]
         public function edit(#[ValueResolver(CarValueResolver::class)] Car $car): Response
-    {
-        $form = $this->createForm(CarFormType::class, $car, [
-            'method' => 'PUT',
-            'action' => $this->generateUrl('app_car_update', ['id' => $car->getId()])
-        ]);
+        {
+            $form = $this->createForm(CarFormType::class, $car, [
+                'method' => 'PUT',  // This should remain PUT since the update is done via PUT method
+                'action' => $this->generateUrl('app_car_update', ['id' => $car->getId()]),
+            ]);
+        
+            return $this->render('car/edit.html.twig', [
+                'form' => $form->createView(),
+                'car' => $car,
+            ]);
+        }
 
-        return $this->render('car/edit.html.twig', [
-            'form' => $form->createView(),
-            'car' => $car,
-        ]);
-    }
-
-    #[Route('/cars/{id}', name: 'app_car_update', methods: ['GET', 'POST', 'PUT'])]
-    public function updateCar(
-        #[ValueResolver(CarValueResolver::class)] Car $car,
-        Request $request,
-        ValidatorInterface $validator,
-        FormFactoryInterface $formFactory
-    ): Response {
-        $form = $formFactory->create(CarFormType::class, $car, [
-            'method' => 'PUT',
-            'action' => $this->generateUrl('app_car_update', ['id' => $car->getId()])
-        ]);
+        #[Route('/cars/{id}', name: 'app_car_update', methods: ['PUT'])]
+        public function updateCar(
+            #[ValueResolver(CarValueResolver::class)] Car $car,
+            Request $request,
+            ValidatorInterface $validator
+        ): Response {
+            $data = json_decode($request->getContent(), true);
     
-        $form->handleRequest($request);
+            // Manually update car properties from the request data
+            $car->setBrand($data['brand'] ?? $car->getBrand());
+            $car->setModel($data['model'] ?? $car->getModel());
+            $car->setYear($data['year'] ?? $car->getYear());
+            $car->setEngineCapacity($data['engineCapacity'] ?? $car->getEngineCapacity());
+            $car->setHorsePower($data['horsePower'] ?? $car->getHorsePower());
+            $car->setColor($data['color'] ?? $car->getColor());
+            $car->setRegistrationDate(new \DateTime($data['registrationDate'] ?? $car->getRegistrationDate()->format('Y-m-d')));
     
-        if ($form->isSubmitted() && $form->isValid()) {
+            // Validate the updated car entity
             $errors = $validator->validate($car);
     
             if (count($errors) > 0) {
@@ -241,28 +244,18 @@ class CarController extends AbstractController
                 foreach ($errors as $error) {
                     $errorMessages[] = $error->getMessage();
                 }
-                return $this->render('car/edit.html.twig', [
-                    'form' => $form->createView(),
-                    'car' => $car,
-                    'errors' => $errorMessages,
-                ]);
+    
+                return new Response(json_encode(['errors' => $errorMessages]), Response::HTTP_BAD_REQUEST, ['Content-Type' => 'application/json']);
             }
     
+            // Update the car in the database
             $car->setUpdatedAt(new \DateTimeImmutable());
+            $this->entityManager->flush();
     
-            try {
-                $this->entityManager->flush();
-                    return $this->redirectToRoute('app_car_index');
-            } catch (\Exception $e) {
-                return new JsonResponse(['error' => 'Failed to update car: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
-            }
+            // Redirect to the edit page
+            return $this->redirectToRoute('app_car_index');
         }
     
-        return $this->render('car/edit.html.twig', [
-            'form' => $form->createView(),
-            'car' => $car,
-        ]);
-    }
 
     // Delete a car (Delete)
     #[Route('/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'DELETE'])]
