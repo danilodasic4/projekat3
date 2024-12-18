@@ -23,6 +23,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Entity\User;
 use Psr\Log\LoggerInterface;
 use App\Service\SchedulingService;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class CarController extends AbstractController
 {
@@ -186,7 +188,7 @@ class CarController extends AbstractController
 
 
     // Edit an existing car (Update)
-    #[Route('/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
+    #[Route('/cars/edit/{id}', name: 'app_car_edit', methods: ['GET'])]
     #[OA\Put(
         path: '/cars/update/{id}',
         summary: 'Update an existing car',
@@ -204,37 +206,97 @@ class CarController extends AbstractController
             new OA\Response(response: 400, description: 'Invalid input data')
         ]
     )]
-    public function edit(#[ValueResolver(CarValueResolver::class)] Car $car, Request $request): Response
+    public function edit(#[ValueResolver(CarValueResolver::class)] Car $car): Response
     {
+        if (!$car) {
+            throw $this->createNotFoundException('Car not found.');
+        }
+    
         $form = $this->createForm(CarFormType::class, $car, [
             'method' => 'PUT',
-            'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()])
+            'action' => $this->generateUrl('app_car_update', ['id' => $car->getId()]),
         ]);
-        
-        $form->handleRequest($request);
-        
-        if ($form->isSubmitted() && $form->isValid()) {
-            $response = $this->carService->updateCar($car);
-
-            if ($response->getStatusCode() === Response::HTTP_OK) {
-                return $this->redirectToRoute('app_car_index');
-            }
-            
-            return $this->render('car/edit.html.twig', [
-                'form' => $form->createView(),
-                'car' => $car,
-                'error' => $response->getContent(),
-            ]);
-        }
         return $this->render('car/edit.html.twig', [
-            'form' => $form->createView(),
             'car' => $car,
+            'form' => $form->createView(),
         ]);
     }
+    
 
+    #[Route('/cars/update/{id}', name: 'app_car_update', methods: ['PUT'])]
+    public function update(#[ValueResolver(CarValueResolver::class)] Car $car, Request $request, ValidatorInterface $validator): Response
+    {
+        $requestData = $request->request->all()['car_form'];
+    
+        $constraints = [
+            'brand' => [
+                new Assert\NotBlank(['message' => 'Brand is required.']),
+                new Assert\Length(['max' => 255, 'maxMessage' => 'Brand cannot be longer than 255 characters.']),
+            ],
+            'model' => [
+                new Assert\NotBlank(['message' => 'Model is required.']),
+                new Assert\Length(['max' => 255, 'maxMessage' => 'Model cannot be longer than 255 characters.']),
+            ],
+            'year' => [
+                new Assert\NotBlank(['message' => 'Year is required.']),
+                new Assert\Range([
+                    'min' => 1900,
+                    'max' => 2100,
+                    'notInRangeMessage' => 'Year must be between {{ min }} and {{ max }}.',
+                ]),
+            ],
+            'engineCapacity' => [
+                new Assert\NotBlank(['message' => 'Engine capacity is required.']),
+                new Assert\Positive(['message' => 'Engine capacity must be a positive number.']),
+            ],
+            'horsePower' => [
+                new Assert\NotBlank(['message' => 'Horse power is required.']),
+                new Assert\Positive(['message' => 'Horse power must be a positive number.']),
+            ],
+            'color' => [
+                new Assert\NotBlank(['message' => 'Color is required.']),
+            ],
+            'registrationDate' => [
+                new Assert\NotBlank(['message' => 'Registration date is required.']),
+                new Assert\Date(['message' => 'Invalid registration date format.']),
+            ],
+        ];
+    
+        $errorMessages = [];
+    
+        foreach ($constraints as $field => $fieldConstraints) {
+            $violations = $validator->validate($requestData[$field] ?? null, $fieldConstraints);
+            foreach ($violations as $violation) {
+                $errorMessages[] = $violation->getMessage();
+            }
+        }
+    
+        if (!empty($errorMessages)) {
+            $this->addFlash('form_errors', implode('<br>', $errorMessages));
+        
+            return $this->redirectToRoute('app_car_edit', ['id' => $car->getId()]);
+        }
+    
+        $car->setBrand($requestData['brand']);
+        $car->setModel($requestData['model']);
+        $car->setYear($requestData['year']);
+        $car->setEngineCapacity($requestData['engineCapacity']);
+        $car->setHorsePower($requestData['horsePower']);
+        $car->setColor($requestData['color']);
+        try {
+            $registrationDate = new \DateTime($requestData['registrationDate']);
+            $car->setRegistrationDate($registrationDate);
+        } catch (\Exception $e) {
+            $this->addFlash('form_errors', ['Invalid registration date format. Please use YYYY-MM-DD.']);
+            
+            return $this->redirectToRoute('app_car_edit', ['id' => $car->getId()]);
+        }
+    
+        $this->entityManager->flush();
+    
+        return $this->redirectToRoute('app_car_edit', ['id' => $car->getId()]);
+    }
 
-
-    // Delete a car (Delete)
     #[Route('/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'DELETE'])]
     #[OA\Delete(
         path: '/cars/delete/{id}',

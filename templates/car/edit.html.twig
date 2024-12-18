@@ -10,7 +10,13 @@
         <div class="alert alert-info mb-4">
             <strong>Owner:</strong> {{ car.user.email }}
         </div>
-
+        {% for type, messages in app.flashes %}
+            {% if type == 'form_errors' %}
+                {% for message in messages %}
+                    <div class="alert alert-danger">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endfor %}
         {{ form_start(form, {'attr': {'class': 'w-50 mx-auto'}}) }}
         
         <div class="mb-3">
@@ -53,5 +59,7 @@
         </div>
 
         {{ form_end(form) }}
+    <!-- Button to return to the car list -->
+        <a href="{{ path('app_car_index') }}" class="btn btn-secondary mt-3">Back to list</a>
     </div>
 {% endblock %}

@@ -30,8 +30,9 @@ class AppFixtures extends Fixture
         for ($i = 0; $i < 3; $i++) {
             $user = new User();
             $user->setEmail('user' . ($i + 1) . '@example.com');  // Set the user's email
-            $user->setRoles(['ROLE_USER']);                         // Assign the user role
-
+            $user->setVerified(true);
+            $user->setRoles(['ROLE_VERIFIED']);
+            
             // Hash the password "user123"
             $hashedPassword = $this->passwordHasher->hashPassword($user, 'user123');
             $user->setPassword($hashedPassword);
