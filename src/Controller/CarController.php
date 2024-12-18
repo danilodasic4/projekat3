@@ -224,78 +224,83 @@ class CarController extends AbstractController
     
 
     #[Route('/cars/update/{id}', name: 'app_car_update', methods: ['PUT'])]
-public function update(#[ValueResolver(CarValueResolver::class)] Car $car, Request $request, ValidatorInterface $validator): Response
-{
-    $requestData = $request->request->all()['car_form'];
-
-     $constraints = [
-        'brand' => [
-            new Assert\NotBlank(['message' => 'Brand is required.']),
-            new Assert\Length(['max' => 255, 'maxMessage' => 'Brand cannot be longer than 255 characters.']),
-        ],
-        'model' => [
-            new Assert\NotBlank(['message' => 'Model is required.']),
-            new Assert\Length(['max' => 255, 'maxMessage' => 'Model cannot be longer than 255 characters.']),
-        ],
-        'year' => [
-            new Assert\NotBlank(['message' => 'Year is required.']),
-            new Assert\Range([
-                'min' => 1900,
-                'max' => 2100,
-                'notInRangeMessage' => 'Year must be between {{ min }} and {{ max }}.',
-            ]),
-        ],
-        'engineCapacity' => [
-            new Assert\NotBlank(['message' => 'Engine capacity is required.']),
-            new Assert\Positive(['message' => 'Engine capacity must be a positive number.']),
-        ],
-        'horsePower' => [
-            new Assert\NotBlank(['message' => 'Horse power is required.']),
-            new Assert\Positive(['message' => 'Horse power must be a positive number.']),
-        ],
-        'color' => [
-            new Assert\NotBlank(['message' => 'Color is required.']),
-        ],
-        'registrationDate' => [
-            new Assert\NotBlank(['message' => 'Registration date is required.']),
-            new Assert\Date(['message' => 'Invalid registration date format.']),
-        ],
-    ];
-
-    $errorMessages = [];
-
-    foreach ($constraints as $field => $fieldConstraints) {
-        $violations = $validator->validate($requestData[$field] ?? null, $fieldConstraints);
-        foreach ($violations as $violation) {
-            $errorMessages[] = $violation->getMessage();
+    public function update(#[ValueResolver(CarValueResolver::class)] Car $car, Request $request, ValidatorInterface $validator): Response
+    {
+        $requestData = $request->request->all()['car_form'];
+    
+        $constraints = [
+            'brand' => [
+                new Assert\NotBlank(['message' => 'Brand is required.']),
+                new Assert\Length(['max' => 255, 'maxMessage' => 'Brand cannot be longer than 255 characters.']),
+            ],
+            'model' => [
+                new Assert\NotBlank(['message' => 'Model is required.']),
+                new Assert\Length(['max' => 255, 'maxMessage' => 'Model cannot be longer than 255 characters.']),
+            ],
+            'year' => [
+                new Assert\NotBlank(['message' => 'Year is required.']),
+                new Assert\Range([
+                    'min' => 1900,
+                    'max' => 2100,
+                    'notInRangeMessage' => 'Year must be between {{ min }} and {{ max }}.',
+                ]),
+            ],
+            'engineCapacity' => [
+                new Assert\NotBlank(['message' => 'Engine capacity is required.']),
+                new Assert\Positive(['message' => 'Engine capacity must be a positive number.']),
+            ],
+            'horsePower' => [
+                new Assert\NotBlank(['message' => 'Horse power is required.']),
+                new Assert\Positive(['message' => 'Horse power must be a positive number.']),
+            ],
+            'color' => [
+                new Assert\NotBlank(['message' => 'Color is required.']),
+            ],
+            'registrationDate' => [
+                new Assert\NotBlank(['message' => 'Registration date is required.']),
+                new Assert\Date(['message' => 'Invalid registration date format.']),
+            ],
+        ];
+    
+        $errorMessages = [];
+    
+        foreach ($constraints as $field => $fieldConstraints) {
+            $violations = $validator->validate($requestData[$field] ?? null, $fieldConstraints);
+            foreach ($violations as $violation) {
+                $errorMessages[] = $violation->getMessage();
+            }
         }
+    
+        if (!empty($errorMessages)) {
+            // Add the error messages as flash messages
+            $this->addFlash('form_errors', implode('<br>', $errorMessages)); // Optional: use `<br>` to separate errors in a single message
+        
+            // Redirect to the car edit page
+            return $this->redirectToRoute('app_car_edit', ['id' => $car->getId()]);
+        }
+    
+        $car->setBrand($requestData['brand']);
+        $car->setModel($requestData['model']);
+        $car->setYear($requestData['year']);
+        $car->setEngineCapacity($requestData['engineCapacity']);
+        $car->setHorsePower($requestData['horsePower']);
+        $car->setColor($requestData['color']);
+        try {
+            $registrationDate = new \DateTime($requestData['registrationDate']);
+            $car->setRegistrationDate($registrationDate);
+        } catch (\Exception $e) {
+            // Add flash message for invalid date format error
+            $this->addFlash('form_errors', ['Invalid registration date format. Please use YYYY-MM-DD.']);
+            
+            // Redirect back to the edit page
+            return $this->redirectToRoute('app_car_edit', ['id' => $car->getId()]);
+        }
+    
+        $this->entityManager->flush();
+    
+        // Redirect to the car edit page after a successful update
+        return $this->redirectToRoute('app_car_edit', ['id' => $car->getId()]);
     }
-      if (!empty($errorMessages)) {
-        return $this->render('car/edit.html.twig', [
-            'car' => $car,
-            'errors' => $errorMessages,
-        ]);
-    }
-
-    $car->setBrand($requestData['brand']);
-    $car->setModel($requestData['model']);
-    $car->setYear($requestData['year']);
-    $car->setEngineCapacity($requestData['engineCapacity']);
-    $car->setHorsePower($requestData['horsePower']);
-    $car->setColor($requestData['color']);
-    try {
-        $registrationDate = new \DateTime($requestData['registrationDate']);
-        $car->setRegistrationDate($registrationDate);
-    } catch (\Exception $e) {
-        return $this->render('car/edit.html.twig', [
-            'car' => $car,
-            'errors' => ['Invalid registration date format. Please use YYYY-MM-DD.'],
-        ]);
-    }    
-    $this->entityManager->flush();
-
-    return $this->redirectToRoute('app_car_index', ['id' => $car->getId()]);
-}
 
     #[Route('/cars/delete/{id}', name: 'app_car_delete', methods: ['GET', 'DELETE'])]
     #[OA\Delete(
