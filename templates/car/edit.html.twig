@@ -11,7 +11,7 @@
             <strong>Owner:</strong> {{ car.user.email }}
         </div>
 
-        {{ form_start(form, {'method': 'POST', 'attr': {'class': 'w-50 mx-auto'}, 'action': path('app_car_update', {'id': car.id})}) }}
+        {{ form_start(form, {'attr': {'class': 'w-50 mx-auto'}}) }}
         
         <div class="mb-3">
             {{ form_label(form.brand, 'Car Brand') }}
@@ -51,8 +51,6 @@
         <div class="mb-3">
             {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
         </div>
-
-        <input type="hidden" name="_method" value="PUT">
 
         {{ form_end(form) }}
     </div>
