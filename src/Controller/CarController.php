@@ -272,10 +272,8 @@ class CarController extends AbstractController
         }
     
         if (!empty($errorMessages)) {
-            // Add the error messages as flash messages
-            $this->addFlash('form_errors', implode('<br>', $errorMessages)); // Optional: use `<br>` to separate errors in a single message
+            $this->addFlash('form_errors', implode('<br>', $errorMessages));
         
-            // Redirect to the car edit page
             return $this->redirectToRoute('app_car_edit', ['id' => $car->getId()]);
         }
     
@@ -289,16 +287,13 @@ class CarController extends AbstractController
             $registrationDate = new \DateTime($requestData['registrationDate']);
             $car->setRegistrationDate($registrationDate);
         } catch (\Exception $e) {
-            // Add flash message for invalid date format error
             $this->addFlash('form_errors', ['Invalid registration date format. Please use YYYY-MM-DD.']);
             
-            // Redirect back to the edit page
             return $this->redirectToRoute('app_car_edit', ['id' => $car->getId()]);
         }
     
         $this->entityManager->flush();
     
-        // Redirect to the car edit page after a successful update
         return $this->redirectToRoute('app_car_edit', ['id' => $car->getId()]);
     }
 
