@@ -226,33 +226,17 @@ class CarController extends AbstractController
     #[Route('/cars/update/{id}', name: 'app_car_update', methods: ['PUT'])]
 public function update(#[ValueResolver(CarValueResolver::class)] Car $car, Request $request, ValidatorInterface $validator): Response
 {
-    $form = $this->createForm(CarFormType::class, $car);
-    $form->handleRequest($request);
+    $requestData = $request->request->all()['car_form'];
 
-    if ($form->isSubmitted() && $form->isValid()) {
-        $errors = $validator->validate($car);
-        if (count($errors) > 0) {
-            $errorMessages = [];
-            foreach ($errors as $error) {
-                $errorMessages[] = $error->getMessage();
-            }
+    //todo: you validate request data here.
+    //todo: if there are validation errors throw an exception (or you can redirect to edit route and show error message somehow
 
-            return $this->render('car/edit.html.twig', [
-                'car' => $car,
-                'form' => $form->createView(),
-                'errors' => $errorMessages,
-            ]);
-        }
+    //todo: if all good you set these fields to car entity. Here's example for one field:
+    $car->setBrand($requestData['brand']);
+    $this->entityManager->flush();
 
-        $this->entityManager->flush();
-
-        return $this->redirectToRoute('app_car_index');
-    }
-
-    return $this->render('car/edit.html.twig', [
-        'car' => $car,
-        'form' => $form->createView(),
-    ]);
+    //and get back to edit page, since that was the last page you were.
+    return $this->redirectToRoute('app_car_edit', ['id' => $car->getId()]);
 }
 //dd($request->getContent());
 // CarController.php on line 229:
