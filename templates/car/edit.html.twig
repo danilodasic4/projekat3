@@ -10,48 +10,58 @@
         <div class="alert alert-info mb-4">
             <strong>Owner:</strong> {{ car.user.email }}
         </div>
+          {% if errors is defined and errors|length > 0 %}
+    <div class="alert alert-danger">
+        <ul>
+            {% for error in errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
 
-        {{ form_start(form, {'attr': {'class': 'w-50 mx-auto'}}) }}
-        
-        <div class="mb-3">
-            {{ form_label(form.brand, 'Car Brand') }}
-            {{ form_widget(form.brand, {'attr': {'class': 'form-control'}}) }}
-        </div>
+    
+        <form method="post" action="{{ path('app_car_update', {'id': car.id}) }}" class="w-50 mx-auto">
+            <input type="hidden" name="_method" value="PUT">
+            
+            <div class="mb-3">
+                <label for="brand" class="form-label">Car Brand</label>
+                <input type="text" name="car_form[brand]" id="brand" value="{{ car.brand }}" class="form-control">
+            </div>
 
-        <div class="mb-3">
-            {{ form_label(form.model, 'Car Model') }}
-            {{ form_widget(form.model, {'attr': {'class': 'form-control'}}) }}
-        </div>
+            <div class="mb-3">
+                <label for="model" class="form-label">Car Model</label>
+                <input type="text" name="car_form[model]" id="model" value="{{ car.model }}" class="form-control">
+            </div>
 
-        <div class="mb-3">
-            {{ form_label(form.year, 'Year of Manufacture') }}
-            {{ form_widget(form.year, {'attr': {'class': 'form-control'}}) }}
-        </div>
+            <div class="mb-3">
+                <label for="year" class="form-label">Year of Manufacture</label>
+                <input type="number" name="car_form[year]" id="year" value="{{ car.year }}" class="form-control">
+            </div>
 
-        <div class="mb-3">
-            {{ form_label(form.engineCapacity, 'Engine Capacity (cc)') }}
-            {{ form_widget(form.engineCapacity, {'attr': {'class': 'form-control'}}) }}
-        </div>
+            <div class="mb-3">
+                <label for="engineCapacity" class="form-label">Engine Capacity (cc)</label>
+                <input type="number" name="car_form[engineCapacity]" id="engineCapacity" value="{{ car.engineCapacity }}" class="form-control">
+            </div>
 
-        <div class="mb-3">
-            {{ form_label(form.horsePower, 'Horse Power') }}
-            {{ form_widget(form.horsePower, {'attr': {'class': 'form-control'}}) }}
-        </div>
+            <div class="mb-3">
+                <label for="horsePower" class="form-label">Horse Power</label>
+                <input type="number" name="car_form[horsePower]" id="horsePower" value="{{ car.horsePower }}" class="form-control">
+            </div>
 
-        <div class="mb-3">
-            {{ form_label(form.color, 'Car Color') }}
-            {{ form_widget(form.color, {'attr': {'class': 'form-control'}}) }}
-        </div>
+            <div class="mb-3">
+                <label for="color" class="form-label">Car Color</label>
+                <input type="text" name="car_form[color]" id="color" value="{{ car.color }}" class="form-control">
+            </div>
 
-        <div class="mb-3">
-            {{ form_label(form.registrationDate, 'Registration Date') }}
-            {{ form_widget(form.registrationDate, {'attr': {'class': 'form-control'}}) }}
-        </div>
+            <div class="mb-3">
+                <label for="registrationDate" class="form-label">Registration Date</label>
+                <input type="date" name="car_form[registrationDate]" id="registrationDate" value="{{ car.registrationDate|date('Y-m-d') }}" class="form-control">
+            </div>
 
-        <div class="mb-3">
-            {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
-        </div>
-
-        {{ form_end(form) }}
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
     </div>
 {% endblock %}
