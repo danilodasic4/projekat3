@@ -7,6 +7,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use OpenApi\Attributes as OA;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class LoginController extends AbstractController
 {
@@ -70,8 +72,12 @@ class LoginController extends AbstractController
             new OA\Response(response: 200, description: 'User logged out successfully')
         ]
     )]
-    public function logout(): void
-    {
-        // The logout method can be blank - Symfony will handle it
-    }
+    public function logout(SessionInterface $session): RedirectResponse
+{
+    $session->clear();
+    
+    $session->invalidate();
+
+    return new RedirectResponse($this->generateUrl('homepage'));
+}
 }
