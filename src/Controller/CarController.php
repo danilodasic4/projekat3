@@ -23,6 +23,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Entity\User;
 use Psr\Log\LoggerInterface;
 use App\Service\SchedulingService;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class CarController extends AbstractController
 {
@@ -186,7 +187,7 @@ class CarController extends AbstractController
 
 
     // Edit an existing car (Update)
-    #[Route('/cars/update/{id}', name: 'app_car_edit', methods: ['GET', 'PUT'])]
+    #[Route('/cars/edit/{id}', name: 'app_car_edit', methods: ['GET'])]
     #[OA\Put(
         path: '/cars/update/{id}',
         summary: 'Update an existing car',
@@ -204,33 +205,121 @@ class CarController extends AbstractController
             new OA\Response(response: 400, description: 'Invalid input data')
         ]
     )]
-    public function edit(#[ValueResolver(CarValueResolver::class)] Car $car, Request $request): Response
+    public function edit(#[ValueResolver(CarValueResolver::class)] Car $car): Response
     {
+        if (!$car) {
+            throw $this->createNotFoundException('Car not found.');
+        }
+    
         $form = $this->createForm(CarFormType::class, $car, [
             'method' => 'PUT',
-            'action' => $this->generateUrl('app_car_edit', ['id' => $car->getId()])
+            'action' => $this->generateUrl('app_car_update', ['id' => $car->getId()]),
         ]);
-        
-        $form->handleRequest($request);
-        
-        if ($form->isSubmitted() && $form->isValid()) {
-            $response = $this->carService->updateCar($car);
-
-            if ($response->getStatusCode() === Response::HTTP_OK) {
-                return $this->redirectToRoute('app_car_index');
-            }
-            
-            return $this->render('car/edit.html.twig', [
-                'form' => $form->createView(),
-                'car' => $car,
-                'error' => $response->getContent(),
-            ]);
-        }
+    
         return $this->render('car/edit.html.twig', [
-            'form' => $form->createView(),
             'car' => $car,
+            'form' => $form->createView(),
         ]);
     }
+    
+
+    #[Route('/cars/update/{id}', name: 'app_car_update', methods: ['PUT'])]
+public function update(#[ValueResolver(CarValueResolver::class)] Car $car, Request $request, ValidatorInterface $validator): Response
+{
+    $form = $this->createForm(CarFormType::class, $car);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        $errors = $validator->validate($car);
+        if (count($errors) > 0) {
+            $errorMessages = [];
+            foreach ($errors as $error) {
+                $errorMessages[] = $error->getMessage();
+            }
+
+            return $this->render('car/edit.html.twig', [
+                'car' => $car,
+                'form' => $form->createView(),
+                'errors' => $errorMessages,
+            ]);
+        }
+
+        $this->entityManager->flush();
+
+        return $this->redirectToRoute('app_car_index');
+    }
+
+    return $this->render('car/edit.html.twig', [
+        'car' => $car,
+        'form' => $form->createView(),
+    ]);
+}
+//dd($request->getContent());
+// CarController.php on line 229:
+// "_method=PUT&car_form%5Bbrand%5D=Audi&car_form%5Bmodel%5D=A6+Allroads&car_form%5Byear%5D=2022&car_form%5BengineCapacity%5D=3000&car_form%5BhorsePower%5D=250&car_
+
+
+//dd($form); after handle requesta
+// CarController.php on line 231:
+// Symfony\Component\Form\Form {#1181 ▼
+//   -config: Symfony\Component\Form\FormBuilder {#1182 ▼
+//     #locked: true
+//     -dispatcher: Symfony\Component\EventDispatcher\ImmutableEventDispatcher {#1207 …1}
+//     -name: "car_form"
+//     -propertyPath: null
+//     -mapped: true
+//     -byReference: true
+//     -inheritData: false
+//     -compound: true
+//     -type: Symfony\Component\Form\Extension\DataCollector\Proxy\ResolvedTypeDataCollectorProxy {#1063 ▶}
+//     -viewTransformers: []
+//     -modelTransformers: []
+//     -dataMapper: Symfony\Component\Form\Extension\Core\DataMapper\DataMapper {#1035 ▶}
+//     -required: true
+//     -disabled: false
+//     -errorBubbling: true
+//     -emptyData: Closure(FormInterface $form) {#1075 ▶}
+//     -attributes: array:2 [▶]
+//     -data: App\Entity\Car {#946 ▶}
+//     -dataClass: "App\Entity\Car"
+//     -dataLocked: true
+//     -formFactory: Symfony\Component\Form\FormFactory {#1017 ▼
+//       -registry: Symfony\Component\Form\FormRegistry {#1018 ▶}
+//     }
+//     -action: ""
+//     -method: "POST"
+//     -requestHandler: Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationRequestHandler {#1043 ▶}
+//     -autoInitialize: true
+//     -options: array:51 [▶]
+//     -isEmptyCallback: null
+//     -children: []
+//     -unresolvedChildren: []
+//   }
+//   -parent: null
+//   -children: Symfony\Component\Form\Util\OrderedHashMap {#1183 ▶}
+//   -errors: []
+//   -submitted: false
+//   -clickedButton: null
+//   -modelData: App\Entity\Car {#946 ▶}
+//   -normData: App\Entity\Car {#946 ▶}
+//   -viewData: App\Entity\Car {#946 ▶}
+//   -extraData: []
+//   -transformationFailure: null
+//   -defaultDataSet: true
+//   -lockSetData: false
+//   -name: "car_form"
+//   -inheritData: false
+//   -propertyPath: null
+// }
+
+
+ // // Update car properties
+        // $car->setBrand($data['brand'] ?? $car->getBrand());
+        // $car->setModel($data['model'] ?? $car->getModel());
+        // $car->setYear($data['year'] ?? $car->getYear());
+        // $car->setEngineCapacity($data['engineCapacity'] ?? $car->getEngineCapacity());
+        // $car->setHorsePower($data['horsePower'] ?? $car->getHorsePower());
+        // $car->setColor($data['color'] ?? $car->getColor());
 
 
 
