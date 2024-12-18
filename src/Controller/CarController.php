@@ -215,7 +215,6 @@ class CarController extends AbstractController
             'method' => 'PUT',
             'action' => $this->generateUrl('app_car_update', ['id' => $car->getId()]),
         ]);
-    
         return $this->render('car/edit.html.twig', [
             'car' => $car,
             'form' => $form->createView(),
