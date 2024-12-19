@@ -1,79 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Cars</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .table th, .table td {
-            text-align: center;
-            vertical-align: middle;
-        }
-        .table thead {
-            background-color: #f8f9fa;
-            transition: background-color 0.3s;
-        }
-        .table thead:hover {
-            background-color: #e9ecef;
-        }
-        .table tbody tr:hover {
-            background-color: #f1f1f1;
-            cursor: pointer;
-        }
-        .btn-sm {
-            margin: 0 5px;
-            transition: transform 0.2s ease-in-out;
-        }
-        .btn-sm:hover {
-            transform: scale(1.1);
-        }
-        .btn-sm:focus {
-            box-shadow: none;
-        }
-        .table td a {
-            margin: 0 5px;
-        }
-        .table th {
-            font-weight: bold;
-            color: #495057;
-        }
-        .table td {
-            font-size: 14px;
-        }
-        .btn-info,
+        .btn-primary,
         .btn-warning,
-        .btn-danger,
-        .btn-primary {
+        .appointment-btn {
             transition: all 0.3s ease;
         }
-        .btn-info:hover {
-            background-color: #17a2b8;
-            border-color: #138496;
-        }
+
+        .btn-primary:hover,
         .btn-warning:hover {
-            background-color: #ffc107;
-            border-color: #e0a800;
+            transform: scale(1.05);
         }
-        .btn-danger:hover {
-            background-color: #dc3545;
-            border-color: #c82333;
-        }
-        .btn-primary:hover {
-            background-color: #007bff;
-            border-color: #0069d9;
-        }
-        .appointment-link {
-            margin-top: 20px;
-            display: inline-block;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        .appointment-link a {
-            color: #fff;
-            text-decoration: none;
-        }
-        .appointment-link a:hover {
-            text-decoration: none;
-        }
+
         .appointment-btn {
             display: inline-flex;
             align-items: center;
@@ -86,13 +29,41 @@
             text-decoration: none;
             transition: all 0.3s ease;
         }
+
         .appointment-btn:hover {
             background-color: #0056b3;
-            color: #fff;
             transform: translateY(-2px);
         }
+
         .appointment-btn i {
             margin-right: 8px;
+        }
+
+        .appointment-link {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .appointment-link p {
+            margin-bottom: 5px;
+        }
+
+        .appointment-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .appointment-link a:hover {
+            text-decoration: underline;
+        }
+
+        .btn-sm {
+            margin: 0 5px;
+        }
+
+        .mt-4 {
+            margin-top: 1.5rem;
         }
     </style>
 </head>
@@ -101,10 +72,13 @@
     
     <div class="container mt-4">
         <h1 class="my-4">Your Cars</h1>
-        <a href="{{ path('app_cars_expiring_registration') }}" class="btn btn-info mb-3">View Cars with Expiring Registration</a>
+
+        <a href="{{ path('app_cars_expiring_registration') }}" class="btn btn-info mb-3">
+            <i class="fas fa-calendar-check"></i> View Cars with Expiring Registration
+        </a>
 
         <table class="table table-bordered table-striped">
-            <thead>
+            <thead class="thead-dark">
                 <tr>
                     <th>Brand</th>
                     <th>Model</th>
@@ -123,18 +97,28 @@
                     <td>{{ car.year }}</td>
                     <td>{{ car.color|default('Not specified') }}</td>
                     <td>
-                        <a href="{{ path('app_car_show', { id: car.id }) }}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i> View</a>
-                        <a href="{{ path('app_car_edit', { id: car.id }) }}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i> Edit</a>
+                        <a href="{{ path('app_car_show', { id: car.id }) }}" class="btn btn-info btn-sm">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        <a href="{{ path('app_car_edit', { id: car.id }) }}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
                         <form action="{{ path('app_car_delete', { id: car.id }) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to soft delete this car?');">
                             <input type="hidden" name="_method" value="DELETE">
-                            <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i>Soft Delete</button>
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash-alt"></i> Soft Delete
+                            </button>
                         </form>
                     </td>
                     <td>
-                        <a href="{{ path('app_car_registration_details', { id: car.id }) }}" class="btn btn-info btn-sm"><i class="fas fa-dollar-sign"></i> See Registration Cost</a>
+                        <a href="{{ path('app_car_registration_details', { id: car.id }) }}" class="btn btn-info btn-sm">
+                            <i class="fas fa-dollar-sign"></i> See Registration Cost
+                        </a>
                     </td>
                     <td>
-                        <a href="{{ path('car_create_appointment', { id: car.id }) }}" class="btn btn-primary btn-sm"><i class="fas fa-calendar-plus"></i> Schedule Appointment</a>
+                        <a href="{{ path('car_create_appointment', { id: car.id }) }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-calendar-plus"></i> Schedule Appointment
+                        </a>
                     </td>
                 </tr>
                 {% else %}
@@ -145,17 +129,22 @@
             </tbody>
         </table>
 
-        <a href="{{ path('app_car_new') }}" class="btn btn-primary">Create a new car</a>
-        <br>
+        <a href="{{ path('app_car_new') }}" class="btn btn-primary mb-3">
+            <i class="fas fa-plus"></i> Create a new car
+        </a>
+
         <div class="appointment-link mt-4">
-            <p>If you want to see what you have booked already, press down below</p>
+            <p>If you want to see what you have booked already, click the button below:</p>
             <a href="{{ path('user_appointments', { user_id: user.id }) }}" class="appointment-btn">
                 <i class="fas fa-calendar-alt"></i> See your appointments
             </a>
-    <div class="mt-4">
-        <p>If you want to see all soft deleted cars, click here:</p>
-        <a href="{{ path('app_car_deleted') }}" class="btn btn-warning">See Deleted Cars</a>
-    </div>
+        </div>
+
+        <div class="mt-4">
+            <p>If you want to see all soft deleted cars, click here:</p>
+            <a href="{{ path('app_car_deleted') }}" class="btn btn-warning">
+                <i class="fas fa-trash-restore"></i> See Deleted Cars
+            </a>
         </div>
     </div>
 

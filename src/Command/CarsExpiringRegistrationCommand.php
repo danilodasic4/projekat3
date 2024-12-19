@@ -27,25 +27,24 @@ class CarsExpiringRegistrationCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        // Current date 
+        // Current date
         $currentDate = new DateTimeImmutable();
-        $nextMonth = $currentDate->modify('first day of next month');
 
-        // Use the existing method `findByRegistrationExpiringUntil`
-        $cars = $this->carRepository->findByRegistrationExpiringUntil($nextMonth);
+        // Fetch cars whose registration expires in the next month
+        $cars = $this->carRepository->findAllExpiringRegistrationsInNextMonth($currentDate);
 
         if (!$cars) {
             $io->note('No cars with expiring registrations found.');
         } else {
             $io->title('Cars with Registration Expiring Before Next Month');
             $io->table(
-                ['Brand', 'Model', 'Year', 'Registration Expiration'],
+                ['Brand', 'Model', 'Year', 'Registration expiration'],
                 array_map(function($car) {
                     return [
                         $car->getBrand(),
                         $car->getModel(),
                         $car->getYear(),
-                        $car->getRegistrationDate()->format('Y-m-d') 
+                        $car->getRegistrationDate()->format('Y-m-d')
                     ];
                 }, $cars)
             );
