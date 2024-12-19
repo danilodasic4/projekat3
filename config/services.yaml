@@ -54,3 +54,7 @@ services:
     App\Command\CarsExpiringRegistrationCommand: 
         tags:
             - { name: 'console.command', command: 'app:cars-expiring-registration' }
+    
+    App\DataFixtures\:
+        resource: '../src/DataFixtures'
+        tags: ['doctrine.fixture.orm']

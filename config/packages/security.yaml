@@ -36,13 +36,27 @@ security:
             access_denied_url: /access-denied
             security: true
 
+        admin:
+            pattern: ^/admin
+            provider: app_user_provider
+            form_login:
+                login_path: admin_login   
+                check_path: admin_login  
+                default_target_path: admin_index
+            logout:
+                path: /admin/logout
+                target: /admin/login
+            access_denied_url: /access-denied
+
     access_control:
-    - { path: ^/users/\d+/verify/, roles: PUBLIC_ACCESS }
-    - { path: ^/registration_verified, roles: PUBLIC_ACCESS}
-    - { path: ^/login, roles: PUBLIC_ACCESS }
-    - { path: ^/register, roles: PUBLIC_ACCESS }
-    - { path: ^/cars/, roles: ROLE_VERIFIED } 
-    - { path: ^/car/\d+/appointment, roles: ROLE_USER }
-    - { path: ^/api/appointments, roles: ROLE_USER }
-    - { path: ^/cars$, roles: ROLE_USER } 
+        - { path: ^/admin, roles: ROLE_ADMIN }    
+        - { path: ^/cars/, roles: ROLE_VERIFIED }
+        - { path: ^/car/\d+/appointment, roles: ROLE_USER }
+        - { path: ^/api/appointments, roles: ROLE_USER }
+        - { path: ^/cars$, roles: ROLE_USER }
+        - { path: ^/users/\d+/verify/, roles: PUBLIC_ACCESS }
+        - { path: ^/registration_verified, roles: PUBLIC_ACCESS}
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/login, roles: PUBLIC_ACCESS }
 

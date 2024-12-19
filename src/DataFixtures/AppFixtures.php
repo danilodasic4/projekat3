@@ -9,19 +9,26 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Faker\Factory; // Using fakerphp/faker
 use DateTime;
 use DateTimeImmutable;
+use Doctrine\ORM\EntityManagerInterface;
 
 class AppFixtures extends Fixture
 {
     private UserPasswordHasherInterface $passwordHasher;
+    private EntityManagerInterface $entityManager;
 
-    public function __construct(UserPasswordHasherInterface $passwordHasher)
+    public function __construct(UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager)
     {
         $this->passwordHasher = $passwordHasher;
+        $this->entityManager = $entityManager;
     }
 
     public function load(ObjectManager $manager): void
     {
-        // Create a Faker instance to generate fake data
+        $existingUsers = $this->entityManager->getRepository(User::class)->findAll();
+        if (!empty($existingUsers)) {
+            return;
+        }
+
         $faker = Factory::create();
 
         // Create 3 users
