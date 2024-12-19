@@ -9,6 +9,9 @@ services:
     _defaults:
         autowire: true     
         autoconfigure: true 
+        
+    App\Command\HardDeleteCarsCommand:
+        tags: ['console.command']
 
     App\:
         resource: '../src/'
