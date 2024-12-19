@@ -12,6 +12,7 @@ use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\Security\Core\Security;
 use DateTimeImmutable;
+use App\Exception\UnauthorizedCarAccessException;
 
 class CarService
 {
@@ -230,4 +231,13 @@ class CarService
 
         return $groupedCars;
     }
+    public function assertOwner(Car $car): void
+{
+    $user = $this->security->getUser();
+
+    if (!$car->getUser() || $car->getUser() !== $user) {
+        throw new UnauthorizedCarAccessException();
+    }
+}
+
 }

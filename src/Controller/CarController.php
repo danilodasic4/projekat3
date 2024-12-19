@@ -134,12 +134,14 @@ class CarController extends AbstractController
     public function show(#[ValueResolver(CarValueResolver::class)]
         Car $car): Response
         {
+        $this->carService->assertOwner($car);
+
         $appointments = $this->schedulingService->getAppointmentsForCar($car);
 
         return $this->render('car/show.html.twig', [
             'car' => $car,
             'appointments' => $appointments,
-        ]);
+            ]);
         }
     
 
@@ -211,7 +213,8 @@ class CarController extends AbstractController
         if (!$car) {
             throw $this->createNotFoundException('Car not found.');
         }
-    
+        $this->carService->assertOwner($car);
+
         $form = $this->createForm(CarFormType::class, $car, [
             'method' => 'PUT',
             'action' => $this->generateUrl('app_car_update', ['id' => $car->getId()]),
@@ -226,6 +229,8 @@ class CarController extends AbstractController
     #[Route('/cars/update/{id}', name: 'app_car_update', methods: ['PUT'])]
     public function update(#[ValueResolver(CarValueResolver::class)] Car $car, Request $request, ValidatorInterface $validator): Response
     {
+        $this->carService->assertOwner($car);
+
         $requestData = $request->request->all()['car_form'];
     
         $constraints = [
@@ -314,6 +319,8 @@ class CarController extends AbstractController
         #[ValueResolver(CarValueResolver::class)] Car $car,
         CarService $carService 
     ): Response {
+        $this->carService->assertOwner($car);
+        
         $response = $carService->deleteCarById($car->getId());
 
         if ($response->getStatusCode() === Response::HTTP_OK) {
