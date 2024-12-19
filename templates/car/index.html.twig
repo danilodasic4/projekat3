@@ -152,6 +152,10 @@
             <a href="{{ path('user_appointments', { user_id: user.id }) }}" class="appointment-btn">
                 <i class="fas fa-calendar-alt"></i> See your appointments
             </a>
+    <div class="mt-4">
+        <p>If you want to see all soft deleted cars, click here:</p>
+        <a href="{{ path('app_car_deleted') }}" class="btn btn-warning">See Deleted Cars</a>
+    </div>
         </div>
     </div>
 

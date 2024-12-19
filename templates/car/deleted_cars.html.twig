@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Deleted Cars</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    {% include 'base.html.twig' %}
+    
+    <div class="container mt-4">
+        <h1>Deleted Cars</h1>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Year</th>
+                    <th>Color</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for car in cars %}
+                <tr>
+                    <td>{{ car.brand }}</td>
+                    <td>{{ car.model }}</td>
+                    <td>{{ car.year }}</td>
+                    <td>{{ car.color|default('Not specified') }}</td>
+                    <td>
+                        <a href="{{ path('app_car_restore', { id: car.id }) }}" class="btn btn-primary btn-sm">Restore</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5">No deleted cars.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ path('app_car_index') }}" class="btn btn-info">Back to Your Cars</a>
+    </div>
+</body>
+</html>

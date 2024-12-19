@@ -205,6 +205,10 @@ class Car
 
         return $this;
     }
+    public function isDeleted(): bool
+    {
+        return $this->deletedAt !== null;
+    }
 
     public function getRegistrationDate(): ?\DateTimeInterface
     {
