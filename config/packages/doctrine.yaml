@@ -22,7 +22,10 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Entity'
                 prefix: 'App\Entity'
                 alias: App
-
+        filters:
+            soft_delete:
+                class: Gedmo\SoftDeleteable\Filter\SoftDeleteableFilter
+                enabled: true        
 when@prod:
     doctrine:
         orm:
@@ -42,3 +45,42 @@ when@prod:
                     adapter: cache.app
                 doctrine.system_cache_pool:
                     adapter: cache.system
+
+
+
+
+#/var/www/html/projekat3$ php bin/console doctrine:schema:validate
+
+#Mapping
+#-------
+
+                                                               
+#[OK] The mapping files are correct.                           
+                                                               
+
+#Database
+#--------
+
+
+# In ExceptionConverter.php line 101:
+#                                                                
+#   An exception occurred in the driver: SQLSTATE[HY000] [2002] 
+#   php_network_getaddresses: getaddrinfo for symfony-6-testing-project_db failed: Temporary failure in name resolution                                      
+#                                                               
+# In Exception.php line 28:
+#                                                               
+#   SQLSTATE[HY000] [2002] php_network_getaddresses: getaddrin  
+#   fo for symfony-6-testing-project_db failed: Temporary failure in name resolution                                      
+#                                                               
+# In Driver.php line 33:
+#                                                               
+#   SQLSTATE[HY000] [2002] php_network_getaddresses: getaddrin  
+#   fo for symfony-6-testing-project_db failed: Temporary failure in name resolution                                      
+#                                                               
+# In Driver.php line 33:
+#                                                               
+#   PDO::__construct(): php_network_getaddresses: getaddrinfo   
+#   for symfony-6-testing-project_db failed: Temporary failure  
+#    in name resolution                                         
+
+#doctrine:schema:validate [--em EM] [--skip-mapping] [--skip-sync] [--skip-property-types]

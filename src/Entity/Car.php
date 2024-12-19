@@ -9,6 +9,7 @@ use OpenApi\Attributes as OA;
 
 #[ORM\Entity(repositoryClass: CarRepository::class)]
 #[ORM\Table(name: "cars")]
+#[Gedmo\SoftDeleteable(fieldName: "deleted_at")] 
 #[OA\Schema(
     description: "Represents a car in the system",
     type: "object",
