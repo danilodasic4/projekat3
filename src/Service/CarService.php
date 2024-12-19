@@ -166,29 +166,30 @@ class CarService
 
 
     public function deleteCarById(int $id): Response
-    {
-        try {
-            $car = $this->entityManager->getRepository(Car::class)->find($id);
+{
+    try {
+        $car = $this->entityManager->getRepository(Car::class)->find($id);
 
-            if (!$car) {
-                $this->logger->error('Car not found for deletion', ['car_id' => $id]); 
-                return new Response('Car not found', Response::HTTP_NOT_FOUND);
-            }
-            $this->entityManager->remove($car);
-            $this->entityManager->flush();
-
-            $this->logger->info('Car deleted successfully', ['car_id' => $id]);
-
-            return new Response('Car deleted successfully', Response::HTTP_OK);
-        } catch (\Exception $e) {
-            $this->logger->error('Error deleting car', [
-                'car_id' => $id,
-                'error_message' => $e->getMessage(),
-            ]);
-            return new Response('Error: ' . $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        if (!$car) {
+            $this->logger->error('Car not found for deletion', ['car_id' => $id]); 
+            return new Response('Car not found', Response::HTTP_NOT_FOUND);
         }
 
+        // Set the deleted_at field to current timestamp for soft delete
+        $car->setDeletedAt(new \DateTime());
+        $this->entityManager->flush();  // Save the change to the database
+
+        $this->logger->info('Car soft deleted successfully', ['car_id' => $id]);
+
+        return new Response('Car soft deleted successfully', Response::HTTP_OK);
+    } catch (\Exception $e) {
+        $this->logger->error('Error soft deleting car', [
+            'car_id' => $id,
+            'error_message' => $e->getMessage(),
+        ]);
+        return new Response('Error: ' . $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
     }
+}
 
     // Get cars with expiring registration
     public function expiringRegistration(User $user): array
