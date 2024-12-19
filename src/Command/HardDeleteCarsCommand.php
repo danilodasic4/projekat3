@@ -34,9 +34,8 @@ class HardDeleteCarsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $oneMonthAgo = new DateTimeImmutable('-1 month');
+        $carsToDelete = $this->carRepository->findSoftDeletedCarsOlderThan(new DateTimeImmutable('-1 month'));
 
-        $carsToDelete = $this->carRepository->findSoftDeletedCarsOlderThan($oneMonthAgo);
 
         if (empty($carsToDelete)) {
             $output->writeln('No cars to hard delete.');

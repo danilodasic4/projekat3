@@ -78,6 +78,7 @@ class CarRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
     public function findSoftDeletedCarsOlderThan(DateTimeImmutable $date): array
     {
         return $this->createQueryBuilder('c')
@@ -86,5 +87,7 @@ class CarRepository extends ServiceEntityRepository
             ->setParameter('date', $date)
             ->getQuery()
             ->getResult();
+
     }
 }
+
