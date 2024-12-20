@@ -349,13 +349,13 @@ class CarController extends AbstractController
     {
         $user = $this->security->getUser();
         
-        if ($car && $car->getUser() === $user && $car->getDeletedAt() !== null) {
-            $car->setDeletedAt(null); 
-            $this->entityManager->flush(); 
+        if ($car->getUser() === $user && $car->getDeletedAt() !== null) {
+            $car->setDeletedAt(null);
+            $this->entityManager->flush();
         }
     
         return $this->redirectToRoute('app_car_deleted');
-    }
+    }  
  // Get list of cars with expiring registration
     #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration', methods: ['GET'])]
     #[OA\Get(
