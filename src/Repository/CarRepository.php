@@ -68,4 +68,26 @@ class CarRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    public function findDeletedByUser(User $user): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.user = :user')
+            ->andWhere('c.deleted_at IS NOT NULL') 
+            ->setParameter('user', $user)
+            ->orderBy('c.deleted_at', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findSoftDeletedCarsOlderThan(DateTimeImmutable $date): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.deleted_at IS NOT NULL') 
+            ->andWhere('c.deleted_at <= :date')
+            ->setParameter('date', $date)
+            ->getQuery()
+            ->getResult();
+
+    }
 }
+

@@ -22,7 +22,10 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Entity'
                 prefix: 'App\Entity'
                 alias: App
-
+        filters:
+            soft_delete:
+                class: Gedmo\SoftDeleteable\Filter\SoftDeleteableFilter
+                enabled: true        
 when@prod:
     doctrine:
         orm:
@@ -42,3 +45,4 @@ when@prod:
                     adapter: cache.app
                 doctrine.system_cache_pool:
                     adapter: cache.system
+

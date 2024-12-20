@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTimeImmutable;
@@ -331,8 +332,30 @@ class CarController extends AbstractController
             'error' => $response->getContent(),
         ]);
     }
+    #[Route('/cars/deleted', name: 'app_car_deleted')]
+    public function showDeletedCars(CarRepository $carRepository): Response
+    {
+        $user = $this->security->getUser();
+        $cars = $carRepository->findDeletedByUser($user); 
 
-
+        return $this->render('car/deleted_cars.html.twig', [
+            'cars' => $cars,
+        ]);
+    }
+    #[Route('/cars/restore/{id}', name: 'app_car_restore')]
+    public function restoreCar(
+        #[ValueResolver(CarValueResolver::class)] Car $car
+    ): RedirectResponse
+    {
+        $user = $this->security->getUser();
+        
+        if ($car->getUser() === $user && $car->getDeletedAt() !== null) {
+            $car->setDeletedAt(null);
+            $this->entityManager->flush();
+        }
+    
+        return $this->redirectToRoute('app_car_deleted');
+    }  
  // Get list of cars with expiring registration
     #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration', methods: ['GET'])]
     #[OA\Get(
