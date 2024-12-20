@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Users</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    {% include 'admin/base.html.twig' %}
+
+    <div class="container mt-4">
+        <h1 class="my-4">All Users</h1>
+
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Roles</th>
+                    <th>Birthday</th>
+                    <th>Gender</th>
+                    <th>Newsletter</th>
+                    <th>Verified</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.roles|json_encode }}</td>
+                    <td>{{ user.birthday ? user.birthday|date('Y-m-d') : 'N/A' }}</td>
+                    <td>{{ user.gender ? user.gender : 'N/A' }}</td>
+                    <td>{{ user.newsletter ? 'Yes' : 'No' }}</td>
+                    <td>{{ user.verified ? 'Yes' : 'No' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{{ path('admin_index') }}" class="btn btn-secondary mb-3">Back to Dashboard</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
