@@ -9,6 +9,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class AdminController extends AbstractController
 {
@@ -59,7 +60,6 @@ class AdminController extends AbstractController
         if ($this->getUser()) {
             return $this->redirectToRoute('admin_index');
         }
-
         $error = $authenticationUtils->getLastAuthenticationError();
 
         $lastEmail = $authenticationUtils->getLastUsername();

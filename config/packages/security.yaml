@@ -46,16 +46,16 @@ security:
             security: true
 
         admin:
-            pattern: ^/admin|^/admin/login$ 
             provider: admin_provider
             form_login:
                 login_path: /admin/login
-                check_path: /admin/login
-                default_target_path: admin_index
+                check_path: admin_login
+                default_target_path: /admin
             logout:
                 path: /admin/logout
-                target: /admin/login
+                target: /
             access_denied_url: /access-denied
+            security: true
 
     access_control:
         - { path: ^/users/\d+/verify/, roles: PUBLIC_ACCESS }
