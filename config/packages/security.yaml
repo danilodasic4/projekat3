@@ -46,6 +46,7 @@ security:
             security: true
 
         admin:
+            lazy: true
             provider: admin_provider
             form_login:
                 login_path: /admin/login
@@ -58,12 +59,12 @@ security:
             security: true
 
     access_control:
-        - { path: ^/users/\d+/verify/, roles: PUBLIC_ACCESS }
-        - { path: ^/registration_verified, roles: PUBLIC_ACCESS}
+        - { path: ^/admin/login, roles: PUBLIC_ACCESS }
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
-        - { path: ^/admin/login, roles: PUBLIC_ACCESS }
-        - { path: ^/admin, roles: ROLE_ADMIN }    
+        - { path: ^/users/\d+/verify/, roles: PUBLIC_ACCESS }
+        - { path: ^/registration_verified, roles: PUBLIC_ACCESS }
+        - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/cars/, roles: ROLE_VERIFIED }
         - { path: ^/car/\d+/appointment, roles: ROLE_USER }
         - { path: ^/api/appointments, roles: ROLE_USER }

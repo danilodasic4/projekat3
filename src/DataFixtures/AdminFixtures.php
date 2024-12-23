@@ -21,7 +21,7 @@ class AdminFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        $existingAdmin = $this->entityManager->getRepository(User::class)->findOneBy(['email' => 'admin@example.com']);
+        $existingAdmin = $this->entityManager->getRepository(Admin::class)->findOneBy(['email' => 'admin@example.com']);
 
         if ($existingAdmin) {
             $admin2 = new Admin();
