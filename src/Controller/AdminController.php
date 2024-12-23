@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class AdminController extends AbstractController
 {
@@ -15,10 +16,10 @@ class AdminController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]  
     public function index(): Response
     {
-        $user = $this->getUser();  
-    
+        $user = $this->getUser();
+
         return $this->render('admin/index.html.twig', [
-            'user' => $user, 
+            'user' => $user,
         ]);
     }
     
@@ -52,18 +53,30 @@ class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/login', name: 'admin_login')]
-    public function login(): Response
+    #[Route('/admin/login', name: 'admin_login', methods: ['GET', 'POST'])]
+    public function login(AuthenticationUtils $authenticationUtils): Response
     {
         if ($this->getUser()) {
             return $this->redirectToRoute('admin_index');
         }
 
-        return $this->render('admin/login.html.twig');
+        $error = $authenticationUtils->getLastAuthenticationError();
+
+        $lastEmail = $authenticationUtils->getLastUsername();
+
+        return $this->render('admin/login.html.twig', [
+            'last_email' => $lastEmail,
+            'error' => $error,
+        ]);
     }
-    #[Route('/admin/logout', name: 'admin_logout')]
-    public function logout(): RedirectResponse
-    {
-        return $this->redirectToRoute('homepage');
-    }
+
+    #[Route('/admin/logout', name: 'admin_logout', methods:['GET'])]
+    public function logout(SessionInterface $session): RedirectResponse
+{
+    $session->clear();
+    
+    $session->invalidate();
+
+    return new RedirectResponse($this->generateUrl('homepage'));
+}
 }

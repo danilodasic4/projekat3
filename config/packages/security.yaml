@@ -3,15 +3,24 @@ security:
         App\Entity\User:
             algorithm: auto
         
+        App\Entity\Admin:
+            algorithm: auto
+
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
-            algorithm: 'auto'
+            algorithm: auto
             cost: 15
 
     providers:
+        admin_provider:
+            entity:
+                class: App\Entity\Admin
+                property: email
+
         app_user_provider:
             entity:
                 class: App\Entity\User
                 property: email
+
 
     firewalls:
         dev:
@@ -37,11 +46,11 @@ security:
             security: true
 
         admin:
-            pattern: ^/admin
-            provider: app_user_provider
+            pattern: ^/admin|^/admin/login$ 
+            provider: admin_provider
             form_login:
-                login_path: admin_login   
-                check_path: admin_login  
+                login_path: /admin/login
+                check_path: /admin/login
                 default_target_path: admin_index
             logout:
                 path: /admin/logout
@@ -59,5 +68,3 @@ security:
         - { path: ^/car/\d+/appointment, roles: ROLE_USER }
         - { path: ^/api/appointments, roles: ROLE_USER }
         - { path: ^/cars$, roles: ROLE_USER }
-
-

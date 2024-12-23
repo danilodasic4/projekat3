@@ -6,21 +6,19 @@ use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Faker\Factory; // Using fakerphp/faker
+use Faker\Factory; 
 use DateTime;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 
 class AppFixtures extends Fixture
 {
-    private UserPasswordHasherInterface $passwordHasher;
-    private EntityManagerInterface $entityManager;
 
-    public function __construct(UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager)
-    {
-        $this->passwordHasher = $passwordHasher;
-        $this->entityManager = $entityManager;
-    }
+    public function __construct(
+        private readonly UserPasswordHasherInterface $passwordHasher, 
+        private readonly EntityManagerInterface $entityManager
+        )
+    {}
 
     public function load(ObjectManager $manager): void
     {

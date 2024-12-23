@@ -5,14 +5,24 @@
 {% block body %}
     <h1>Admin Login</h1>
 
-    <form method="post">
-        {% if error %}
-            <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
-        {% endif %}
+    {# Showing flash message for successful login #}
+    {% if app.session.flashbag().has('success') %}
+        <div class="alert alert-success">
+            {{ app.session.flashbag().get('success')[0] }}
+        </div>
+    {% endif %}
 
+    {# Showing error if exists #}
+    {% if error %}
+        <div class="alert alert-danger">
+            {{ error.messageKey|trans(error.messageData, 'security') }}
+        </div>
+    {% endif %}
+
+    <form action="{{ path('admin_login') }}" method="post">
         <div class="form-group">
             <label for="email">Email</label>
-            <input type="email" id="email" name="_username" class="form-control" required autofocus />
+            <input type="email" id="email" name="_username" class="form-control" required autofocus value="{{ last_email|e }}" />
         </div>
 
         <div class="form-group">
@@ -20,7 +30,12 @@
             <input type="password" id="password" name="_password" class="form-control" required />
         </div>
 
-        <button type="submit" class="btn btn-primary">Login</button>
+        <div class="form-check mt-3">
+            <input type="checkbox" id="remember_me" name="_remember_me" class="form-check-input">
+            <label for="remember_me" class="form-check-label">Remember Me</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">Login</button>
     </form>
 
 {% endblock %}
