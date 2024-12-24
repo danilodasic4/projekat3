@@ -92,12 +92,6 @@
     
     <h1>Archived Appointments</h1>
 
-    {% if error %}
-        <div class="alert alert-danger">
-            {{ error }}
-        </div>
-    {% endif %}
-
     <div class="container">
         <form method="get" action="{{ path('admin_appointments_archived') }}">
             <div class="row">
