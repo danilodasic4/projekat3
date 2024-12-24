@@ -27,6 +27,20 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
+        admin:
+            pattern: ^/admin
+            lazy: true
+            provider: admin_provider
+            form_login:
+                login_path: /admin/login
+                check_path: admin_login
+                default_target_path: /admin
+            logout:
+                path: /admin/logout
+                target: /
+            access_denied_url: /access-denied
+            security: true
+
         main:
             lazy: true
             provider: app_user_provider
@@ -42,19 +56,6 @@ security:
                 lifetime: 604800 # 1 week in seconds
                 path: /
                 httponly: true
-            access_denied_url: /access-denied
-            security: true
-
-        admin:
-            lazy: true
-            provider: admin_provider
-            form_login:
-                login_path: /admin/login
-                check_path: admin_login
-                default_target_path: /admin
-            logout:
-                path: /admin/logout
-                target: /
             access_denied_url: /access-denied
             security: true
 
