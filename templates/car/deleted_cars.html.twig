@@ -1,43 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deleted Cars</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .actions-column {
+            text-align: center;
+        }
+        .table-no-data {
+            text-align: center;
+            font-weight: bold;
+            color: #6c757d;
+        }
+    </style>
 </head>
 <body>
     {% include 'base.html.twig' %}
     
-    <div class="container mt-4">
-        <h1>Deleted Cars</h1>
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>Brand</th>
-                    <th>Model</th>
-                    <th>Year</th>
-                    <th>Color</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for car in cars %}
-                <tr>
-                    <td>{{ car.brand }}</td>
-                    <td>{{ car.model }}</td>
-                    <td>{{ car.year }}</td>
-                    <td>{{ car.color|default('Not specified') }}</td>
-                    <td>
-                        <a href="{{ path('app_car_restore', { id: car.id }) }}" class="btn btn-primary btn-sm">Restore</a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5">No deleted cars.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <a href="{{ path('app_car_index') }}" class="btn btn-info">Back to Your Cars</a>
+    <div class="container mt-5">
+        <div class="text-center mb-4">
+            <h1 class="display-4">Deleted Cars</h1>
+            <p class="lead text-muted">Here you can view and restore your deleted cars.</p>
+        </div>
+        
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-hover table-bordered table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Brand</th>
+                            <th>Model</th>
+                            <th>Year</th>
+                            <th>Color</th>
+                            <th class="actions-column">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for car in cars %}
+                        <tr>
+                            <td>{{ car.brand }}</td>
+                            <td>{{ car.model }}</td>
+                            <td>{{ car.year }}</td>
+                            <td>{{ car.color|default('Not specified') }}</td>
+                            <td class="actions-column">
+                                <a href="{{ path('app_car_restore', { id: car.id }) }}" class="btn btn-success btn-sm">
+                                    <i class="fas fa-undo"></i> Restore
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="table-no-data">No deleted cars found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="mt-4 text-center">
+            <a href="{{ path('app_car_index') }}" class="btn btn-info">
+                <i class="fas fa-arrow-left"></i> Back to Your Cars
+            </a>
+        </div>
     </div>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.4.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
