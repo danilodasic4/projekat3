@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Appointments</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 20px;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .pagination {
+            justify-content: center;
+        }
+        .pagination .page-item {
+            margin: 0 5px;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    {% include 'admin/base.html.twig' %}
+    
+    <div class="container">
+        <h1>All Appointments</h1>
+
+        <form method="get" action="{{ path('admin_appointments_upcoming') }}">
+            <div class="form-row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="car">Car</label>
+                        <select name="car" id="car" class="form-control">
+                            <option value="">-- Select Car --</option>
+                            {% for car in cars %}
+                                <option value="{{ car.id }}" {% if car.id == app.request.query.get('car') %}selected{% endif %}>{{ car.brand }} - {{ car.model }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="user">User</label>
+                        <select name="user" id="user" class="form-control">
+                            <option value="">-- Select User --</option>
+                            {% for user in users %}
+                                <option value="{{ user.id }}" {% if user.id == app.request.query.get('user') %}selected{% endif %}>{{ user.email }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="appointment_type">Appointment Type</label>
+                        <input type="text" name="appointment_type" id="appointment_type" class="form-control" value="{{ app.request.query.get('appointment_type') }}">
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="scheduled_at">Scheduled At</label>
+                        <input type="date" name="scheduled_at" id="scheduled_at" class="form-control"
+                               value="{{ app.request.query.get('scheduled_at') ? app.request.query.get('scheduled_at')|date('Y-m-d') : '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+
+        <table class="table mt-4">
+            <thead>
+                <tr>
+                    <th>Car</th>
+                    <th>User</th>
+                    <th>Scheduled At</th>
+                    <th>Appointment Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in pager.getCurrentPageResults() %}
+                    <tr>
+                        <td>{{ appointment.car.brand }} - {{ appointment.car.model }}</td>
+                        <td>{{ appointment.user.email }}</td>
+                        <td>{{ appointment.scheduledAt|date('Y-m-d H:i') }}</td>
+                        <td>{{ appointment.appointmentType }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4">No appointments found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            {% if pager.haveToPaginate() %}
+                <ul class="pagination">
+                    {% if pager.currentPage() > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ path('admin_appointments_upcoming', {'page': pager.currentPage() - 1}) }}">Previous</a>
+                        </li>
+                    {% endif %}
+
+                    {% for page in pager.getPages() %}
+                        <li class="page-item {% if page == pager.currentPage() %}active{% endif %}">
+                            <a class="page-link" href="{{ path('admin_appointments_upcoming', {'page': page}) }}">{{ page }}</a>
+                        </li>
+                    {% endfor %}
+
+                    {% if pager.currentPage() < pager.nbPages() %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ path('admin_appointments_upcoming', {'page': pager.currentPage() + 1}) }}">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

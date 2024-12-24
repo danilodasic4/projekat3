@@ -12,6 +12,8 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Pagerfanta\Doctrine\ORM\QueryAdapter;
+use Pagerfanta\Pagerfanta;
 
 class AdminController extends AbstractController
 {
@@ -24,11 +26,92 @@ class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/appointments', name: 'admin_appointments')]
-    public function appointments(AppointmentRepository $appointmentRepository): Response
-    {
-        return $this->render('admin/appointments.html.twig', [
-            'appointments' => $appointmentRepository->findAll(),
+
+    #[Route('/admin/appointments', name: 'admin_appointments_upcoming')]
+    public function upcomingAppointments(
+        Request $request,
+        AppointmentRepository $appointmentRepository,
+        CarRepository $carRepository,
+        UserRepository $userRepository
+    ): Response {
+        // Get filter parameters from query string
+        $carId = $request->query->get('car');
+        $userId = $request->query->get('user');
+        $appointmentType = $request->query->get('appointment_type');
+        $scheduledAtString = $request->query->get('scheduled_at');
+    
+        // Check if a date is provided and convert to DateTime object
+        $scheduledAt = null;
+        if ($scheduledAtString) {
+            // Handle the date format correctly (yyyy-mm-dd)
+            $scheduledAt = \DateTime::createFromFormat('Y-m-d', $scheduledAtString);
+            if (!$scheduledAt) {
+                // If it fails, you can handle error or try another format (e.g. mm/dd/yyyy)
+                $scheduledAt = \DateTime::createFromFormat('m/d/Y', $scheduledAtString);
+            }
+        }
+    
+        // Ensure carId and userId are integers or null
+        $carId = $carId ? (int) $carId : null;
+        $userId = $userId ? (int) $userId : null;
+    
+        // Create the filtered query builder
+        $queryBuilder = $appointmentRepository->createFilteredQueryBuilder($carId, $userId, $appointmentType, $scheduledAt);
+    
+        // Filter for upcoming appointments (future dates)
+        $queryBuilder->andWhere('a.scheduledAt > :now')
+                     ->setParameter('now', new \DateTime());
+    
+        // Create a Pagerfanta object for pagination
+        $adapter = new QueryAdapter($queryBuilder);
+        $pagerfanta = Pagerfanta::createForCurrentPageWithMaxPerPage($adapter, $request->query->getInt('page', 1), 10);
+        
+        // Render the upcoming appointments page with pagination
+        return $this->render('admin/appointments_upcoming.html.twig', [
+            'pager' => $pagerfanta,
+            'cars' => $carRepository->findAll(),
+            'users' => $userRepository->findAll(),
+        ]);
+    }
+    
+        #[Route('/admin/appointments/archived', name: 'admin_appointments_archived')]
+    public function archivedAppointments(
+        Request $request,
+        AppointmentRepository $appointmentRepository,
+        CarRepository $carRepository,
+        UserRepository $userRepository
+    ): Response {
+        $carId = $request->query->get('car');
+        $userId = $request->query->get('user');
+        $appointmentType = $request->query->get('appointment_type');
+        $scheduledAtString = $request->query->get('scheduled_at');
+    
+        $scheduledAt = null;
+        if ($scheduledAtString) {
+            $scheduledAt = \DateTime::createFromFormat('Y-m-d', $scheduledAtString);
+            if (!$scheduledAt) {
+                $scheduledAt = \DateTime::createFromFormat('m/d/Y', $scheduledAtString);
+            }
+        }
+    
+        $carId = $carId ? (int) $carId : null;
+        $userId = $userId ? (int) $userId : null;
+    
+        $queryBuilder = $appointmentRepository->createFilteredQueryBuilder($carId, $userId, $appointmentType, $scheduledAt);
+    
+        $queryBuilder->andWhere('a.scheduledAt < :now')
+                     ->setParameter('now', new \DateTime());
+    
+        $adapter = new QueryAdapter($queryBuilder);
+        $pagerfanta = Pagerfanta::createForCurrentPageWithMaxPerPage($adapter, $request->query->getInt('page', 1), 10);
+    
+        $cars = $carRepository->findAll();
+        $users = $userRepository->findAll();
+    
+        return $this->render('admin/appointments_archived.html.twig', [
+            'pager' => $pagerfanta,
+            'cars' => $carRepository->findAll(),
+            'users' => $userRepository->findAll(),
         ]);
     }
 
