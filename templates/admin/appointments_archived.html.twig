@@ -141,54 +141,53 @@
         </form>
 
         <table class="table">
-            <thead>
-                <tr>
-                    <th>Car</th>
-                    <th>User</th>
-                    <th>Scheduled At</th>
-                    <th>Appointment Type</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for appointment in pager.getCurrentPageResults() %}
-                    <tr>
-                        <td>{{ appointment.car.brand }} - {{ appointment.car.model }}</td>
-                        <td>{{ appointment.user.email }}</td>
-                        <td>{{ appointment.scheduledAt|date('Y-m-d H:i') }}</td>
-                        <td>{{ appointment.appointmentType }}</td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="4">No archived appointments found.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <thead>
+        <tr>
+            <th>Car</th>
+            <th>User</th>
+            <th>Appointment Type</th>
+            <th>Scheduled At</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for appointment in pager.getCurrentPageResults() %}
+            <tr>
+                <td>{{ appointment.car.brand }} - {{ appointment.car.model }}</td>
+                <td>{{ appointment.user.email }}</td>
+                <td>{{ appointment.appointmentType }}</td>
+                <td>{{ appointment.scheduledAt|date('Y-m-d H:i') }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">No archived appointments found.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
-        <div class="pagination">
-            {% if pager.haveToPaginate() %}
-                <ul class="pagination">
-                    {% if pager.currentPage() > 1 %}
-                        <li class="page-item">
-                            <a class="page-link" href="{{ path('admin_appointments_archived', {'page': pager.currentPage() - 1}) }}">Previous</a>
-                        </li>
-                    {% endif %}
-
-                    {% for page in pager.getPages() %}
-                        <li class="page-item {% if page == pager.currentPage() %}active{% endif %}">
-                            <a class="page-link" href="{{ path('admin_appointments_archived', {'page': page}) }}">{{ page }}</a>
-                        </li>
-                    {% endfor %}
-
-                    {% if pager.currentPage() < pager.nbPages() %}
-                        <li class="page-item">
-                            <a class="page-link" href="{{ path('admin_appointments_archived', {'page': pager.currentPage() + 1}) }}">Next</a>
-                        </li>
-                    {% endif %}
-                </ul>
+<div class="pagination">
+    {% if pager.haveToPaginate() %}
+        <ul class="pagination">
+            {% if pager.currentPage() > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ path('admin_appointments_archived', {'page': pager.currentPage() - 1}) }}">Previous</a>
+                </li>
             {% endif %}
-        </div>
-    </div>
+
+            {% for page in pager.getPages() %}
+                <li class="page-item {% if page == pager.currentPage() %}active{% endif %}">
+                    <a class="page-link" href="{{ path('admin_appointments_archived', {'page': page}) }}">{{ page }}</a>
+                </li>
+            {% endfor %}
+
+            {% if pager.currentPage() < pager.nbPages() %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ path('admin_appointments_archived', {'page': pager.currentPage() + 1}) }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    {% endif %}
+</div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.0/dist/umd/popper.min.js"></script>
