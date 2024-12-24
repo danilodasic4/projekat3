@@ -50,7 +50,7 @@ security:
                 default_target_path: /cars
             logout:
                 path: /logout
-                target: /
+                target: /admin/login
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 604800 # 1 week in seconds
