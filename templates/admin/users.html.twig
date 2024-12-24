@@ -20,6 +20,7 @@
                     <th>Gender</th>
                     <th>Newsletter</th>
                     <th>Verified</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -32,6 +33,16 @@
                     <td>{{ user.gender ? user.gender : 'N/A' }}</td>
                     <td>{{ user.newsletter ? 'Yes' : 'No' }}</td>
                     <td>{{ user.verified ? 'Yes' : 'No' }}</td>
+                    <td>
+                        {% if user.bannedAt is null %}
+                            <button class="btn btn-danger ban-user-btn" data-user-id="{{ user.id }}">Ban User</button>
+                        {% else %}
+                            <span class="text-muted">Banned</span>
+                            <form action="{{ path('admin_unban_user', {'id': user.id}) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-success">Unban User</button>
+                            </form>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% else %}
                 <tr>
@@ -44,8 +55,67 @@
         <a href="{{ path('admin_index') }}" class="btn btn-secondary mb-3">Back to Dashboard</a>
     </div>
 
+    <!-- Modal for Confirming Ban -->
+    <div id="banUserModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Ban</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to ban this user?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="confirmBan" class="btn btn-danger">Confirm</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.0/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const banButtons = document.querySelectorAll('.ban-user-btn');
+            let selectedUserId = null;
+
+            // Open modal on Ban button click
+            banButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    selectedUserId = button.dataset.userId;
+                    const modal = new bootstrap.Modal(document.getElementById('banUserModal'));
+                    modal.show();
+                });
+            });
+
+            // Handle Ban confirmation
+            document.getElementById('confirmBan').addEventListener('click', () => {
+                if (selectedUserId) {
+                    fetch(`/admin/users/${selectedUserId}/ban`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token("ban_user") }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        location.reload(); 
+                    })
+                    .catch(err => {
+                        console.error('Error banning user:', err);
+                        alert('Failed to ban user. Please try again.');
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>

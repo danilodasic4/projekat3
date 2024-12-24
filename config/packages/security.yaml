@@ -42,6 +42,7 @@ security:
             security: true
 
         main:
+            user_checker: App\Service\UserChecker
             lazy: true
             provider: app_user_provider
             form_login:

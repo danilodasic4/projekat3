@@ -7,6 +7,7 @@ use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -17,6 +18,7 @@ use Pagerfanta\Pagerfanta;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use InvalidArgumentException; 
+use Doctrine\ORM\EntityManagerInterface;
 
 class AdminController extends AbstractController
 {
@@ -146,6 +148,50 @@ class AdminController extends AbstractController
             'users' => $userRepository->findAll(),
         ]);
     }
+
+        #[Route('/admin/users/{id}/ban', name: 'admin_ban_user', methods: ['POST'])]
+    public function banUser(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $user = $userRepository->find($id);
+
+        if (!$user) {
+            return new JsonResponse(['message' => 'User not found'], 404);
+        }
+
+        if ($user->getBannedAt() !== null) {
+            return new JsonResponse(['message' => 'User is already banned'], 400);
+        }
+
+        $user->setBannedAt(new \DateTime());
+
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        return new JsonResponse(['message' => 'User successfully banned'], 200);
+    }
+    
+    #[Route('/admin/users/{id}/unban', name: 'admin_unban_user', methods: ['POST'])]
+    public function unbanUser(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager, Request $request): Response
+    {
+        $user = $userRepository->find($id);
+
+        if ($user) {
+            $user->setBannedAt(null);
+
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'User has been unbanned.');
+        } else {
+            $this->addFlash('error', 'User not found.');
+        }
+
+        $previousUrl = $request->headers->get('referer');
+        return $this->redirect($previousUrl);
+    }
+    
+
+
 
     #[Route('/admin/cars', name: 'admin_cars')]
     public function cars(CarRepository $carRepository): Response

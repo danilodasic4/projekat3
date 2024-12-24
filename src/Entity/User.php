@@ -57,6 +57,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Car::class, mappedBy: 'user')]
     private Collection $cars;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $bannedAt = null;
+
     public function __construct()
     {
         $this->cars = new ArrayCollection();
@@ -222,14 +225,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
-    public function getVerified(): bool
-{
-    return $this->verified;
-}
+        public function getVerified(): bool
+    {
+        return $this->verified;
+    }
 
-public function setVerified(bool $verified): static
-{
-    $this->verified = $verified;
-    return $this;
-}
+    public function setVerified(bool $verified): static
+    {
+        $this->verified = $verified;
+        return $this;
+    }
+    public function getBannedAt(): ?\DateTimeInterface
+    {
+        return $this->bannedAt;
+    }
+
+    public function setBannedAt(?\DateTimeInterface $bannedAt): self
+    {
+        $this->bannedAt = $bannedAt;
+        return $this;
+    }
 }
