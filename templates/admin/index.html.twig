@@ -3,13 +3,60 @@
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block body %}
-    <h1>Hello, {{ user.email }}!</h1>
-    <p>Welcome to the admin panel.</p>
+<div class="container my-5">
+    <h1 class="text-center mb-4">Hello, {{ user.email }}!</h1>
+    <p class="text-center mb-4">Welcome to the admin panel. You can manage appointments, cars, and users here.</p>
 
-    <h3>What would you like to do?</h3>
-    <ul>
-        <li> See what application has from cars?<br><a href="{{ path('admin_cars') }}">View all cars</a></li>
-        <li>See what application has from appointments?<br><a href="{{ path('admin_appointments') }}">View all appointments</a></li>
-        <li>See what application has from users?<br><a href="{{ path('admin_users') }}">View all users</a></li>
-    </ul>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white text-center">
+                    <h5>Upcoming Appointments</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="card-text">See the upcoming appointments for the application.</p>
+                    <a href="{{ path('admin_appointments_upcoming') }}" class="btn btn-primary">View All Upcoming Appointments</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-secondary">
+                <div class="card-header bg-secondary text-white text-center">
+                    <h5>Archived Appointments</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="card-text">View all archived (finished) appointments here.</p>
+                    <a href="{{ path('admin_appointments_archived') }}" class="btn btn-secondary">View All Archived Appointments</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-success">
+                <div class="card-header bg-success text-white text-center">
+                    <h5>Manage Cars</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="card-text">View and manage the cars registered in the system.</p>
+                    <a href="{{ path('admin_cars') }}" class="btn btn-success">View All Cars</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-info">
+                <div class="card-header bg-info text-white text-center">
+                    <h5>Manage Users</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="card-text">See and manage all the users registered in the system.</p>
+                    <a href="{{ path('admin_users') }}" class="btn btn-info">View All Users</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
