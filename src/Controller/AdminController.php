@@ -14,6 +14,9 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use InvalidArgumentException; 
 
 class AdminController extends AbstractController
 {
@@ -32,14 +35,26 @@ class AdminController extends AbstractController
         Request $request,
         AppointmentRepository $appointmentRepository,
         CarRepository $carRepository,
-        UserRepository $userRepository
+        UserRepository $userRepository,
+        ValidatorInterface $validator
+
     ): Response {
         // Get filter parameters from query string
         $carId = $request->query->get('car');
         $userId = $request->query->get('user');
         $appointmentType = $request->query->get('appointment_type');
         $scheduledAtString = $request->query->get('scheduled_at');
-    
+        
+        $carIdConstraint = new Assert\Optional(new Assert\Type('integer'));
+        $userIdConstraint = new Assert\Optional(new Assert\Type('integer'));
+
+        $carIdViolations = $validator->validate($carId, $carIdConstraint);
+        $userIdViolations = $validator->validate($userId, $userIdConstraint);
+
+        if (count($carIdViolations) > 0 || count($userIdViolations) > 0) {
+            throw new \InvalidArgumentException('carId and userId must be integers.');
+        }
+
         // Check if a date is provided and convert to DateTime object
         $scheduledAt = null;
         if ($scheduledAtString) {
@@ -79,13 +94,25 @@ class AdminController extends AbstractController
         Request $request,
         AppointmentRepository $appointmentRepository,
         CarRepository $carRepository,
-        UserRepository $userRepository
+        UserRepository $userRepository,
+        ValidatorInterface $validator
+
     ): Response {
         $carId = $request->query->get('car');
         $userId = $request->query->get('user');
         $appointmentType = $request->query->get('appointment_type');
         $scheduledAtString = $request->query->get('scheduled_at');
-    
+        
+        $carIdConstraint = new Assert\Optional(new Assert\Type('integer'));
+        $userIdConstraint = new Assert\Optional(new Assert\Type('integer'));
+
+        $carIdViolations = $validator->validate($carId, $carIdConstraint);
+        $userIdViolations = $validator->validate($userId, $userIdConstraint);
+
+        if (count($carIdViolations) > 0 || count($userIdViolations) > 0) {
+            throw new \InvalidArgumentException('carId and userId must be integers.');
+        }
+
         $scheduledAt = null;
         if ($scheduledAtString) {
             $scheduledAt = \DateTime::createFromFormat('Y-m-d', $scheduledAtString);
@@ -104,9 +131,6 @@ class AdminController extends AbstractController
     
         $adapter = new QueryAdapter($queryBuilder);
         $pagerfanta = Pagerfanta::createForCurrentPageWithMaxPerPage($adapter, $request->query->getInt('page', 1), 10);
-    
-        $cars = $carRepository->findAll();
-        $users = $userRepository->findAll();
     
         return $this->render('admin/appointments_archived.html.twig', [
             'pager' => $pagerfanta,
