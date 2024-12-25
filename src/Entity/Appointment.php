@@ -25,6 +25,9 @@ class Appointment
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $createdAt;
 
+    #[ORM\Column(type: "datetime", nullable: true)]
+    private ?\DateTimeInterface $finishedAt = null;
+
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
@@ -87,5 +90,16 @@ class Appointment
         $this->user = $user;
         return $this;
     }
+    public function getFinishedAt(): ?\DateTimeInterface
+    {
+        return $this->finishedAt;
+    }
+
+    public function setFinishedAt(?\DateTimeInterface $finishedAt): self
+    {
+        $this->finishedAt = $finishedAt;
+        return $this;
+    }
+
 }
 

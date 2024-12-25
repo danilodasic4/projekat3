@@ -83,19 +83,23 @@
             <th>User</th>
             <th>Appointment Type</th>
             <th>Scheduled At</th>
+            <th>Action</th>
         </tr>
     </thead>
     <tbody>
         {% for appointment in pager.getCurrentPageResults() %}
-            <tr>
+            <tr id="appointment_{{ appointment.id }}">
                 <td>{{ appointment.car.brand }} - {{ appointment.car.model }}</td>
                 <td>{{ appointment.user.email }}</td>
                 <td>{{ appointment.appointmentType }}</td>
                 <td>{{ appointment.scheduledAt|date('Y-m-d H:i') }}</td>
+                <td>
+                    <button id="finish_{{ appointment.id }}" class="btn btn-success" onclick="finishAppointment({{ appointment.id }})">Finish</button>
+                </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="4">No appointments found.</td>
+                <td colspan="5">No appointments found.</td>
             </tr>
         {% endfor %}
     </tbody>
@@ -131,3 +135,35 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
+<script>
+function finishAppointment(appointmentId) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/admin/appointments/" + appointmentId + "/finish", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var response = JSON.parse(xhr.responseText);
+            if (response.status === 'success') {
+                // Change the button text to "Just finished"
+                var button = document.getElementById('finish_' + appointmentId);
+                button.innerText = 'Just finished';
+                button.classList.remove('btn-success');
+                button.classList.add('btn-secondary');
+                button.disabled = true; 
+            } else {
+                alert('Failed to finish appointment: ' + response.message);
+            }
+        } else {
+            alert('Failed to finish appointment. Status code: ' + xhr.status);
+        }
+    };
+
+    xhr.onerror = function() {
+        alert('Failed to finish appointment due to a network error.');
+    };
+
+    xhr.send();
+}
+
+</script>
