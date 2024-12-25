@@ -26,6 +26,9 @@ use Psr\Log\LoggerInterface;
 use App\Service\SchedulingService;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Event\CheckCarHistoryEvent;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class CarController extends AbstractController
 {
@@ -37,6 +40,7 @@ class CarController extends AbstractController
  private readonly CarService $carService,
  private readonly Security $security,
  private readonly SchedulingService $schedulingService,
+ private readonly MessageBusInterface $messageBus,
  private readonly string $apiHost,
 ) {}
  
@@ -164,11 +168,10 @@ class CarController extends AbstractController
             new OA\Response(response: 400, description: 'Invalid input data')
         ]
     )]
-        public function new(Request $request, Security $security): Response
+        public function new(Request $request,EventDispatcherInterface $eventDispatcher): Response
     {
         $car = new Car();
-
-        $user = $this->getUser();
+        $user = $this->security->getUser();
 
         if (!$user) {
             return $this->redirectToRoute('app_login');
@@ -178,17 +181,24 @@ class CarController extends AbstractController
         $form = $this->createForm(CarFormType::class, $car);
 
         $form->handleRequest($request);
-
+        
         if ($form->isSubmitted() && $form->isValid()) {
             $this->carService->createNewCar($car);  
-            return $this->redirectToRoute('app_car_index'); 
+        
+            $event = new CheckCarHistoryEvent($car->getId());
+            $this->messageBus->dispatch($event); 
+        
+            $filename = 'car_report_' . $car->getId() . '.csv'; 
+            $this->addFlash('success', 'Car added successfully. Report is generated.');
+
+        
+            return $this->redirectToRoute('app_car_new'); 
         }
 
         return $this->render('car/new.html.twig', [
             'form' => $form->createView(),
         ]);
     }
-
 
     // Edit an existing car (Update)
     #[Route('/cars/edit/{id}', name: 'app_car_edit', methods: ['GET'])]
@@ -377,7 +387,6 @@ class CarController extends AbstractController
             )
         ]
     )]
-
     public function expiringRegistration(): Response
     {
         return $this->render('car/expiring_registration.html.twig', [

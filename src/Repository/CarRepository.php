@@ -89,18 +89,23 @@ class CarRepository extends ServiceEntityRepository
             ->getResult();
 
     }
-    // CarRepository.php
-public function findAllExpiringRegistrationsInNextMonth(DateTimeImmutable $currentDate): array
-{
-    return $this->createQueryBuilder('c')
-        ->where('c.registrationDate <= :endDate')
-        ->andWhere('c.registrationDate >= :currentDate')
-        ->setParameter('currentDate', $currentDate)
-        ->setParameter('endDate', $currentDate->modify('+1 month'))
-        ->orderBy('c.registrationDate', 'ASC')
-        ->getQuery()
-        ->getResult();
-}
+    public function findAllExpiringRegistrationsInNextMonth(DateTimeImmutable $currentDate): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.registrationDate <= :endDate')
+            ->andWhere('c.registrationDate >= :currentDate')
+            ->setParameter('currentDate', $currentDate)
+            ->setParameter('endDate', $currentDate->modify('+1 month'))
+            ->orderBy('c.registrationDate', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+    public function findAllWithDeletedAt()
+    {
+        return $this->createQueryBuilder('c')
+            ->getQuery()
+            ->getResult(); 
+    }
 
 }
 

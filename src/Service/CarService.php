@@ -128,7 +128,7 @@ class CarService
             return new Response('Invalid input data: ' . (string) $errors, Response::HTTP_BAD_REQUEST);
         }
 
-        $car->setCreatedAt(new \DateTimeImmutable());
+        $car->setCreatedAt(new \DateTime());
 
         try {
             $this->entityManager->persist($car);
@@ -142,7 +142,7 @@ class CarService
             return new Response('Error: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
-
+ 
     public function updateCar(Car $car): Response
     {
         $errors = $this->validator->validate($car);
