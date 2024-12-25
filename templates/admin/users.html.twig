@@ -38,7 +38,7 @@
                             <button class="btn btn-danger ban-user-btn" data-user-id="{{ user.id }}">Ban User</button>
                         {% else %}
                             <span class="text-muted">Banned</span>
-                            <form action="{{ path('admin_unban_user', {'id': user.id}) }}" method="POST" style="display:inline;">
+                            <form action="{{ path('admin_unban_user', {'user_id': user.id}) }}" method="POST" style="display:inline;">
                                 <button type="submit" class="btn btn-success">Unban User</button>
                             </form>
                         {% endif %}

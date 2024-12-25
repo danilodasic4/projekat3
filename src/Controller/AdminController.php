@@ -1,6 +1,7 @@
 <?php
-
 namespace App\Controller;
+
+use App\Entity\User; 
 use App\Repository\CarRepository;
 use App\Repository\AppointmentRepository;
 use App\Repository\UserRepository;
@@ -19,6 +20,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use InvalidArgumentException; 
 use Doctrine\ORM\EntityManagerInterface;
+use App\Resolver\UserValueResolver;
 
 class AdminController extends AbstractController
 {
@@ -149,49 +151,41 @@ class AdminController extends AbstractController
         ]);
     }
 
-        #[Route('/admin/users/{id}/ban', name: 'admin_ban_user', methods: ['POST'])]
-    public function banUser(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager): JsonResponse
-    {
-        $user = $userRepository->find($id);
-
-        if (!$user) {
-            return new JsonResponse(['message' => 'User not found'], 404);
-        }
-
+    #[Route('/admin/users/{user_id}/ban', name: 'admin_ban_user', methods: ['POST'])]
+    public function banUser(
+        #[ValueResolver(UserValueResolver::class)] User $user,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
         if ($user->getBannedAt() !== null) {
             return new JsonResponse(['message' => 'User is already banned'], 400);
         }
-
+    
         $user->setBannedAt(new \DateTime());
+    
+        $entityManager->persist($user);
+        $entityManager->flush();
+    
+        return new JsonResponse(['message' => 'User successfully banned'], 200);
+    }
+    
+    #[Route('/admin/users/{user_id}/unban', name: 'admin_unban_user', methods: ['POST'])]
+    public function unbanUser(
+        #[ValueResolver(UserValueResolver::class)] User $user, 
+        EntityManagerInterface $entityManager,
+        Request $request
+    ): Response {
+        if ($user->getBannedAt() === null) {
+            return new Response('User is not banned', 400);
+        }
+
+        $user->setBannedAt(null);
 
         $entityManager->persist($user);
         $entityManager->flush();
 
-        return new JsonResponse(['message' => 'User successfully banned'], 200);
-    }
-    
-    #[Route('/admin/users/{id}/unban', name: 'admin_unban_user', methods: ['POST'])]
-    public function unbanUser(int $id, UserRepository $userRepository, EntityManagerInterface $entityManager, Request $request): Response
-    {
-        $user = $userRepository->find($id);
-
-        if ($user) {
-            $user->setBannedAt(null);
-
-            $entityManager->persist($user);
-            $entityManager->flush();
-
-            $this->addFlash('success', 'User has been unbanned.');
-        } else {
-            $this->addFlash('error', 'User not found.');
-        }
-
         $previousUrl = $request->headers->get('referer');
         return $this->redirect($previousUrl);
-    }
-    
-
-
+    }   
 
     #[Route('/admin/cars', name: 'admin_cars')]
     public function cars(CarRepository $carRepository): Response
