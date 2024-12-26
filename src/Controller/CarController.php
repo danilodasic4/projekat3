@@ -30,19 +30,22 @@ use App\Event\CheckCarHistoryEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-class CarController extends AbstractController
+readonly class CarController extends AbstractController
 {
- public function __construct(
- private readonly CarRepository $carRepository, 
- private readonly EntityManagerInterface $entityManager, 
- private readonly RegistrationCostService $registrationCostService,
- private readonly HttpClientInterface $httpClient,
- private readonly CarService $carService,
- private readonly Security $security,
- private readonly SchedulingService $schedulingService,
- private readonly MessageBusInterface $messageBus,
- private readonly string $apiHost,
-) {}
+
+    public function __construct(
+        private CarRepository $carRepository,
+        private EntityManagerInterface $entityManager,
+        private RegistrationCostService $registrationCostService,
+        private HttpClientInterface $httpClient,
+        private CarService $carService,
+        private Security $security,
+        private SchedulingService $schedulingService,
+        private MessageBusInterface $messageBus,
+        private string $apiHost,
+
+    ) {}
+
  
     #[Route('/api/users/{user_id}/cars', name:'api_user_cars', methods:['GET'])]
     #[OA\Get(
@@ -188,7 +191,6 @@ class CarController extends AbstractController
             $event = new CheckCarHistoryEvent($car->getId());
             $this->messageBus->dispatch($event); 
         
-            $filename = 'car_report_' . $car->getId() . '.csv'; 
             $this->addFlash('success', 'Car added successfully. Report is generated.');
 
         
@@ -199,6 +201,7 @@ class CarController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+
 
     // Edit an existing car (Update)
     #[Route('/cars/edit/{id}', name: 'app_car_edit', methods: ['GET'])]
@@ -342,6 +345,7 @@ class CarController extends AbstractController
             'error' => $response->getContent(),
         ]);
     }
+
     #[Route('/cars/deleted', name: 'app_car_deleted')]
     public function showDeletedCars(CarRepository $carRepository): Response
     {
@@ -352,6 +356,7 @@ class CarController extends AbstractController
             'cars' => $cars,
         ]);
     }
+
     #[Route('/cars/restore/{id}', name: 'app_car_restore')]
     public function restoreCar(
         #[ValueResolver(CarValueResolver::class)] Car $car
@@ -365,7 +370,8 @@ class CarController extends AbstractController
         }
     
         return $this->redirectToRoute('app_car_deleted');
-    }  
+    } 
+
  // Get list of cars with expiring registration
     #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration', methods: ['GET'])]
     #[OA\Get(
@@ -387,6 +393,7 @@ class CarController extends AbstractController
             )
         ]
     )]
+
     public function expiringRegistration(): Response
     {
         return $this->render('car/expiring_registration.html.twig', [
@@ -430,6 +437,7 @@ class CarController extends AbstractController
     response: 404,
     description: 'Car not found'
 )]
+
 public function calculateRegistrationCost(Request $request, RegistrationCostService $registrationCostService): Response
 {
     // Get query parameters
@@ -457,9 +465,6 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
         'finalCost' => $finalCost,
     ]);
 }
-
-
-
 
     #[Route('/cars/registration-details/{id}', name: 'app_car_registration_details', methods: ['GET', 'POST'])]
     #[OA\Get(
@@ -514,6 +519,7 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
             new OA\Response(response: 404, description: 'Car not found')
         ]
     )]
+    
     public function registrationDetails(
         #[ValueResolver(CarValueResolver::class)] Car $car,  
         Request $request,
