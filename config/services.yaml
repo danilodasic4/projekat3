@@ -55,6 +55,10 @@ services:
         tags:
             - { name: 'console.command', command: 'app:cars-expiring-registration' }
     
+    App\EventListener\CheckCarHistoryEventHandler:
+        arguments:
+            $csvDirectory: '%CSV_DIRECTORY_PATH%'
+
     App\DataFixtures\:
         resource: '../src/DataFixtures'
         tags: ['doctrine.fixture.orm']

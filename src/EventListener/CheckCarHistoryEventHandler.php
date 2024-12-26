@@ -6,12 +6,12 @@ use App\Repository\CarRepository;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
-class CheckCarHistoryEventHandler implements MessageHandlerInterface
+readonly class CheckCarHistoryEventHandler implements MessageHandlerInterface
 {
 
     public function __construct(
-        private readonly CarRepository $carRepository,
-        private readonly ParameterBagInterface $parameterBag, 
+        private  CarRepository $carRepository,
+        private  ParameterBagInterface $parameterBag, 
     ) {}
 
     public function __invoke(CheckCarHistoryEvent $event)
@@ -35,7 +35,7 @@ class CheckCarHistoryEventHandler implements MessageHandlerInterface
     private function generateCsvReport(array $groupedCars)
     {
         $filename = 'car_report_' . time() . '.csv'; 
-        $filepath = $this->parameterBag->get('kernel.project_dir') . '/public/csv/' . $filename;
+        $filepath = $this->csvDirectory . '/' . $filename;
 
         $handle = fopen($filepath, 'w');
         fputcsv($handle, ['Brand and Model', 'Count']); 
