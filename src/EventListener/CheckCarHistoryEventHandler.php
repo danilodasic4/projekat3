@@ -3,7 +3,6 @@ namespace App\EventListener;
 
 use App\Event\CheckCarHistoryEvent;
 use App\Repository\CarRepository;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
 readonly class CheckCarHistoryEventHandler implements MessageHandlerInterface
@@ -11,7 +10,6 @@ readonly class CheckCarHistoryEventHandler implements MessageHandlerInterface
 
     public function __construct(
         private  CarRepository $carRepository,
-        private  ParameterBagInterface $parameterBag, 
     ) {}
 
     public function __invoke(CheckCarHistoryEvent $event)

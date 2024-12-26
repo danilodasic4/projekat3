@@ -89,6 +89,7 @@ class CarRepository extends ServiceEntityRepository
             ->getResult();
 
     }
+
     public function findAllExpiringRegistrationsInNextMonth(DateTimeImmutable $currentDate): array
     {
         return $this->createQueryBuilder('c')
@@ -100,6 +101,7 @@ class CarRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    
     public function findAllWithDeletedAt()
     {
         return $this->createQueryBuilder('c')
