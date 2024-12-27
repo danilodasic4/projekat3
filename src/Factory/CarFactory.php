@@ -10,7 +10,7 @@ class CarFactory
         string $brand,
         string $model,
         int $year,
-        float $engineCapacity,
+        int $engineCapacity,
         int $horsePower,
         string $color,
         User $user,
