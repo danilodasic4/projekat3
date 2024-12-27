@@ -30,19 +30,19 @@ use App\Event\CheckCarHistoryEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-readonly class CarController extends AbstractController
+class CarController extends AbstractController
 {
 
     public function __construct(
-        private CarRepository $carRepository,
-        private EntityManagerInterface $entityManager,
-        private RegistrationCostService $registrationCostService,
-        private HttpClientInterface $httpClient,
-        private CarService $carService,
-        private Security $security,
-        private SchedulingService $schedulingService,
-        private MessageBusInterface $messageBus,
-        private string $apiHost,
+        readonly  private CarRepository $carRepository,
+        readonly private EntityManagerInterface $entityManager,
+        readonly private RegistrationCostService $registrationCostService,
+        readonly private HttpClientInterface $httpClient,
+        readonly private CarService $carService,
+        readonly private Security $security,
+        readonly private SchedulingService $schedulingService,
+        readonly private MessageBusInterface $messageBus,
+        readonly private string $apiHost,
 
     ) {}
 
@@ -519,7 +519,7 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
             new OA\Response(response: 404, description: 'Car not found')
         ]
     )]
-    
+
     public function registrationDetails(
         #[ValueResolver(CarValueResolver::class)] Car $car,  
         Request $request,

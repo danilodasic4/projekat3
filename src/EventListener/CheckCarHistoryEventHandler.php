@@ -1,4 +1,5 @@
 <?php
+
 namespace App\EventListener;
 
 use App\Event\CheckCarHistoryEvent;
@@ -7,15 +8,15 @@ use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
 readonly class CheckCarHistoryEventHandler implements MessageHandlerInterface
 {
-
     public function __construct(
-        private  CarRepository $carRepository,
+        private CarRepository $carRepository,
+        private string $csvDirectory,
     ) {}
 
     public function __invoke(CheckCarHistoryEvent $event)
     {
         $carId = $event->getCarId();
-        
+
         $cars = $this->carRepository->findAllWithDeletedAt();
 
         $groupedCars = [];
@@ -32,18 +33,19 @@ readonly class CheckCarHistoryEventHandler implements MessageHandlerInterface
 
     private function generateCsvReport(array $groupedCars)
     {
-        $filename = 'car_report_' . time() . '.csv'; 
+        $filename = 'car_report_' . time() . '.csv';
         $filepath = $this->csvDirectory . '/' . $filename;
 
+
         $handle = fopen($filepath, 'w');
-        fputcsv($handle, ['Brand and Model', 'Count']); 
-        
+        fputcsv($handle, ['Brand and Model', 'Count']);
+
         foreach ($groupedCars as $car => $count) {
             fputcsv($handle, [$car, $count]);
         }
-
         fclose($handle);
 
-        return $filename; 
+        return $filename;
     }
 }
+
