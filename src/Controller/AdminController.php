@@ -19,6 +19,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use InvalidArgumentException; 
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Resolver\AppointmentValueResolver;
+use App\Entity\Appointment;  
 
 class AdminController extends AbstractController
 {
@@ -34,20 +36,21 @@ class AdminController extends AbstractController
             'user' => $this->getUser(),
         ]);
     }
+    
     #[Route('/admin/appointments/{id}/finish', name: 'admin_appointments_finish', methods: ['POST'])]
-    public function finishAppointment($id, AppointmentRepository $appointmentRepository): JsonResponse
-    {
-        $appointment = $appointmentRepository->find($id);
-        
-        if (!$appointment) {
-            return new JsonResponse(['status' => 'error', 'message' => 'Appointment not found'], 404);
-        }
-
-        $appointment->setFinishedAt(new \DateTime());
-        $this->entityManager->flush();
-        
-        return new JsonResponse(['status' => 'success', 'message' => 'Appointment finished']);
+public function finishAppointment(
+    #[ValueResolver(AppointmentValueResolver::class)] Appointment $appointment // Koristi resolver za Appointment
+): JsonResponse
+{
+    if (!$appointment) {
+        return new JsonResponse(['status' => 'error', 'message' => 'Appointment not found'], 404);
     }
+
+    $appointment->setFinishedAt(new \DateTime());
+    $this->entityManager->flush();
+    
+    return new JsonResponse(['status' => 'success', 'message' => 'Appointment finished']);
+}
 
     #[Route('/admin/appointments', name: 'admin_appointments_upcoming')]
     public function upcomingAppointments(
