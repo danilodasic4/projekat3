@@ -11,6 +11,11 @@ security:
             cost: 15
 
     providers:
+        api_token_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
         admin_provider:
             entity:
                 class: App\Entity\Admin
@@ -21,8 +26,12 @@ security:
                 class: App\Entity\User
                 property: email
 
-
     firewalls:
+        api:
+            pattern: ^/api
+            stateless: true
+            provider: api_token_provider
+            jwt: ~
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
@@ -61,13 +70,18 @@ security:
             security: true
 
     access_control:
+        - { path: ^/api, roles: ROLE_USER }
+        - { path: ^/cars$, roles: ROLE_USER }
         - { path: ^/admin/login, roles: PUBLIC_ACCESS }
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
         - { path: ^/users/\d+/verify/, roles: PUBLIC_ACCESS }
         - { path: ^/registration_verified, roles: PUBLIC_ACCESS }
-        - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/cars/, roles: ROLE_VERIFIED }
+        # - { path: ^/api, roles: ROLE_USER }
         - { path: ^/car/\d+/appointment, roles: ROLE_USER }
         - { path: ^/api/appointments, roles: ROLE_USER }
-        - { path: ^/cars$, roles: ROLE_USER }
+        # - { path: ^/cars$, roles: ROLE_USER }
+        - { path: ^/cars/, roles: ROLE_VERIFIED }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+
+
