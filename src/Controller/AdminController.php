@@ -39,7 +39,7 @@ class AdminController extends AbstractController
     
     #[Route('/admin/appointments/{id}/finish', name: 'admin_appointments_finish', methods: ['POST'])]
 public function finishAppointment(
-    #[ValueResolver(AppointmentValueResolver::class)] Appointment $appointment // Koristi resolver za Appointment
+    #[ValueResolver(AppointmentValueResolver::class)] Appointment $appointment 
 ): JsonResponse
 {
     if (!$appointment) {
