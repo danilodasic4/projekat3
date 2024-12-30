@@ -22,6 +22,12 @@ services:
         arguments:
             $csvDirectory: '%csv_directory_path%'  
 
+    App\Resolver\AppointmentValueResolver:
+        arguments:
+            $appointmentRepository: '@App\Repository\AppointmentRepository'
+        tags:
+            - { name: 'controller.argument_value_resolver', priority: 10 }
+
     App\Service\RegistrationCostService:
         arguments:
             $registrationBaseCost: '%registration_base_cost%'  

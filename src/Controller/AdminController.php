@@ -20,10 +20,16 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use InvalidArgumentException; 
 use Doctrine\ORM\EntityManagerInterface;
+use App\Resolver\AppointmentValueResolver;
+use App\Entity\Appointment;  
 use App\Resolver\UserValueResolver;
 
 class AdminController extends AbstractController
 {
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+    ){}
+    
     #[Route('/admin', name: 'admin_index', methods: ['GET'])]
     #[IsGranted('ROLE_ADMIN')]
     public function index(): Response
@@ -32,7 +38,21 @@ class AdminController extends AbstractController
             'user' => $this->getUser(),
         ]);
     }
+    
+    #[Route('/admin/appointments/{id}/finish', name: 'admin_appointments_finish', methods: ['POST'])]
+public function finishAppointment(
+    #[ValueResolver(AppointmentValueResolver::class)] Appointment $appointment 
+): JsonResponse
+{
+    if (!$appointment) {
+        return new JsonResponse(['status' => 'error', 'message' => 'Appointment not found'], 404);
+    }
 
+    $appointment->setFinishedAt(new \DateTime());
+    $this->entityManager->flush();
+    
+    return new JsonResponse(['status' => 'success', 'message' => 'Appointment finished']);
+}
 
     #[Route('/admin/appointments', name: 'admin_appointments_upcoming')]
     public function upcomingAppointments(
@@ -130,8 +150,13 @@ class AdminController extends AbstractController
     
         $queryBuilder = $appointmentRepository->createFilteredQueryBuilder($carId, $userId, $appointmentType, $scheduledAt);
     
-        $queryBuilder->andWhere('a.scheduledAt < :now')
-                     ->setParameter('now', new \DateTime());
+        $queryBuilder->andWhere(
+            $queryBuilder->expr()->orX(
+                $queryBuilder->expr()->lt('a.scheduledAt', ':now'),
+                $queryBuilder->expr()->isNotNull('a.finishedAt')
+            )
+        )
+        ->setParameter('now', new \DateTime());
     
         $adapter = new QueryAdapter($queryBuilder);
         $pagerfanta = Pagerfanta::createForCurrentPageWithMaxPerPage($adapter, $request->query->getInt('page', 1), 10);
