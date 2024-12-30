@@ -26,3 +26,4 @@
 ###< symfony/asset-mapper ###
 /public/uploads/profile_pictures/*
 /config/secrets/*/*.private.php
+public/csv/

@@ -6,6 +6,12 @@
     <div class="container">
         <h1 class="my-4">Create a New Car</h1>
 
+         {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
         {{ form_start(form, {'attr': {'class': 'w-50 mx-auto'}}) }}
         
         <div class="mb-3">

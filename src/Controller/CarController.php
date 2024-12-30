@@ -26,19 +26,26 @@ use Psr\Log\LoggerInterface;
 use App\Service\SchedulingService;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Event\CheckCarHistoryEvent;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class CarController extends AbstractController
 {
- public function __construct(
- private readonly CarRepository $carRepository, 
- private readonly EntityManagerInterface $entityManager, 
- private readonly RegistrationCostService $registrationCostService,
- private readonly HttpClientInterface $httpClient,
- private readonly CarService $carService,
- private readonly Security $security,
- private readonly SchedulingService $schedulingService,
- private readonly string $apiHost,
-) {}
+
+    public function __construct(
+        readonly  private CarRepository $carRepository,
+        readonly private EntityManagerInterface $entityManager,
+        readonly private RegistrationCostService $registrationCostService,
+        readonly private HttpClientInterface $httpClient,
+        readonly private CarService $carService,
+        readonly private Security $security,
+        readonly private SchedulingService $schedulingService,
+        readonly private MessageBusInterface $messageBus,
+        readonly private string $apiHost,
+
+    ) {}
+
  
     #[Route('/api/users/{user_id}/cars', name:'api_user_cars', methods:['GET'])]
     #[OA\Get(
@@ -164,11 +171,10 @@ class CarController extends AbstractController
             new OA\Response(response: 400, description: 'Invalid input data')
         ]
     )]
-        public function new(Request $request, Security $security): Response
+        public function new(Request $request,EventDispatcherInterface $eventDispatcher): Response
     {
         $car = new Car();
-
-        $user = $this->getUser();
+        $user = $this->security->getUser();
 
         if (!$user) {
             return $this->redirectToRoute('app_login');
@@ -178,10 +184,17 @@ class CarController extends AbstractController
         $form = $this->createForm(CarFormType::class, $car);
 
         $form->handleRequest($request);
-
+        
         if ($form->isSubmitted() && $form->isValid()) {
             $this->carService->createNewCar($car);  
-            return $this->redirectToRoute('app_car_index'); 
+        
+            $event = new CheckCarHistoryEvent($car->getId());
+            $this->messageBus->dispatch($event); 
+        
+            $this->addFlash('success', 'Car added successfully. Report is generated.');
+
+        
+            return $this->redirectToRoute('app_car_new'); 
         }
 
         return $this->render('car/new.html.twig', [
@@ -332,6 +345,7 @@ class CarController extends AbstractController
             'error' => $response->getContent(),
         ]);
     }
+
     #[Route('/cars/deleted', name: 'app_car_deleted')]
     public function showDeletedCars(CarRepository $carRepository): Response
     {
@@ -342,6 +356,7 @@ class CarController extends AbstractController
             'cars' => $cars,
         ]);
     }
+
     #[Route('/cars/restore/{id}', name: 'app_car_restore')]
     public function restoreCar(
         #[ValueResolver(CarValueResolver::class)] Car $car
@@ -355,7 +370,8 @@ class CarController extends AbstractController
         }
     
         return $this->redirectToRoute('app_car_deleted');
-    }  
+    } 
+
  // Get list of cars with expiring registration
     #[Route('/cars/expiring-registration', name: 'app_cars_expiring_registration', methods: ['GET'])]
     #[OA\Get(
@@ -421,6 +437,7 @@ class CarController extends AbstractController
     response: 404,
     description: 'Car not found'
 )]
+
 public function calculateRegistrationCost(Request $request, RegistrationCostService $registrationCostService): Response
 {
     // Get query parameters
@@ -448,9 +465,6 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
         'finalCost' => $finalCost,
     ]);
 }
-
-
-
 
     #[Route('/cars/registration-details/{id}', name: 'app_car_registration_details', methods: ['GET', 'POST'])]
     #[OA\Get(
@@ -505,6 +519,7 @@ public function calculateRegistrationCost(Request $request, RegistrationCostServ
             new OA\Response(response: 404, description: 'Car not found')
         ]
     )]
+
     public function registrationDetails(
         #[ValueResolver(CarValueResolver::class)] Car $car,  
         Request $request,

@@ -1,4 +1,5 @@
 parameters:
+    csv_directory_path: '%kernel.project_dir%/%env(CSV_DIRECTORY_PATH)%'
     profile_pictures_directory: '%kernel.project_dir%/%env(PROFILE_PICTURES_DIRECTORY)%'
     registration_base_cost: '%env(REGISTRATION_BASE_COST)%'
     discount_code: '%env(DISCOUNT_CODE)%' 
@@ -9,13 +10,17 @@ services:
     _defaults:
         autowire: true     
         autoconfigure: true 
-        
+      
     App\:
         resource: '../src/'
         exclude:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
-            - '../src/Kernel.php'
+            - '../src/Kernel.php'   
+    
+    App\EventListener\CheckCarHistoryEventHandler:
+        arguments:
+            $csvDirectory: '%csv_directory_path%'  
 
     App\Resolver\AppointmentValueResolver:
         arguments:
@@ -40,7 +45,6 @@ services:
         tags:
             - { name: 'controller.argument_value_resolver', priority: 10 }
 
-    
     App\Controller\CarController:
         arguments:
             $apiHost: '%api_host%' 
@@ -61,6 +65,7 @@ services:
         tags:
             - { name: 'console.command', command: 'app:cars-expiring-registration' }
     
+
     App\DataFixtures\:
         resource: '../src/DataFixtures'
         tags: ['doctrine.fixture.orm']
