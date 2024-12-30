@@ -27,3 +27,6 @@
 /public/uploads/profile_pictures/*
 /config/secrets/*/*.private.php
 public/csv/
+###> lexik/jwt-authentication-bundle ###
+/config/jwt/*.pem
+###< lexik/jwt-authentication-bundle ###
