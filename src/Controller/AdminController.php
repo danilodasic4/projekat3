@@ -20,7 +20,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use InvalidArgumentException; 
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Resolver\AppointmentValueResolver;
 use App\Entity\Appointment;  
 use App\Resolver\UserValueResolver;
