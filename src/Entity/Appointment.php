@@ -69,6 +69,7 @@ class Appointment
         $this->appointmentType = $appointmentType->value;  
         return $this;
     }
+
     public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
@@ -90,6 +91,7 @@ class Appointment
         $this->user = $user;
         return $this;
     }
+    
     public function getFinishedAt(): ?\DateTimeInterface
     {
         return $this->finishedAt;
