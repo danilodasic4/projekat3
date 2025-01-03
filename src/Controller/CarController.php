@@ -29,6 +29,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 use App\Event\CheckCarHistoryEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
+use App\Factory\CarFactory;
 
 class CarController extends AbstractController
 {
@@ -43,7 +44,7 @@ class CarController extends AbstractController
         readonly private SchedulingService $schedulingService,
         readonly private MessageBusInterface $messageBus,
         readonly private string $apiHost,
-
+        readonly private CarFactory $carFactory,
     ) {}
 
  
@@ -171,30 +172,40 @@ class CarController extends AbstractController
             new OA\Response(response: 400, description: 'Invalid input data')
         ]
     )]
-        public function new(Request $request,EventDispatcherInterface $eventDispatcher): Response
+    public function new(Request $request, EventDispatcherInterface $eventDispatcher): Response
     {
-        $car = new Car();
         $user = $this->security->getUser();
 
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
 
-        $car->setUser($user);
-        $form = $this->createForm(CarFormType::class, $car);
+        $form = $this->createForm(CarFormType::class, null);
 
         $form->handleRequest($request);
-        
+
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->carService->createNewCar($car);  
-        
+            $carData = $form->getData();
+
+            $car = $this->carFactory->create(
+                $carData->getBrand(),
+                $carData->getModel(),
+                $carData->getYear(),
+                $carData->getEngineCapacity(),
+                $carData->getHorsePower(),
+                $carData->getColor(),
+                $user,
+                $carData->getRegistrationDate()
+            );
+
+            $this->carService->createNewCar($car);
+
             $event = new CheckCarHistoryEvent($car->getId());
-            $this->messageBus->dispatch($event); 
-        
+            $this->messageBus->dispatch($event);
+
             $this->addFlash('success', 'Car added successfully. Report is generated.');
 
-        
-            return $this->redirectToRoute('app_car_new'); 
+            return $this->redirectToRoute('app_car_new');
         }
 
         return $this->render('car/new.html.twig', [

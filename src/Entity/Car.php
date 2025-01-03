@@ -28,7 +28,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: "registrationDate", type: "string", format: "date", description: "Registration date of the car")
     ]
 )]
-class Car
+class Car extends AbstractVehicle
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
