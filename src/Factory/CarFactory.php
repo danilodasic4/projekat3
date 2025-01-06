@@ -2,12 +2,13 @@
 
 namespace App\Factory;
 
+use App\Entity\AbstractVehicle;
 use App\Entity\Car;
 use App\Entity\User;
 
-class CarFactory
+class CarFactory implements VehicleFactoryInterface
 {
-    public static function create(
+    public function create(
         string $brand,
         string $model,
         int $year,
@@ -16,7 +17,7 @@ class CarFactory
         string $color,
         User $user,
         \DateTime $registrationDate
-    ): Car {
+    ): AbstractVehicle {
         $car = new Car();
         $car->setBrand($brand);
         $car->setModel($model);
@@ -26,7 +27,7 @@ class CarFactory
         $car->setColor($color);
         $car->setUser($user);
         $car->setRegistrationDate($registrationDate);
-        
+
         return $car;
     }
 }

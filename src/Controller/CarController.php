@@ -187,23 +187,17 @@ class CarController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $carData = $form->getData();
 
-            $car = $this->carFactory->create(
-                $carData->getBrand(),
-                $carData->getModel(),
-                $carData->getYear(),
-                $carData->getEngineCapacity(),
-                $carData->getHorsePower(),
-                $carData->getColor(),
-                $user,
-                $carData->getRegistrationDate()
-            );
+            $response = $this->carService->handleCarCreation($carData, $user);
 
-            $this->carService->createNewCar($car);
+            if ($response->getStatusCode() === Response::HTTP_CREATED) {
+                $carId = json_decode($response->getContent(), true)['car_id'];
+                $event = new CheckCarHistoryEvent($carId);
+                $this->messageBus->dispatch($event);
 
-            $event = new CheckCarHistoryEvent($car->getId());
-            $this->messageBus->dispatch($event);
-
-            $this->addFlash('success', 'Car added successfully. Report is generated.');
+                $this->addFlash('success', 'Car added successfully. Report is generated.');
+            } else {
+                $this->addFlash('error', $response->getContent());
+            }
 
             return $this->redirectToRoute('app_car_new');
         }

@@ -13,6 +13,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\Security\Core\Security;
 use DateTimeImmutable;
 use App\Exception\UnauthorizedCarAccessException;
+use App\Factory\CarFactory;
 
 class CarService
 {
@@ -23,6 +24,7 @@ class CarService
         private readonly ValidatorInterface $validator,
         private readonly LoggerInterface $logger,
         private readonly Security $security, 
+        private readonly CarFactory $carFactory,
         private readonly string $apiHost,
  )  {
 
@@ -117,8 +119,26 @@ class CarService
             throw $e; 
         }
     }
+    public function handleCarCreation($carData, User $user): Response
+    {
+        try {
+            $car = $this->carFactory->create(
+                $carData->getBrand(),
+                $carData->getModel(),
+                $carData->getYear(),
+                $carData->getEngineCapacity(),
+                $carData->getHorsePower(),
+                $carData->getColor(),
+                $user,
+                $carData->getRegistrationDate()
+            );
 
-    // Create new car
+            return $this->createNewCar($car);
+        } catch (\Exception $e) {
+            $this->logger->error('Error handling car creation.', ['error' => $e->getMessage()]);
+            return new Response('Error: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+    }
 
     public function createNewCar(Car $car): Response
     {
@@ -136,13 +156,12 @@ class CarService
 
             $this->logger->info('Car created successfully.', ['car_id' => $car->getId(), 'user_id' => $car->getUser()->getId()]);
 
-            return new Response('Car created successfully', Response::HTTP_CREATED);
+            return new Response(json_encode(['message' => 'Car created successfully', 'car_id' => $car->getId()]), Response::HTTP_CREATED);
         } catch (\Exception $e) {
             $this->logger->error('Error creating car.', ['error' => $e->getMessage()]);
             return new Response('Error: ' . $e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
     }
- 
     public function updateCar(Car $car): Response
     {
         $errors = $this->validator->validate($car);
