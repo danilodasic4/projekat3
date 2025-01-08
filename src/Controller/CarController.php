@@ -29,7 +29,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 use App\Event\CheckCarHistoryEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
-use App\Factory\CarFactory;
 
 class CarController extends AbstractController
 {
@@ -44,7 +43,6 @@ class CarController extends AbstractController
         readonly private SchedulingService $schedulingService,
         readonly private MessageBusInterface $messageBus,
         readonly private string $apiHost,
-        readonly private CarFactory $carFactory,
     ) {}
 
  

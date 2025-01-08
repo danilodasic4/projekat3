@@ -8,25 +8,25 @@ use Doctrine\ORM\Mapping as ORM;
 abstract class AbstractVehicle
 {
     #[ORM\Column(length: 255)]
-    private ?string $brand = null;
+    protected ?string $brand = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $model = null;
+    protected ?string $model = null;
 
     #[ORM\Column]
-    private ?int $year = null;
+    protected ?int $year = null;
 
     #[ORM\Column]
-    private ?int $engineCapacity = null;
+    protected ?int $engineCapacity = null;
 
     #[ORM\Column]
-    private ?int $horsePower = null;
+    protected ?int $horsePower = null;
 
     #[ORM\Column(length: 50, nullable: true)]
-    private ?string $color = null;
+    protected ?string $color = null;
 
     #[ORM\Column(type: "date")]
-    private ?\DateTimeInterface $registrationDate = null;
+    protected ?\DateTimeInterface $registrationDate = null;
 
     public function getBrand(): ?string
     {
