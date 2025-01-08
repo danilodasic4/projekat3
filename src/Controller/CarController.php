@@ -43,7 +43,6 @@ class CarController extends AbstractController
         readonly private SchedulingService $schedulingService,
         readonly private MessageBusInterface $messageBus,
         readonly private string $apiHost,
-
     ) {}
 
  
@@ -171,30 +170,34 @@ class CarController extends AbstractController
             new OA\Response(response: 400, description: 'Invalid input data')
         ]
     )]
-        public function new(Request $request,EventDispatcherInterface $eventDispatcher): Response
+    public function new(Request $request, EventDispatcherInterface $eventDispatcher): Response
     {
-        $car = new Car();
         $user = $this->security->getUser();
 
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
 
-        $car->setUser($user);
-        $form = $this->createForm(CarFormType::class, $car);
+        $form = $this->createForm(CarFormType::class, null);
 
         $form->handleRequest($request);
-        
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->carService->createNewCar($car);  
-        
-            $event = new CheckCarHistoryEvent($car->getId());
-            $this->messageBus->dispatch($event); 
-        
-            $this->addFlash('success', 'Car added successfully. Report is generated.');
 
-        
-            return $this->redirectToRoute('app_car_new'); 
+        if ($form->isSubmitted() && $form->isValid()) {
+            $carData = $form->getData();
+
+            $response = $this->carService->handleCarCreation($carData, $user);
+
+            if ($response->getStatusCode() === Response::HTTP_CREATED) {
+                $carId = json_decode($response->getContent(), true)['car_id'];
+                $event = new CheckCarHistoryEvent($carId);
+                $this->messageBus->dispatch($event);
+
+                $this->addFlash('success', 'Car added successfully. Report is generated.');
+            } else {
+                $this->addFlash('error', $response->getContent());
+            }
+
+            return $this->redirectToRoute('app_car_new');
         }
 
         return $this->render('car/new.html.twig', [
