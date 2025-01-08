@@ -30,19 +30,12 @@ use OpenApi\Attributes as OA;
 )]
 class Car extends AbstractVehicle
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    #[OA\Property(description: "The unique identifier of the car")]
-    private ?int $id = null;
-
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'cars')]
     #[ORM\JoinColumn(nullable: false)] 
     #[OA\Property(ref: "#/components/schemas/User", description: "User who owns the car")]
     private ?User $user = null;
     
-
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[OA\Property(type: "string", format: "date-time", description: "Creation timestamp")]
     private ?\DateTimeInterface $created_at = null;
@@ -56,10 +49,6 @@ class Car extends AbstractVehicle
     private ?\DateTimeInterface $deleted_at = null;
 
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getUser(): ?User
     {

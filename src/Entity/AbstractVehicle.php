@@ -7,6 +7,11 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\MappedSuperclass]
 abstract class AbstractVehicle
 {
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
     #[ORM\Column(length: 255)]
     protected ?string $brand = null;
 
@@ -27,6 +32,11 @@ abstract class AbstractVehicle
 
     #[ORM\Column(type: "date")]
     protected ?\DateTimeInterface $registrationDate = null;
+    
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
     public function getBrand(): ?string
     {
