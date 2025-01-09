@@ -29,6 +29,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 use App\Event\CheckCarHistoryEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 class CarController extends AbstractController
 {
@@ -76,15 +77,20 @@ class CarController extends AbstractController
         ]
     )]
        
+    #[Route('/api/users/{user_id}/cars', name: 'api_user_cars', methods: ['GET'])]
     public function getUserCars(
         #[ValueResolver(UserValueResolver::class)] User $user
-     ): JsonResponse {
+    ): JsonResponse {
+        $currentUser = $this->security->getUser();
+        if (!$currentUser || $currentUser->getId() !== $user->getId()) {
+            return new JsonResponse(['error' => 'Unauthorized access'], Response::HTTP_UNAUTHORIZED);
+        }
+    
         $cars = $this->carRepository->findBy(['user' => $user]);
-       
         if (empty($cars)) {
             return new JsonResponse(['error' => 'No cars found for this user'], Response::HTTP_NOT_FOUND);
         }
-
+    
         $carData = array_map(function (Car $car) {
             return [
                 'id' => $car->getId(),
@@ -94,9 +100,10 @@ class CarController extends AbstractController
                 'color' => $car->getColor(),
             ];
         }, $cars);
-       
+    
         return new JsonResponse($carData);
-        }
+    }
+    
 
 
     // Show list of all cars (Read)
@@ -116,13 +123,32 @@ class CarController extends AbstractController
             )
         ]
     )]
-    public function index(): Response
-    {
-        return $this->render('car/index.html.twig', [
-            'cars' => $this->carService->getAllCarsForUser($this->security->getUser()->getId()),
-            'user' => $this->security->getUser()
-        ]);
-        }
+    public function index(JWTTokenManagerInterface $jwtManager): Response
+{
+    $currentUser = $this->security->getUser();
+    if (!$currentUser) {
+        throw $this->createAccessDeniedException('You need to log in to view your cars.');
+    }
+
+    $token = $this->security->getToken();
+    $jwt = $jwtManager->create($currentUser); // Generate the JWT for the current user
+
+    $response = $this->httpClient->request('GET', sprintf('%s/api/users/%d/cars', $this->apiHost, $currentUser->getId()), [
+        'headers' => [
+            'Authorization' => sprintf('Bearer %s', $jwt)
+        ]
+    ]);
+
+    $carData = $response->toArray();
+    if ($response->getStatusCode() !== Response::HTTP_OK) {
+        $carData = ['error' => 'Unable to fetch cars'];
+    }
+
+    return $this->render('car/index.html.twig', [
+        'cars' => $carData,
+        'user' => $currentUser
+    ]);
+}
 
 
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
