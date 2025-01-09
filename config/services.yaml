@@ -17,7 +17,11 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'   
-    
+
+    App\OpenApi\JwtDecorator:
+        decorates: 'api_platform.openapi.factory'
+        arguments: ['@.inner']
+
     App\EventListener\CheckCarHistoryEventHandler:
         arguments:
             $csvDirectory: '%csv_directory_path%'  
