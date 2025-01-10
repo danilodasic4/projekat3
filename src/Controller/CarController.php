@@ -90,15 +90,14 @@ class CarController extends AbstractController
         if (!$cars) {
             return $this->json([], Response::HTTP_OK);
         }
-            $carData = array_map(fn(Car $car) => [
+
+        return $this->json(array_map(fn(Car $car) => [
             'id' => $car->getId(),
             'brand' => $car->getBrand(),
             'model' => $car->getModel(),
             'year' => $car->getYear(),
             'color' => $car->getColor(),
-        ], $cars);
-    
-        return $this->json($carData);
+        ], $cars));
     }
     
 
@@ -120,32 +119,27 @@ class CarController extends AbstractController
             )
         ]
     )]
-    public function index(JWTTokenManagerInterface $jwtManager): Response
-{
-    $currentUser = $this->security->getUser();
+        public function index(JWTTokenManagerInterface $jwtManager): Response
+    {
+        $currentUser = $this->security->getUser();
 
-    if (!$currentUser) {
-        throw $this->createAccessDeniedException('You need to log in to view your cars.');
-    }
-    $jwt = $jwtManager->create($currentUser);
-    $url = sprintf('%s/api/users/%d/cars', $this->apiHost, $currentUser->getId());
-    $response = $this->httpClient->request('GET', $url, [
+        if (!$currentUser) {
+            throw $this->createAccessDeniedException('You need to log in to view your cars.');
+        }
+
+        $response = $this->httpClient->request('GET', sprintf('%s/api/users/%d/cars', $this->apiHost, $currentUser->getId()), [
         'headers' => [
-            'Authorization' => "Bearer $jwt"
+            'Authorization' => sprintf('Bearer %s', $jwtManager->create($currentUser))
         ]
     ]);
 
-    $carData = $response->getStatusCode() === Response::HTTP_OK 
-        ? $response->toArray() 
-        : ['error' => 'Unable to fetch cars'];
-
-    return $this->render('car/index.html.twig', [
-        'cars' => $carData,
-        'user' => $currentUser
-    ]);
-}
-
-
+        return $this->render('car/index.html.twig', [
+            'cars' => $response->getStatusCode() === Response::HTTP_OK 
+                ? $response->toArray() 
+                : ['error' => 'Unable to fetch cars'],
+            'user' => $currentUser
+        ]);
+    }
 
     #[Route('/cars/{id<\d+>}', name: 'app_car_show', methods: ['GET'])]
     #[OA\Get(
