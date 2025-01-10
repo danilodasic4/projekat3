@@ -66,11 +66,11 @@ class AppFixtures extends Fixture
             $car->setColor($faker->colorName);
 
             // Random registration date within the next year
-            $registrationDate = new DateTimeImmutable('+' . rand(1, 90) . ' days'); 
+            $registrationDate = new DateTime('+' . rand(1, 90) . ' days'); 
             $car->setRegistrationDate($registrationDate);
 
-            $car->setCreatedAt(new \DateTimeImmutable());
-            $car->setUpdatedAt(new \DateTimeImmutable());
+            $car->setCreatedAt(new \DateTime());
+            $car->setUpdatedAt(new \DateTime());
 
             // Randomly assign a user to the car
             $car->setUser($users[rand(0, 2)]);  // Randomly choose a user from the users array
