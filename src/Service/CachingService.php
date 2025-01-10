@@ -14,15 +14,16 @@ class CachingService
         $this->cache = $cache;
     }
 
+    private function getLoggedInUsersCountFromCache(): int
+    {
+        return (int) $this->cache->get('COUNT_LOGGED_IN_USERS', fn() => 0);
+    }
+    
     public function incrementLoggedInUsers(): void
     {
         $this->cache->get('COUNT_LOGGED_IN_USERS', function (ItemInterface $item) {
             $item->expiresAfter(3600);
-            $currentCount = (int)$this->cache->get('COUNT_LOGGED_IN_USERS', function() {
-                return 0;
-            });
-
-            return $currentCount + 1;
+            return $this->getLoggedInUsersCountFromCache() + 1;
         });
     }
 
@@ -30,18 +31,12 @@ class CachingService
     {
         $this->cache->get('COUNT_LOGGED_IN_USERS', function (ItemInterface $item) {
             $item->expiresAfter(3600);
-            $currentCount = (int)$this->cache->get('COUNT_LOGGED_IN_USERS', function() {
-                return 0;
-            });
-
-            return $currentCount - 1;
+            return $this->getLoggedInUsersCountFromCache() - 1;
         });
     }
 
     public function getLoggedInUsersCount(): int
     {
-        return (int)$this->cache->get('COUNT_LOGGED_IN_USERS', function() {
-            return 0;
-        });
+        return $this->getLoggedInUsersCountFromCache();
     }
 }
