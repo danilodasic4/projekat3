@@ -1,4 +1,5 @@
 security:
+    enable_authenticator_manager: true
     password_hashers:
         App\Entity\User:
             algorithm: auto
@@ -26,7 +27,20 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-
+        login:
+            pattern : ^/api/login
+            stateless: true
+            provider: app_user_provider
+            json_login:
+                username_path: email  
+                check_path: /api/login_check 
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        api:
+            pattern : ^/api
+            stateless: true
+            provider: app_user_provider
+            jwt: ~
         admin:
             pattern: ^/admin
             lazy: true
@@ -61,6 +75,7 @@ security:
             security: true
 
     access_control:
+        - { path: ^/api/users/\d+/cars, roles: ROLE_VERIFIED }
         - { path: ^/admin/login, roles: PUBLIC_ACCESS }
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
