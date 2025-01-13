@@ -21,13 +21,12 @@ class UserController extends AbstractController
     #[Route('/admin/users', name: 'admin_users')]
     public function users(UserRepository $userRepository): Response
     {
-        $loggedInUsersCount = $this->cachingService->getLoggedInUsersCount();
-
         return $this->render('admin/users.html.twig', [
             'users' => $userRepository->findAll(),
-            'loggedInUsersCount' => $loggedInUsersCount,
+            'loggedInUsersCount' => $this->cachingService->getLoggedInUsersCount(),
         ]);
     }
+
 
     #[Route('/admin/users/{user_id}/ban', name: 'admin_ban_user', methods: ['POST'])]
     public function banUser(

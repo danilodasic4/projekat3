@@ -80,7 +80,6 @@ class LoginController extends AbstractController
     )]
     public function logout(SessionInterface $session): RedirectResponse
 {
-    $this->cachingService->decrementLoggedInUsers();
 
     $session->clear();
     
