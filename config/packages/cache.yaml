@@ -1,6 +1,4 @@
 framework:
     cache:
-        pools:
-            redis_cache:
-                adapter: 'cache.adapter.redis'
-                provider: 'redis://redis:6379'
+        app: cache.adapter.redis
+        default_redis_provider: 'redis://redis:6379'
