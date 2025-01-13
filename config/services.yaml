@@ -28,7 +28,7 @@ services:
     Symfony\Component\Cache\Adapter\RedisAdapter:
         factory: ['Symfony\Component\Cache\Adapter\RedisAdapter', 'createConnection']
         arguments:
-            - '%env(REDIS_URL)%'
+            - '%env(REDIS_DNS)%'
 
     App\Service\CachingService:
         arguments:

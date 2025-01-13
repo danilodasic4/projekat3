@@ -61,7 +61,6 @@ class LoginController extends AbstractController
         // Last username entered by the user (to pre-fill the username field)
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        $this->cachingService->incrementLoggedInUsers();
 
         return $this->render('login/index.html.twig', [
             'last_username' => $lastUsername,
