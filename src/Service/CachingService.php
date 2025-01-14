@@ -6,12 +6,11 @@ use Symfony\Contracts\Cache\CacheInterface;
 
 class CachingService
 {
-    private CacheInterface $cache;
 
-    public function __construct(CacheInterface $cache)
-    {
-        $this->cache = $cache;
-    }
+    public function __construct(       
+        private readonly CacheInterface $cache,
+    )
+    {}
 
     public function initializeCountLoggedInUsers(): void
     {
