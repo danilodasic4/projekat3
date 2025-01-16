@@ -1,7 +1,7 @@
 <?php
+
 namespace App\Controller;
 
-use App\Service\CachingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,9 +13,6 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class LoginController extends AbstractController
 {
-    public function __construct(
-        private readonly CachingService $cachingService,
-    ){}
 
     #[Route('/login', name: 'app_login', methods: ['GET','POST'])]
     #[OA\Get(
@@ -61,7 +58,6 @@ class LoginController extends AbstractController
         // Last username entered by the user (to pre-fill the username field)
         $lastUsername = $authenticationUtils->getLastUsername();
 
-
         return $this->render('login/index.html.twig', [
             'last_username' => $lastUsername,
             'error' => $error,
@@ -79,11 +75,8 @@ class LoginController extends AbstractController
     )]
     public function logout(SessionInterface $session): RedirectResponse
 {
-
     $session->clear();
-    
     $session->invalidate();
-
     return new RedirectResponse($this->generateUrl('homepage'));
 }
 }

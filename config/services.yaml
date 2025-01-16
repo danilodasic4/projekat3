@@ -18,13 +18,6 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'   
     
-    App\EventListener\LogoutSubscriber:
-        arguments:
-            $cachingService: '@App\Service\CachingService'
-            $urlGenerator: '@router.default'
-        tags:
-            - { name: 'kernel.event_subscriber' }
-
     Symfony\Component\Cache\Adapter\RedisAdapter:
         factory: ['Symfony\Component\Cache\Adapter\RedisAdapter', 'createConnection']
         arguments:

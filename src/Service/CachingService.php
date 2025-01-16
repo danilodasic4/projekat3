@@ -4,17 +4,15 @@ namespace App\Service;
 
 use Symfony\Contracts\Cache\CacheInterface;
 
-class CachingService
+readonly class CachingService
 {
-
-    public function __construct(       
-        private readonly CacheInterface $cache,
-    )
-    {}
+    public function __construct(
+        private CacheInterface $cache,
+    ) {}
 
     public function initializeCountLoggedInUsers(): void
     {
-        $item = $this->cache->get('COUNT_LOGGED_IN_USERS', function () {
+        $this->cache->get('COUNT_LOGGED_IN_USERS', function () {
             return 0;
         });
     }
