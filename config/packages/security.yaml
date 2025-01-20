@@ -62,6 +62,7 @@ security:
             form_login:
                 login_path: /login
                 check_path: app_login
+                success_handler: App\Security\LoginSuccessHandler
                 default_target_path: /cars
             logout:
                 path: /logout

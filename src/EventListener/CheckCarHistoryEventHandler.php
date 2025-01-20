@@ -6,7 +6,7 @@ use App\Event\CheckCarHistoryEvent;
 use App\Repository\CarRepository;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
-readonly class CheckCarHistoryEventHandler implements MessageHandlerInterface
+class CheckCarHistoryEventHandler implements MessageHandlerInterface
 {
     public function __construct(
         private CarRepository $carRepository,
