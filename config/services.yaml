@@ -17,9 +17,19 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'   
+
     App\Controller\Admin\LoginController:
         arguments:
             $lockFactory: '@admin_lock.lock.factory'
+    
+    Symfony\Component\Cache\Adapter\RedisAdapter:
+        factory: ['Symfony\Component\Cache\Adapter\RedisAdapter', 'createConnection']
+        arguments:
+            - '%env(REDIS_DNS)%'
+
+    App\Service\CachingService:
+        arguments:
+            $cache: '@cache.app'
 
     App\EventListener\CheckCarHistoryEventHandler:
         arguments:

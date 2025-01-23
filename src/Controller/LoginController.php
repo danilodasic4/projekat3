@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -75,9 +76,7 @@ class LoginController extends AbstractController
     public function logout(SessionInterface $session): RedirectResponse
 {
     $session->clear();
-    
     $session->invalidate();
-
     return new RedirectResponse($this->generateUrl('homepage'));
 }
 }

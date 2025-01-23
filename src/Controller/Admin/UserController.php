@@ -9,11 +9,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\CachingService;
 
 class UserController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly CachingService $cachingService,
     ) {}
 
     #[Route('/admin/users', name: 'admin_users')]
@@ -21,8 +23,10 @@ class UserController extends AbstractController
     {
         return $this->render('admin/users.html.twig', [
             'users' => $userRepository->findAll(),
+            'loggedInUsersCount' => $this->cachingService->getLoggedInUsersCount(),
         ]);
     }
+
 
     #[Route('/admin/users/{user_id}/ban', name: 'admin_ban_user', methods: ['POST'])]
     public function banUser(
