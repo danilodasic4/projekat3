@@ -8,10 +8,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Lock\LockFactory;
-use Symfony\Component\Lock\Store\RedisStore;
 
 class LoginController extends AbstractController
 {
@@ -32,11 +30,10 @@ class LoginController extends AbstractController
         $lock = $this->lockFactory->createLock(self::ADMIN_LOCK_KEY, 3600);
 
         if (!$lock->acquire(false)) {
-            return $this->render('admin/login.html.twig', [
-                'last_username' => $authenticationUtils->getLastUsername(),
-                'error' => 'Another admin is already logged in.',
-            ]);
+            // If the lock is already acquired, show the error template
+            return $this->render('admin/login_error.html.twig');
         }
+
         return $this->render('admin/login.html.twig', [
             'last_username' => $authenticationUtils->getLastUsername(),
             'error' => $authenticationUtils->getLastAuthenticationError(),
@@ -46,11 +43,6 @@ class LoginController extends AbstractController
     #[Route('/admin/logout', name: 'admin_logout', methods: ['GET'])]
     public function logout(SessionInterface $session): RedirectResponse
     {
-        $lock = $this->lockFactory->createLock(self::ADMIN_LOCK_KEY);
-        if ($lock->isAcquired()) {
-            $lock->release();
-        }
-
         $session->clear();
         $session->invalidate();
 

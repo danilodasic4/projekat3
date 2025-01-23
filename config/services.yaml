@@ -21,11 +21,22 @@ services:
     App\Controller\Admin\LoginController:
         arguments:
             $lockFactory: '@admin_lock.lock.factory'
-    
-    Symfony\Component\Cache\Adapter\RedisAdapter:
-        factory: ['Symfony\Component\Cache\Adapter\RedisAdapter', 'createConnection']
+
+    redis:
+        class: Redis
+        calls:
+            - method: connect
+              arguments:
+                - '%env(REDIS_DSN)%'
+
+    Symfony\Component\Lock\Store\RedisStore:
         arguments:
-            - '%env(REDIS_DNS)%'
+            - '@redis'
+
+    admin_lock.lock.factory:
+        class: Symfony\Component\Lock\LockFactory
+        arguments:
+            - '@Symfony\Component\Lock\Store\RedisStore'
 
     App\Service\CachingService:
         arguments:
