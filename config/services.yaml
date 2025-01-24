@@ -16,11 +16,7 @@ services:
         exclude:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
-            - '../src/Kernel.php'   
-
-    App\Controller\Admin\LoginController:
-        arguments:
-            $lockFactory: '@admin_lock.lock.factory'
+            - '../src/Kernel.php'
 
     redis:
         class: Redis
