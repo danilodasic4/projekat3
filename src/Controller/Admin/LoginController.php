@@ -27,7 +27,7 @@ class LoginController extends AbstractController
             return $this->redirectToRoute('admin_index');
         }
 
-        $lock = $this->lockFactory->createLock(self::ADMIN_LOCK_KEY, 3600);
+        $lock = $this->lockFactory->createLock(self::ADMIN_LOCK_KEY, 3600, false);
 
         if (!$lock->acquire(false)) {
             // If the lock is already acquired, show the error template
