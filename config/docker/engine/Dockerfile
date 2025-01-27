@@ -26,7 +26,8 @@ ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/do
 RUN chmod +x /usr/local/bin/install-php-extensions
 RUN install-php-extensions amqp \
 		                   apcu \
-		                   redis;
+		                   redis \
+                           xml;
 
 # PHP configuration
 RUN ln -s $PHP_INI_DIR/php.ini-development $PHP_INI_DIR/php.ini

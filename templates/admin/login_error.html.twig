@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Login{% endblock %}
+
+{% block body %}
+    <div class="alert alert-danger">
+        Another admin is already logged in. Please try again later.
+    </div>
+    <a href="{{ path('admin_login') }}">Go back to admin login page</a>
+    <a href="{{ path('homepage') }}">Go back to homepage</a>
+
+{% endblock %}
