@@ -18,6 +18,10 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'   
     
+    App\Command\CheckUserImagesCommand:
+        arguments:
+            $profilePicturesDirectory: '%profile_pictures_directory%'
+    
     Symfony\Component\Cache\Adapter\RedisAdapter:
         factory: ['Symfony\Component\Cache\Adapter\RedisAdapter', 'createConnection']
         arguments:
