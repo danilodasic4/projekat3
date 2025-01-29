@@ -29,21 +29,14 @@ class LogoutSubscriber implements EventSubscriberInterface
 
     public function onLogout(LogoutEvent $event): void
     {
-        $request = $this->requestStack->getCurrentRequest();
-        $routeName = $request->attributes->get('_route');
-
-        if ($routeName === self::ADMIN_LOGOUT_ROUTE) {
-            // Release admin lock
-            $lock = $this->lockFactory->createLock(self::ADMIN_LOCK_KEY);
-            if ($lock->isAcquired()) {
+        if (($this->requestStack->getCurrentRequest()->attributes->get('_route')) === self::ADMIN_LOGOUT_ROUTE) {
+            if (($lock = $this->lockFactory->createLock(self::ADMIN_LOCK_KEY))->isAcquired()) {
                 $lock->release();
             }
         } else {
-            // Decrement logged-in users for regular users
             $this->cachingService->decrementLoggedInUsers();
         }
 
-        // Redirect to homepage after logout
         $event->setResponse(new RedirectResponse(
             $this->urlGenerator->generate('homepage'),
             RedirectResponse::HTTP_SEE_OTHER

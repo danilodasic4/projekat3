@@ -1,12 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Admin Login{% endblock %}
+{% block title %}Access Denied{% endblock %}
 
 {% block body %}
-    <div class="alert alert-danger">
-        Another admin is already logged in. Please try again later.
+    <div class="container d-flex flex-column align-items-center justify-content-center min-vh-100">
+        <h1 class="text-danger mb-4">Access Denied</h1>
+        <div class="card shadow-lg p-4 text-center" style="max-width: 400px;">
+            <p class="alert alert-danger">Another admin is already logged in. Please try again later.</p>
+            <a href="{{ path('homepage') }}" class="btn btn-primary mt-3">Return to Homepage</a>
+        </div>
     </div>
-    <a href="{{ path('admin_login') }}">Go back to admin login page</a>
-    <a href="{{ path('homepage') }}">Go back to homepage</a>
-
 {% endblock %}
