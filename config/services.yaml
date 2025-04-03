@@ -33,7 +33,13 @@ services:
         class: Symfony\Component\Lock\LockFactory
         arguments:
             - '@Symfony\Component\Lock\Store\RedisStore'
-
+    
+    App\Command\CheckUserImagesCommand:
+        arguments:
+            $profilePicturesDirectory: '%profile_pictures_directory%'
+    
+    Symfony\Component\Cache\Adapter\RedisAdapter:
+        factory: ['Symfony\Component\Cache\Adapter\RedisAdapter', 'createConnection']
     App\Service\CachingService:
         arguments:
             $cache: '@cache.app'
