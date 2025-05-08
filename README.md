@@ -55,7 +55,15 @@ php bin/console doctrine:fixtures:load
 
 Once the fixtures are loaded, you can log in using the following credentials:
 
-#### User Login:
+### Email Verification
+
+After registering, users must verify their email address before gaining full access. Below are examples of verified and unverified accounts:
+
+#### Verified User Login:
+- **Email:** danilo@gmail.com
+- **Password:** danilo
+
+#### Unverified User Login:
 - **Email:** user@example.com
 - **Password:** user123
 
