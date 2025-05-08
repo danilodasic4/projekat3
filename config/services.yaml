@@ -16,7 +16,23 @@ services:
         exclude:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
-            - '../src/Kernel.php'   
+            - '../src/Kernel.php'
+
+    redis:
+        class: Redis
+        calls:
+            - method: connect
+              arguments:
+                - '%env(REDIS_DSN)%'
+
+    Symfony\Component\Lock\Store\RedisStore:
+        arguments:
+            - '@redis'
+
+    admin_lock.lock.factory:
+        class: Symfony\Component\Lock\LockFactory
+        arguments:
+            - '@Symfony\Component\Lock\Store\RedisStore'
     
     App\Command\CheckUserImagesCommand:
         arguments:
@@ -24,9 +40,6 @@ services:
     
     Symfony\Component\Cache\Adapter\RedisAdapter:
         factory: ['Symfony\Component\Cache\Adapter\RedisAdapter', 'createConnection']
-        arguments:
-            - '%env(REDIS_DNS)%'
-
     App\Service\CachingService:
         arguments:
             $cache: '@cache.app'
