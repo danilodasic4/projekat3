@@ -1,9 +1,69 @@
-# Symfony 6 Testing Project
+# Symfony 6 Testing Project – Technical Inspection App
 
 ## Overview
 
-This project is built using the Symfony 6 framework, leveraging Docker for container orchestration, with API documentation supported via Swagger (NelMioApiDocBundle). The application includes user management, vehicle management, authentication, and a variety of additional features such as scheduling appointments, banning users, and Redis caching.
+This project is a full-featured web application built using the Symfony 6 framework, intended to simulate and manage the technical inspection process for vehicle owners.
 
+Verified users can manage their vehicles, track registration expiry, receive email reminders, apply discounts, and schedule various appointments. Administrators can oversee all activity, manage users, and handle appointments via a dedicated admin panel.
+
+## Key Features
+
+### For Users (After Email Verification)
+
+#### Track Vehicle Registration Expiry
+
+Users can view when their vehicle registration is about to expire. An email notification is sent 30 days before the expiration.
+
+#### Discounts on Registration Costs
+
+When checking the price of registration, users can enter a discount code (`discount20`) to receive a discounted price, which is then displayed.
+
+#### Vehicle Management (Car CRUD)
+
+- Add new vehicles they own.
+- Edit vehicle information such as make, model, year, and registration expiration.
+- Soft-delete vehicles (remains hidden, not permanently deleted).
+- View all owned vehicles through a dropdown menu.
+
+#### Appointment Scheduling for a Specific Car
+
+Users can schedule an appointment for their vehicle by selecting:
+
+- Appointment Type: `maintenance`, `registration`, `polishing`, `painting`
+- Date & Time
+
+If no conflicting appointment exists at the selected time, the appointment is successfully booked. Otherwise, the user is asked to pick a different slot.
+
+#### Appointment Overview
+
+View all appointments across all owned cars, including time and type.
+
+### For Admins
+
+Admins log in at `/admin/login` and have the following capabilities:
+
+#### Block / Unblock Users
+
+Admins can ban users (setting a `banned_at` timestamp) and unblock them if needed.
+
+#### Manage All Appointments
+
+View all appointments scheduled by all users with the following details:
+
+- Car (make & model)
+- User email
+- Appointment type
+- Scheduled date & time
+- Action: Mark appointment as "Finished" via a button (AJAX-enabled)
+
+#### Upcoming & Archived Appointments
+
+- **Upcoming**: Appointments scheduled in the future
+- **Archived**: Past or marked-as-finished appointments
+
+#### User Management Panel
+
+View all registered users and their current status (active or banned).
 ## Project URL
 
 You can access the application at:
