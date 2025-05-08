@@ -64,6 +64,7 @@ View all appointments scheduled by all users with the following details:
 #### User Management Panel
 
 View all registered users and their current status (active or banned).
+
 ## Project URL
 
 You can access the application at:
@@ -124,7 +125,7 @@ After registering, users must verify their email address before gaining full acc
 - **Password:** danilo
 
 #### Unverified User Login:
-- **Email:** user@example.com
+- **Email:** user1@example.com
 - **Password:** user123
 
 #### Admin Login:
